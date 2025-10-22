@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Kaprodi</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #fafafa;
+            margin: 0;
+        }
+        header {
+            background-color: #6f42c1;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .container {
+            padding: 40px;
+        }
+        a.logout {
+            color: white;
+            text-decoration: none;
+            background: #dc3545;
+            padding: 8px 15px;
+            border-radius: 8px;
+        }
+        a.logout:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h2>Dashboard Kaprodi</h2>
+        <div>
+            <span>Halo, {{ user }}</span>
+            <a href="{{ url_for('logout') }}" class="logout">Logout</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <h3>Selamat datang di Dashboard Kaprodi 🎓</h3>
+        <p>Kamu bisa memantau data dosen, mahasiswa, dan laporan akademik di sini.</p>
+    </div>
+</body>
+</html>
