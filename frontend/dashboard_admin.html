@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .container {
+            padding: 40px;
+        }
+        a.logout {
+            color: white;
+            text-decoration: none;
+            background: #dc3545;
+            padding: 8px 15px;
+            border-radius: 8px;
+        }
+        a.logout:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h2>Dashboard Admin</h2>
+        <div>
+            <span>Halo, {{ user }}</span>
+            <a href="{{ url_for('logout') }}" class="logout">Logout</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <h3>Selamat datang di halaman admin 👋</h3>
+        <p>Ini area khusus untuk admin. Kamu bisa tambahkan menu atau data di sini.</p>
+    </div>
+</body>
+</html>
