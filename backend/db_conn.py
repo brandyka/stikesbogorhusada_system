@@ -5,7 +5,7 @@ def create_connection():
         conn = mysql.connector.connect(
             host="localhost",       # host database kamu
             user="root",            # username MySQL
-            password="qwertyuiop",            # password MySQL (kosong kalau default di XAMPP)
+            password="",            # password MySQL (kosong kalau default di XAMPP)
             database="sbh" # nama database kamu
         )
 
