@@ -21,20 +21,16 @@ def login():
         conn = create_connection()
         cursor = conn.cursor(dictionary=True)
         # Query disesuaikan berdasarkan role
-        if role == 'mahasiswa':
-            cursor.execute("""
-                SELECT * FROM akun 
-                WHERE Username=%s AND Password=%s AND Role=%s
-            """, (username, password, role))
-        else:
-            return render_template('login_page.html', error="Role tidak valid!")
-
+        cursor.execute("""
+            SELECT * FROM akun 
+            WHERE Username=%s AND Password=%s AND Role=%s
+        """, (username, password, role))
         akun = cursor.fetchone()
 
         if akun:
             # Simpan data ke session
             session['username'] = akun['Username']
-            session['role'] = role
+            session['role'] = akun ['role']
 
             # Arahkan ke dashboard sesuai role
             if role == 'mahasiswa':
