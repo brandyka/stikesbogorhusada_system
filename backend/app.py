@@ -20,7 +20,7 @@ def login():
 
         conn = create_connection()
         cursor = conn.cursor(dictionary=True)
-        # Query disesuaikan berdasarkan role
+
         cursor.execute("""
             SELECT * FROM akun 
             WHERE Username=%s AND Password=%s AND Role=%s
@@ -28,23 +28,22 @@ def login():
         akun = cursor.fetchone()
 
         if akun:
-            # Simpan data ke session
             session['username'] = akun['Username']
-            session['role'] = akun ['role']
+            session['role'] = akun['Role']
 
-            # Arahkan ke dashboard sesuai role
-            if role == 'mahasiswa':
+            if akun['Role'] == 'mahasiswa':
                 return redirect(url_for('dashboard_mahasiswa'))
-            elif role == 'dosen':
+            elif akun['Role'] == 'dosen':
                 return redirect(url_for('dashboard_dosen'))
-            elif role == 'kaprodi':
+            elif akun['Role'] == 'kaprodi':
                 return redirect(url_for('dashboard_kaprodi'))
-            elif role == 'admin':
+            elif akun['Role'] == 'admin':
                 return redirect(url_for('dashboard_admin'))
         else:
             return render_template('login_page.html', error="Username, password, atau role salah!")
 
     return render_template('login_page.html')
+
 
 @app.route('/dashboard/mahasiswa')
 def dashboard_mahasiswa():
