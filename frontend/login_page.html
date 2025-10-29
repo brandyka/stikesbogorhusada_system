@@ -7,25 +7,25 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       body {
-        background: linear-gradient(135deg, #e8d5f2 0%, #f0e8ff 50%, #e5f2ff 100%);
+        background: white;
       }
     </style>
   </head>
-  <body class="flex items-center justify-center min-h-screen">
-    <div class="bg-white shadow-2xl rounded-3xl overflow-hidden flex max-w-6xl w-full min-h-[600px]">
-      <!-- Left Section -->
-      <div class="w-1/2 bg-gradient-to-br from-orange-400 to-yellow-500 p-12 flex flex-col justify-center items-center text-center">
-        <div class="bg-white rounded-3xl p-8 mb-8 shadow-lg">
-          <div class="w-20 h-20 bg-gradient-to-br from-orange-500 to-yellow-400 rounded-2xl"></div>
-        </div>
-
-        <h1 class="text-4xl font-bold text-gray-700 mb-4">STIKes Bogor Husada</h1>
-        <p class="text-xl text-gray-600 mb-6">Sistem Akademik Terpadu</p>
-        <p class="text-sm text-gray-500 max-w-md">Portal terintegrasi untuk mahasiswa, dosen, dan administrasi akademik</p>
+  <body class="flex min-h-screen">
+    <!-- Left Section -->
+    <div class="w-1/2 flex flex-col justify-center items-center text-center p-12" style="background: linear-gradient(135deg, #e8d5f2 0%, #ffe8f0 50%, #ffcc80 100%)">
+      <div class="bg-white rounded-3xl p-8 mb-8 shadow-lg">
+        <div class="w-20 h-20 bg-gradient-to-br from-orange-500 to-yellow-400 rounded-2xl"></div>
       </div>
 
-      <!-- Right Section -->
-      <div class="w-1/2 p-12 flex flex-col justify-center">
+      <h1 class="text-4xl font-bold text-gray-700 mb-4">STIKes Bogor Husada</h1>
+      <p class="text-xl text-gray-600 mb-6">Sistem Akademik Terpadu</p>
+      <p class="text-sm text-gray-500 max-w-md">Portal terintegrasi untuk mahasiswa, dosen, dan administrasi akademik</p>
+    </div>
+
+    <!-- Right Section -->
+    <div class="w-1/2 bg-white flex flex-col justify-center items-center p-12">
+      <div class="w-full max-w-md">
         <h2 class="text-3xl font-bold text-gray-800 mb-2">Sistem Akademik Terpadu</h2>
         <p class="text-gray-500 mb-8">Masuk ke akun Anda</p>
 
@@ -64,7 +64,8 @@
               <option value="">Pilih peran Anda</option>
               <option value="mahasiswa">Mahasiswa</option>
               <option value="dosen">Dosen</option>
-              <option value="admin">Admin</option>
+              <option value="admin">Kepala Program Studi</option>
+              <option value="admin">Administrator</option>
             </select>
           </div>
 
