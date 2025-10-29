@@ -7,33 +7,81 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       body {
-        background: linear-gradient(135deg, #fef4f1 0%, #ffe8f0 50%, #f0e8ff 100%);
+        background: white;
       }
     </style>
   </head>
-  <body class="flex items-center justify-center min-h-screen">
-    <div class="bg-white shadow-lg rounded-2xl w-96 p-8">
-      <h2 class="text-2xl font-bold text-center text-orange-500 mb-6">Login Sistem</h2>
+  <body class="flex min-h-screen">
+    <!-- Left Section -->
+    <div class="w-1/2 flex flex-col justify-center items-center text-center p-12" style="background: linear-gradient(135deg, #e8d5f2 0%, #ffe8f0 50%, #ffcc80 100%)">
+      <div class="bg-white rounded-3xl p-8 mb-8 shadow-lg">
+        <div class="w-20 h-20 bg-gradient-to-br from-orange-500 to-yellow-400 rounded-2xl"></div>
+      </div>
 
-      {% if error %}
-      <p class="text-red-500 text-sm text-center mb-3">{{ error }}</p>
-      {% endif %}
+      <h1 class="text-4xl font-bold text-gray-700 mb-4">STIKes Bogor Husada</h1>
+      <p class="text-xl text-gray-600 mb-6">Sistem Akademik Terpadu</p>
+      <p class="text-sm text-gray-500 max-w-md">Portal terintegrasi untuk mahasiswa, dosen, dan administrasi akademik</p>
+    </div>
 
-      <form method="POST" action="/login" class="space-y-4">
-        <div>
-          <label for="username" class="block text-sm font-semibold text-gray-700 mb-1">Username</label>
-          <input type="text" name="username" id="username" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" />
-        </div>
+    <!-- Right Section -->
+    <div class="w-1/2 bg-white flex flex-col justify-center items-center p-12">
+      <div class="w-full max-w-md">
+        <h2 class="text-3xl font-bold text-gray-800 mb-2">Sistem Akademik Terpadu</h2>
+        <p class="text-gray-500 mb-8">Masuk ke akun Anda</p>
 
-        <div>
-          <label for="password" class="block text-sm font-semibold text-gray-700 mb-1">Password</label>
-          <input type="password" name="password" id="password" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" />
-        </div>
+        {% if error %}
+        <p class="text-red-500 text-sm mb-4 bg-red-50 p-3 rounded-lg">{{ error }}</p>
+        {% endif %}
 
-        <button type="submit" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg font-semibold transition duration-200">Login</button>
-      </form>
+        <form method="POST" action="/login" class="space-y-5">
+          <div>
+            <label for="username" class="block text-sm font-semibold text-gray-700 mb-2">Email / NIP / NIM</label>
+            <input
+              type="text"
+              name="username"
+              id="username"
+              required
+              placeholder="Masukkan email, NIP, atau NIM"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+            />
+          </div>
 
-      <p class="text-xs text-gray-400 text-center mt-6">&copy; 2025 STIKES Bogor Husada. All rights reserved.</p>
+          <div>
+            <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+            <input
+              type="password"
+              name="password"
+              id="password"
+              required
+              placeholder="Masukkan password"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label for="role" class="block text-sm font-semibold text-gray-700 mb-2">Masuk sebagai</label>
+            <select name="role" id="role" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent appearance-none bg-white">
+              <option value="">Pilih peran Anda</option>
+              <option value="mahasiswa">Mahasiswa</option>
+              <option value="dosen">Dosen</option>
+              <option value="admin">Kepala Program Studi</option>
+              <option value="admin">Administrator</option>
+            </select>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <label class="flex items-center">
+              <input type="checkbox" class="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-400" />
+              <span class="ml-2 text-sm text-gray-600">Ingat Saya</span>
+            </label>
+            <a href="#" class="text-sm text-orange-500 hover:text-orange-600 font-semibold">Lupa Password?</a>
+          </div>
+
+          <button type="submit" class="w-full bg-gradient-to-r from-orange-400 to-yellow-500 hover:from-orange-500 hover:to-yellow-600 text-white py-3 rounded-lg font-semibold transition duration-200 shadow-md">Masuk</button>
+        </form>
+
+        <p class="text-xs text-gray-400 text-center mt-8">© 2025 Sistem Akademik Terpadu — All rights reserved</p>
+      </div>
     </div>
   </body>
 </html>
