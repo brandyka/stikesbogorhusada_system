@@ -1,50 +1,132 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Mahasiswa</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Mahasiswa | STIKes Bogor Husada</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #eef3f8;
-            margin: 0;
-        }
-        header {
-            background-color: #28a745;
-            color: white;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .container {
-            padding: 40px;
-        }
-        a.logout {
-            color: white;
-            text-decoration: none;
-            background: #dc3545;
-            padding: 8px 15px;
-            border-radius: 8px;
-        }
-        a.logout:hover {
-            background: #c82333;
-        }
+      body {
+        font-family: "Inter", "Segoe UI", sans-serif;
+      }
     </style>
-</head>
-<body>
-    <header>
-        <h2>Dashboard Mahasiswa</h2>
-        <div>
-            <span>Halo, {{ user }}</span>
-            <a href="{{ url_for('logout') }}" class="logout">Logout</a>
+  </head>
+  <body class="bg-gray-50">
+    <div class="flex min-h-screen">
+      <!-- Sidebar -->
+      <aside class="w-64 bg-purple-50 p-6 flex flex-col">
+        <div class="mb-8">
+          <h1 class="text-2xl font-bold text-orange-500">slbh</h1>
+          <p class="text-sm text-gray-600 mt-1">STIKes Bogor Husada</p>
         </div>
-    </header>
 
-    <div class="container">
-        <h3>Selamat datang di Dashboard Mahasiswa 👨‍🎓</h3>
-        <p>Kamu bisa melihat jadwal kuliah, nilai, dan informasi akademik di sini.</p>
+        <nav class="flex-1">
+          <ul class="space-y-2">
+            <li>
+              <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-white text-orange-500 font-semibold shadow-sm">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                  ></path>
+                </svg>
+                <span>Beranda</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <span>Jadwal</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                  ></path>
+                </svg>
+                <span>Bimbingan</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col">
+        <!-- Header -->
+        <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center">
+          <h2 class="text-2xl font-bold text-gray-800">Dashboard Mahasiswa</h2>
+          <a href="/logout" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+            </svg>
+            <span>Logout</span>
+          </a>
+        </header>
+
+        <!-- Content Area -->
+        <main class="flex-1 p-8">
+          <!-- Section Header -->
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold text-gray-800">Identitas Mahasiswa</h3>
+            <button class="flex items-center space-x-2 text-gray-700 hover:text-gray-900">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+              </svg>
+              <span class="font-semibold">Edit Profile</span>
+            </button>
+          </div>
+
+          <!-- Profile Card -->
+          <div class="bg-white rounded-2xl shadow-sm p-8">
+            <div class="flex items-start space-x-8">
+              <!-- Profile Photo -->
+              <div class="flex-shrink-0">
+                <div class="w-40 h-40 bg-gray-300 rounded-2xl overflow-hidden">
+                  <img src="https://via.placeholder.com/160" alt="Profile" class="w-full h-full object-cover" />
+                </div>
+              </div>
+
+              <!-- Profile Info -->
+              <div class="flex-1 grid grid-cols-2 gap-x-16 gap-y-6">
+                <div>
+                  <p class="text-sm text-gray-500 mb-1">Nama Lengkap</p>
+                  <p class="text-base font-semibold text-gray-800">Ahmad Fauzi Ramadhan</p>
+                </div>
+
+                <div>
+                  <p class="text-sm text-gray-500 mb-1">NIM</p>
+                  <p class="text-base font-semibold text-gray-800">2021010001</p>
+                </div>
+
+                <div>
+                  <p class="text-sm text-gray-500 mb-1">Program Studi</p>
+                  <p class="text-base font-semibold text-gray-800">S1 Keperawatan</p>
+                </div>
+
+                <div>
+                  <p class="text-sm text-gray-500 mb-1">Semester</p>
+                  <p class="text-base font-semibold text-gray-800">5</p>
+                </div>
+
+                <div>
+                  <p class="text-sm text-gray-500 mb-1">Angkatan</p>
+                  <p class="text-base font-semibold text-gray-800">2021</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
-</body>
+  </body>
 </html>
