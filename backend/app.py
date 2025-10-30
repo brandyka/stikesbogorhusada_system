@@ -20,28 +20,30 @@ def login():
         conn = create_connection()
         cursor = conn.cursor(dictionary=True)
 
-        cursor.execute(""" 
-            SELECT * FROM akun WHERE Username=%s AND Password=%s 
-            """, (username, password)) 
-        akun = cursor.fetchone() 
-    if akun: session['username'] = akun['Username']
+        cursor.execute("""
+            SELECT * FROM akun WHERE Username=%s AND Password=%s
+        """, (username, password))
+        akun = cursor.fetchone()
 
-    if akun['nim_mahasiswa']: 
-        session['role'] = 'mahasiswa' 
-        return redirect(url_for('dashboard_mahasiswa'))
-    elif akun['nip_dosen']: 
-        session['role'] = 'dosen' 
-        return redirect(url_for('dashboard_dosen')) 
-    elif akun['nip_kaprodi']: 
-        session['role'] = 'kaprodi' 
-        return redirect(url_for('dashboard_kaprodi')) 
-    elif akun['id_admin']: 
-        session['role'] = 'admin' 
-        return redirect(url_for('dashboard_admin')) 
-    else: return render_template('login_page.html', error="Username atau password salah!") 
+        if akun:
+            session['username'] = akun['Username']
+
+            if akun['nim_mahasiswa']:
+                session['role'] = 'mahasiswa'
+                return redirect(url_for('dashboard_mahasiswa'))
+            elif akun['nip_dosen']:
+                session['role'] = 'dosen'
+                return redirect(url_for('dashboard_dosen'))
+            elif akun['nip_kaprodi']:
+                session['role'] = 'kaprodi'
+                return redirect(url_for('dashboard_kaprodi'))
+            elif akun['id_admin']:
+                session['role'] = 'admin'
+                return redirect(url_for('dashboard_admin'))
+        else:
+            return render_template('login_page.html', error="Username atau password salah!")
 
     return render_template('login_page.html')
-
 
 @app.route('/dashboard/mahasiswa')
 def dashboard_mahasiswa():
