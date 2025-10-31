@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, url_for
+from flask import Flask, render_template, request, redirect, session, url_for,send_from_directory
 from db_conn import create_connection
 import os
 
@@ -6,6 +6,10 @@ frontend_path = os.path.join(os.path.dirname(__file__), '../frontend')
 
 app = Flask(__name__, template_folder=frontend_path)
 app.secret_key = "secret123"
+
+@app.route('/gambar/<path:filename>')
+def gambar(filename):
+    return send_from_directory('gambar', filename)
 
 @app.route('/')
 def home():
