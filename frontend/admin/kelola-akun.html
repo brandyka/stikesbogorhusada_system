@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kelola Akun | STIKes Bogor Husada</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        font-family: "Inter", "Segoe UI", sans-serif;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <div class="flex min-h-screen">
+      <aside class="w-64 p-6 flex flex-col" style="background: linear-gradient(180deg, #f0e8f5 0%, #f3ebf6 30%, #f5eef4 50%, #f3ebf6 70%, #f0e8f5 100%)">
+        <div class="mb-8">
+          <h1 class="text-2xl font-bold text-orange-500">sbh</h1>
+          <p class="text-sm text-gray-600 mt-1">STIKes Bogor Husada</p>
+        </div>
+
+        <nav class="flex-1">
+          <ul class="space-y-2">
+            <li>
+              <a href="{{ url_for('dashboard_admin') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
+                <span>Utama</span>
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('admin_kelola_data') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
+                <span>Kelola Data</span>
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('admin_kelola_jadwal') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
+                <span>Kelola Jadwal</span>
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('admin_kelola_akun') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-white text-orange-500 font-semibold shadow-sm">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
+                <span>Kelola Akun</span>
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('admin_kelola_bimbingan') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
+                <span>Kelola Bimbingan</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <div class="flex-1 flex flex-col">
+        <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center shadow-sm">
+          <h2 class="text-2xl font-bold text-gray-800">Kelola Akun</h2>
+          <a href="{{ url_for('logout') }}" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
+            <span>Logout</span>
+          </a>
+        </header>
+
+        <main class="flex-1 p-8 bg-gray-50">
+          <h3 class="text-2xl font-bold text-gray-800 mb-6">Kelola Akun</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <a href="{{ url_for('admin_akun_mahasiswa') }}" class="block bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl shadow-md p-6 hover:shadow-lg transition">
+              <div class="flex flex-col items-center text-center">
+                <svg class="w-12 h-12 text-orange-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zM12 14v6m-6-3.422l.665-1.154a12.083 12.083 0 011.66-2.268M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path></svg>
+                <h4 class="text-xl font-bold text-gray-800 mb-2">Akun Mahasiswa</h4>
+                <p class="text-sm text-gray-700">Kelola akun pengguna mahasiswa</p>
+              </div>
+            </a>
+
+            <a href="{{ url_for('admin_akun_dosen') }}" class="block bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl shadow-md p-6 hover:shadow-lg transition">
+              <div class="flex flex-col items-center text-center">
+                <svg class="w-12 h-12 text-orange-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <h4 class="text-xl font-bold text-gray-800 mb-2">Akun Dosen</h4>
+                <p class="text-sm text-gray-700">Kelola akun pengguna dosen</p>
+              </div>
+            </a>
+
+            <a href="{{ url_for('admin_akun_kaprodi') }}" class="block bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl shadow-md p-6 hover:shadow-lg transition">
+              <div class="flex flex-col items-center text-center">
+                <svg class="w-12 h-12 text-orange-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37..."></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                <h4 class="text-xl font-bold text-gray-800 mb-2">Akun Kaprodi</h4>
+                <p class="text-sm text-gray-700">Kelola akun kepala program studi</p>
+              </div>
+            </a>
+
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <button class="fixed bottom-8 right-8 bg-gray-900 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-gray-700 transition">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
+    </button>
+  </body>
+</html>

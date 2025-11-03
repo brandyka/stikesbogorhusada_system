@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kelola Akun Dosen | STIKes Bogor Husada</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: "Inter", "Segoe UI", sans-serif;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50">
+  <div class="flex min-h-screen">
+
+    <!-- Sidebar -->
+    <aside class="w-64 p-6 flex flex-col" 
+      style="background: linear-gradient(180deg, #f0e8f5 0%, #f3ebf6 30%, #f5eef4 50%, #f3ebf6 70%, #f0e8f5 100%)">
+      
+      <div class="mb-8">
+        <h1 class="text-2xl font-bold text-orange-500">sbh</h1>
+        <p class="text-sm text-gray-600 mt-1">STIKes Bogor Husada</p>
+      </div>
+
+      <nav class="flex-1">
+        <ul class="space-y-2">
+          <li>
+            <a href="{{ url_for('dashboard_admin') }}" 
+               class="flex items-center space-x-3 px-4 py-3 rounded-xl 
+               {{ 'bg-white text-orange-500 font-semibold shadow-sm' if request.path == url_for('dashboard_admin') else 'text-gray-700 hover:bg-white transition' }}">
+              <span>Utama</span>
+            </a>
+          </li>
+
+          <li>
+            <a href="{{ url_for('admin_kelola_data') }}" 
+               class="flex items-center space-x-3 px-4 py-3 rounded-xl 
+               {{ 'bg-white text-orange-500 font-semibold shadow-sm' if request.path == url_for('admin_kelola_data') else 'text-gray-700 hover:bg-white transition' }}">
+              <span>Kelola Data</span>
+            </a>
+          </li>
+
+          <li>
+            <a href="{{ url_for('admin_kelola_jadwal') }}" 
+               class="flex items-center space-x-3 px-4 py-3 rounded-xl 
+               {{ 'bg-white text-orange-500 font-semibold shadow-sm' if request.path == url_for('admin_kelola_jadwal') else 'text-gray-700 hover:bg-white transition' }}">
+              <span>Kelola Jadwal</span>
+            </a>
+          </li>
+
+          <li>
+            <a href="{{ url_for('admin_kelola_akun') }}" 
+               class="flex items-center space-x-3 px-4 py-3 rounded-xl 
+               {{ 'bg-white text-orange-500 font-semibold shadow-sm' if request.path == url_for('admin_kelola_akun') else 'text-gray-700 hover:bg-white transition' }}">
+              <span>Kelola Akun</span>
+            </a>
+          </li>
+
+          <li>
+            <a href="{{ url_for('admin_kelola_bimbingan') }}" 
+               class="flex items-center space-x-3 px-4 py-3 rounded-xl 
+               {{ 'bg-white text-orange-500 font-semibold shadow-sm' if request.path == url_for('admin_kelola_bimbingan') else 'text-gray-700 hover:bg-white transition' }}">
+              <span>Kelola Bimbingan</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col">
+      <!-- Header -->
+      <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center shadow-sm">
+        <h2 class="text-2xl font-bold text-gray-800">Kelola Akun</h2>
+        <a href="{{ url_for('logout') }}" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold">
+          <span>Logout</span>
+        </a>
+      </header>
+
+      <!-- Main -->
+      <main class="flex-1 p-8 bg-gray-50">
+        <div class="flex justify-between items-center mb-6">
+          <div>
+            <h3 class="text-2xl font-bold text-gray-800">Daftar Akun Dosen</h3>
+            <a href="{{ url_for('admin_kelola_akun') }}" 
+               class="text-sm text-orange-500 hover:underline flex items-center mt-1">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+              </svg>
+              Kembali ke Menu Akun
+            </a>
+          </div>
+
+          <a href="{{ url_for('tambah_akun_dosen') }}" 
+             class="bg-orange-500 text-white font-semibold px-5 py-3 rounded-xl shadow-md hover:bg-orange-600 transition flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            <span>Tambah Akun Dosen</span>
+          </a>
+        </div>
+
+        <!-- Table -->
+        <div class="overflow-x-auto rounded-2xl shadow-md border border-gray-100 bg-white">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Username</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Password</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">NIM Mahasiswa Terhubung</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Aksi</th>
+              </tr>
+            </thead>
+
+            <tbody class="bg-white divide-y divide-gray-200">
+              {% for akun in daftar_akun %}
+              <tr class="hover:bg-orange-50 transition">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ akun.Username }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">********</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ akun.nip_dosen }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
+                  
+                  <!-- Edit -->
+                  <a href="{{ url_for('edit_akun_dosen', username=akun.Username) }}" 
+                     class="text-blue-500 hover:text-blue-700" title="Edit">
+                    <svg class="w-5 h-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.536L16.732 3.732z"></path>
+                    </svg>
+                  </a>
+
+                  <!-- Hapus -->
+                  <a href="{{ url_for('hapus_akun_dosen', username=akun.Username) }}" 
+                     class="text-red-500 hover:text-red-700" title="Hapus"
+                     onclick="return confirm('Anda yakin ingin menghapus akun {{ akun.Username }}?');">
+                    <svg class="w-5 h-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                  </a>
+
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Floating Help Button -->
+  <button onclick="alert('Butuh bantuan? Hubungi Admin IT di ruang 305 👨‍💻')" 
+          class="fixed bottom-8 right-8 bg-gray-900 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-gray-700 transition">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+            d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.79 4 4 0 1.847-1.24 3.4-3 3.875V17m-2 2h2m-4-8a.5.5 0 100-1 .5.5 0 000 1z">
+      </path>
+    </svg>
+  </button>
+</body>
+</html>

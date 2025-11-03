@@ -3,16 +3,23 @@ import mysql.connector
 def create_connection():
     try:
         conn = mysql.connector.connect(
-            host="localhost",       # host database kamu
-            user="root",            # username MySQL
-            password="",            # password MySQL (kosong kalau default di XAMPP)
-            database="sbh" # nama database kamu
+            host="127.0.0.1",
+            user="root",
+            password="qwertyuiop",
+            database="sbh",
+            auth_plugin='mysql_native_password'
         )
-
         if conn.is_connected():
-            print("✅ Koneksi ke database berhasil!")
+            print("Succesfully Connect Database")
             return conn
-
     except mysql.connector.Error as e:
-        print("❌ Gagal konek ke database:", e)
+        print("Fail Connect Database", e)
         return None
+
+if __name__ == "__main__":
+    conn = create_connection()
+    if conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT DATABASE();")
+        print("📦 Terhubung ke database:", cursor.fetchone()[0])
+        conn.close()
