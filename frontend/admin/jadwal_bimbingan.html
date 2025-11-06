@@ -3,8 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- DIUBAH: Judul Halaman -->
-    <title>Kelola jadwal | STIKes Bogor Husada</title>
+    <title>Kelola Bimbingan | STIKes Bogor Husada</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       body {
@@ -24,7 +23,6 @@
         <nav class="flex-1">
           <ul class="space-y-2">
             <li>
-              <!-- DIUBAH: Link kembali ke rute dashboard_admin -->
               <a href="{{ url_for('dashboard_admin') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -38,7 +36,6 @@
               </a>
             </li>
             <li>
-              <!-- DIUBAH: Link ke rute halmaan halaman kelola data -->
               <a href="{{ url_for('admin_kelola_data') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -52,8 +49,7 @@
               </a>
             </li>
             <li>
-              <!-- DIUBAH: Link ini adalah halaman aktif -->
-              <a href="{{ url_for('admin_kelola_jadwal') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition>
+              <a href="{{ url_for('admin_kelola_jadwal') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                 </svg>
@@ -61,7 +57,6 @@
               </a>
             </li>
             <li>
-              <!-- DIUBAH: Link ke rute admin_kelola_akun -->
               <a href="{{ url_for('admin_kelola_akun') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -76,7 +71,6 @@
               </a>
             </li>
             <li>
-              <!-- DIUBAH: Link ke rute admin_kelola_bimbingan -->
               <a href="{{ url_for('admin_kelola_bimbingan') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-white text-orange-500 font-semibold shadow-sm">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -87,11 +81,12 @@
           </ul>
         </nav>
       </aside>
+
       <!-- Main Content -->
       <div class="flex-1 flex flex-col">
         <!-- Header -->
         <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center shadow-sm">
-          <h2 class="text-2xl font-bold text-gray-800">Kelola bimbingan</h2>
+          <h2 class="text-2xl font-bold text-gray-800">Kelola Bimbingan</h2>
           <a href="/logout" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
@@ -99,27 +94,34 @@
             <span>Logout</span>
           </a>
         </header>
+
+        <!-- Main Content Area -->
         <main class="flex-1 p-8 bg-gray-50">
-        <div class="flex justify-between items-center mb-6">
-          <div>
-            <h3 class="text-2xl font-bold text-gray-800">Kelola Bimbingan</h3>
+          <div class="flex justify-between items-center mb-6">
+            <div>
+              <h3 class="text-2xl font-bold text-gray-800">Kelola Bimbingan</h3>
+              <a href="#" class="text-sm text-orange-500 hover:underline flex items-center mt-1">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Kembali
+              </a>
+            </div>
+            <a href="tambah_bimbingan_form.html" class="bg-orange-500 text-white font-semibold px-5 py-3 rounded-xl shadow-md hover:bg-orange-600 transition flex items-center space-x-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
+              <span>Tambah Bimbingan Baru</span>
+            </a>
           </div>
-          <a href="tambah_jadwal_form.html"
-             class="bg-orange-500 text-white font-semibold px-5 py-3 rounded-xl shadow-md hover:bg-orange-600 transition flex items-center space-x-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-            </svg>
-            <span>Tambah bimbingan baru</span>
-          </a>
-        </div>
-        <!-- Table -->
+
+          <!-- Table -->
           <div class="bg-white rounded-xl shadow-sm overflow-hidden">
             <table class="w-full">
               <thead class="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">mahasiswa</th>
-                  <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Dosen pembimbing</th>
+                  <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Mahasiswa</th>
+                  <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Dosen Pembimbing</th>
                   <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Topik</th>
                   <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Status</th>
                   <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Aksi</th>
@@ -127,9 +129,9 @@
               </thead>
               <tbody class="divide-y divide-gray-200">
                 <tr class="hover:bg-gray-50 transition">
-                  <td class="px-6 py-4 text-sm text-gray-800">Anatomi Fisiologi</td>
-                  <td class="px-6 py-4 text-sm text-gray-600">Dr. Siti Nurjanah</td>
-                  <td class="px-6 py-4 text-sm text-gray-600">Senin</td>
+                  <td class="px-6 py-4 text-sm text-gray-800">Ahmad Rizki (2021101001)</td>
+                  <td class="px-6 py-4 text-sm text-gray-600">Dr. Siti Nurjanah, S.Kep., M.Kes</td>
+                  <td class="px-6 py-4 text-sm text-gray-600">Asuhan Keperawatan Geriatri</td>
                   <td class="px-6 py-4">
                     <span class="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">Aktif</span>
                   </td>
@@ -149,19 +151,14 @@
                   </td>
                 </tr>
                 <tr class="hover:bg-gray-50 transition">
-                  <td class="px-6 py-4 text-sm text-gray-800">Keperawatan Dasar</td>
-                  <td class="px-6 py-4 text-sm text-gray-600">Dr. Ahmad Fauzi</td>
-                  <td class="px-6 py-4 text-sm text-gray-600">Selasa</td>
+                  <td class="px-6 py-4 text-sm text-gray-800">Siti Aisyah (2021101002)</td>
+                  <td class="px-6 py-4 text-sm text-gray-600">Dr. Ahmad Fauzi, S.Kep., M.Kes</td>
+                  <td class="px-6 py-4 text-sm text-gray-600">Manajemen Nyeri pada Pasien Kritis</td>
                   <td class="px-6 py-4">
-                    <span class="px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-700">Perubahan Pending</span>
+                    <span class="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">Aktif</span>
                   </td>
                   <td class="px-6 py-4">
                     <div class="flex items-center space-x-3">
-                      <button class="text-green-500 hover:text-green-600">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                      </button>
                       <button class="text-blue-500 hover:text-blue-600">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
@@ -176,11 +173,11 @@
                   </td>
                 </tr>
                 <tr class="hover:bg-gray-50 transition">
-                  <td class="px-6 py-4 text-sm text-gray-800">Farmakologi</td>
-                  <td class="px-6 py-4 text-sm text-gray-600">Dr. Rina Melati</td>
-                  <td class="px-6 py-4 text-sm text-gray-600">Rabu</td>
+                  <td class="px-6 py-4 text-sm text-gray-800">Budi Santoso (2021101003)</td>
+                  <td class="px-6 py-4 text-sm text-gray-600">Dr. Rina Melati, S.Kep., M.Kes</td>
+                  <td class="px-6 py-4 text-sm text-gray-600">Perawatan Luka Diabetes</td>
                   <td class="px-6 py-4">
-                    <span class="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">Aktif</span>
+                    <span class="px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700">Selesai</span>
                   </td>
                   <td class="px-6 py-4">
                     <div class="flex items-center space-x-3">
@@ -205,4 +202,3 @@
     </div>
   </body>
 </html>
-        

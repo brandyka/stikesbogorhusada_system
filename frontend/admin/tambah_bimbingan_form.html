@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- DIUBAH: Judul Halaman -->
-    <title>Kelola jadwal | STIKes Bogor Husada</title>
+    <title>tambah bimbingan | STIKes Bogor Husada</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       body {
@@ -87,7 +87,6 @@
           </ul>
         </nav>
       </aside>
-
       <!-- Main Content -->
       <div class="flex-1 flex flex-col">
         <!-- Header -->
@@ -101,38 +100,46 @@
           </a>
         </header>
 
-        <!-- Content Area -->
+        <!-- Main Content Area -->
         <main class="flex-1 p-8 bg-gray-50">
-          <h3 class="text-2xl font-bold text-gray-800 mb-6">Kelola Jadwal</h3>
-
-          <!-- Cards Grid -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Jadwal Mata Kuliah Card -->
-            <a href="jadwal_matkul.html" class="block bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl shadow-md p-6 hover:shadow-lg transition">
-              <div class="flex flex-col items-center text-center">
-                <svg class="w-12 h-12 text-orange-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                </svg>
-                <h4 class="text-xl font-bold text-gray-800 mb-2">Jadwal Mata Kuliah</h4>
-                <p class="text-sm text-gray-700">Kelola jadwal perkuliahan dan pengajaran</p>
-              </div>
+          <div class="mb-6">
+            <h3 class="text-2xl font-bold text-gray-800">Tambah Jadwal Mata Kuliah</h3>
+            <a href="#" class="text-sm text-orange-500 hover:underline flex items-center mt-1">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+              </svg>
+              Kembali ke Daftar Mata Kuliah
             </a>
+          </div>
 
-            <!-- Jadwal Bimbingan Card -->
-            <a href="jadwal_bimbingan.html" class="block bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl shadow-md p-6 hover:shadow-lg transition">
-              <div class="flex flex-col items-center text-center">
-                <svg class="w-12 h-12 text-orange-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                  ></path>
-                </svg>
-                <h4 class="text-xl font-bold text-gray-800 mb-2">Jadwal Bimbingan</h4>
-                <p class="text-sm text-gray-700">Kelola jadwal bimbingan mahasiswa</p>
+          <!-- Form Card -->
+          <div class="max-w-2xl bg-white rounded-xl shadow-sm p-8">
+            <form>
+              <div class="space-y-6">
+                <!-- mahasiswa -->
+                <div>
+                  <label for="mahasiswa" class="block text-sm font-semibold text-gray-700 mb-2">Mahasiswa</label>
+                  <input type="text" id="mahasiswa" name="mahasiswa" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
+                </div>
+
+                <!-- Dosen pembimbing -->
+                <div>
+                  <label for="dosen pembimbing" class="block text-sm font-semibold text-gray-700 mb-2">dosen Pembimbing</label>
+                  <input type="text" id="dosen pembimbing" name="dosen pembimbing" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
+                </div>
+
+                <!-- topik -->
+                <div>
+                  <label for="topik" class="block text-sm font-semibold text-gray-700 mb-2">Topik</label>
+                  <input type="text" id="topik" name="topik" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="Masukkan ruangan" />
+                </div>
+
+                <!-- Submit Button -->
+                <div class="pt-4">
+                  <button type="submit" class="w-full bg-orange-500 text-white font-semibold px-6 py-3 rounded-lg shadow-md hover:bg-orange-600 transition">Simpan</button>
+                </div>
               </div>
-            </a>
+            </form>
           </div>
         </main>
       </div>

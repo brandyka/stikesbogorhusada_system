@@ -53,7 +53,7 @@
             </li>
             <li>
               <!-- DIUBAH: Link ini adalah halaman aktif -->
-              <a href="{{ url_for('admin_kelola_jadwal') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition>
+              <a href="{{ url_for('admin_kelola_jadwal') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-white text-orange-500 font-semibold shadow-sm">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                 </svg>
@@ -77,7 +77,7 @@
             </li>
             <li>
               <!-- DIUBAH: Link ke rute admin_kelola_bimbingan -->
-              <a href="{{ url_for('admin_kelola_bimbingan') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-white text-orange-500 font-semibold shadow-sm">
+              <a href="{{ url_for('admin_kelola_bimbingan') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
@@ -91,7 +91,7 @@
       <div class="flex-1 flex flex-col">
         <!-- Header -->
         <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center shadow-sm">
-          <h2 class="text-2xl font-bold text-gray-800">Kelola bimbingan</h2>
+          <h2 class="text-2xl font-bold text-gray-800">Kelola Jadwal</h2>
           <a href="/logout" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
@@ -100,27 +100,33 @@
           </a>
         </header>
         <main class="flex-1 p-8 bg-gray-50">
-        <div class="flex justify-between items-center mb-6">
-          <div>
-            <h3 class="text-2xl font-bold text-gray-800">Kelola Bimbingan</h3>
+          <div class="flex justify-between items-center mb-6">
+            <div>
+              <h3 class="text-2xl font-bold text-gray-800">Daftar Mata Kuliah</h3>
+              <a href="kelola-jadwal.html" class="text-sm text-orange-500 hover:underline flex items-center mt-1">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Kembali ke Kelola Jadwal
+              </a>
+            </div>
+            <a href="tambah_jadwal_form.html" class="bg-orange-500 text-white font-semibold px-5 py-3 rounded-xl shadow-md hover:bg-orange-600 transition flex items-center space-x-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
+              <span>Tambah Jadwal Mata Kuliah</span>
+            </a>
           </div>
-          <a href="tambah_jadwal_form.html"
-             class="bg-orange-500 text-white font-semibold px-5 py-3 rounded-xl shadow-md hover:bg-orange-600 transition flex items-center space-x-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-            </svg>
-            <span>Tambah bimbingan baru</span>
-          </a>
-        </div>
-        <!-- Table -->
+          <!-- Table -->
           <div class="bg-white rounded-xl shadow-sm overflow-hidden">
             <table class="w-full">
               <thead class="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">mahasiswa</th>
-                  <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Dosen pembimbing</th>
-                  <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Topik</th>
+                  <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Mata Kuliah</th>
+                  <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Dosen</th>
+                  <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Hari</th>
+                  <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Jam</th>
+                  <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Ruangan</th>
                   <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Status</th>
                   <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Aksi</th>
                 </tr>
@@ -130,6 +136,8 @@
                   <td class="px-6 py-4 text-sm text-gray-800">Anatomi Fisiologi</td>
                   <td class="px-6 py-4 text-sm text-gray-600">Dr. Siti Nurjanah</td>
                   <td class="px-6 py-4 text-sm text-gray-600">Senin</td>
+                  <td class="px-6 py-4 text-sm text-gray-600">08:00-10:00</td>
+                  <td class="px-6 py-4 text-sm text-gray-600">Lab 201</td>
                   <td class="px-6 py-4">
                     <span class="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">Aktif</span>
                   </td>
@@ -152,6 +160,8 @@
                   <td class="px-6 py-4 text-sm text-gray-800">Keperawatan Dasar</td>
                   <td class="px-6 py-4 text-sm text-gray-600">Dr. Ahmad Fauzi</td>
                   <td class="px-6 py-4 text-sm text-gray-600">Selasa</td>
+                  <td class="px-6 py-4 text-sm text-gray-600">10:00-12:00</td>
+                  <td class="px-6 py-4 text-sm text-gray-600">Kelas 102</td>
                   <td class="px-6 py-4">
                     <span class="px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-700">Perubahan Pending</span>
                   </td>
@@ -179,6 +189,8 @@
                   <td class="px-6 py-4 text-sm text-gray-800">Farmakologi</td>
                   <td class="px-6 py-4 text-sm text-gray-600">Dr. Rina Melati</td>
                   <td class="px-6 py-4 text-sm text-gray-600">Rabu</td>
+                  <td class="px-6 py-4 text-sm text-gray-600">13:00-15:00</td>
+                  <td class="px-6 py-4 text-sm text-gray-600">Kelas 201</td>
                   <td class="px-6 py-4">
                     <span class="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">Aktif</span>
                   </td>
@@ -205,4 +217,3 @@
     </div>
   </body>
 </html>
-        
