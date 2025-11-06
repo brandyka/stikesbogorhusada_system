@@ -1,12 +1,17 @@
 import mysql.connector
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env
+load_dotenv()
 
 def create_connection():
     try:
         conn = mysql.connector.connect(
-            host="127.0.0.1",
-            user="root",
-            password="qwertyuiop",
-            database="sbh",
+            host=os.getenv("DB_HOST"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            database=os.getenv("DATABASE_NAME"),
             auth_plugin='mysql_native_password'
         )
         if conn.is_connected():
