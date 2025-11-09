@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tambah Jadwal Kuliah | STIKes Bogor Husada</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style> body { font-family: "Inter", "Segoe UI", sans-serif; } </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex min-h-screen">
+        <aside class="w-64 p-6 flex flex-col" style="background: linear-gradient(180deg, #f0e8f5 0%, #f3ebf6 30%, #f5eef4 50%, #f3ebf6 70%, #f0e8f5 100%)">
+            <div class="mb-8">
+                <h1 class="text-2xl font-bold text-orange-500">sbh</h1>
+                <p class="text-sm text-gray-600 mt-1">STIKes Bogor Husada</p>
+            </div>
+            <nav class="flex-1">
+              <ul class="space-y-2">
+                <li><a href="{{ url_for('dashboard_admin') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition"><span>Utama</span></a></li>
+                <li><a href="{{ url_for('admin_kelola_data') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition"><span>Kelola Data</span></a></li>
+                <li><a href="{{ url_for('admin_kelola_jadwal') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-white text-orange-500 font-semibold shadow-sm"><span>Kelola Jadwal</span></a></li>
+                <li><a href="{{ url_for('admin_kelola_akun') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition"><span>Kelola Akun</span></a></li>
+                <li><a href="{{ url_for('admin_kelola_bimbingan') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition"><span>Kelola Bimbingan</span></a></li>
+              </ul>
+            </nav>
+        </aside>
+        <div class="flex-1 flex flex-col">
+            <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center shadow-sm">
+              <h2 class="text-2xl font-bold text-gray-800">Kelola Jadwal</h2>
+              <a href="{{ url_for('logout') }}" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold"><span>Logout</span></a>
+            </header>
+            <main class="flex-1 p-8 bg-gray-50">
+              <div class="flex justify-between items-center mb-6">
+                <div>
+                  <h3 class="text-2xl font-bold text-gray-800">Tambah Jadwal Mata Kuliah</h3>
+                  <a href="{{ url_for('admin_jadwal_matakuliah_list') }}" class="text-sm text-orange-500 hover:underline flex items-center mt-1">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Kembali ke Daftar Jadwal
+                  </a>
+                </div>
+              </div>
+              <form method="POST" action="{{ url_for('tambah_jadwal_matakuliah') }}" class="bg-white rounded-2xl shadow-md p-8 max-w-2xl mx-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  
+                  <div class="space-y-6">
+                    <div>
+                      <label for="kd_mk" class="block text-sm font-semibold text-gray-700 mb-2">Mata Kuliah</label>
+                      <select name="kd_mk" id="kd_mk" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400">
+                          <option value="">-- Pilih Mata Kuliah --</option>
+                          {% for mk in daftar_matkul %}
+                              <option value="{{ mk.kd_mk }}">{{ mk.kd_mk }} - {{ mk.nama_matkul }}</option>
+                          {% endfor %}
+                      </select>
+                    </div>
+                    <div>
+                      <label for="nip_dosen" class="block text-sm font-semibold text-gray-700 mb-2">Dosen Pengampu</label>
+                      <select name="nip_dosen" id="nip_dosen" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400">
+                          <option value="">-- Pilih Dosen --</option>
+                          {% for dosen in daftar_dosen %}
+                              <option value="{{ dosen.NIP }}">{{ dosen.Nama }}</option>
+                          {% endfor %}
+                      </select>
+                    </div>
+                    <div>
+                      <label for="id_kelas" class="block text-sm font-semibold text-gray-700 mb-2">Kelas</label>
+                      <select name="id_kelas" id="id_kelas" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400">
+                          <option value="">-- Pilih Kelas --</option>
+                          {% for kelas in daftar_kelas %}
+                              <option value="{{ kelas.id_kelas }}">{{ kelas.nama_kelas }}</option>
+                          {% endfor %}
+                      </select>
+                    </div>
+                    <div>
+                      <label for="id_angkatan" class="block text-sm font-semibold text-gray-700 mb-2">Angkatan</label>
+                      <select name="id_angkatan" id="id_angkatan" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400">
+                          <option value="">-- Pilih Angkatan --</option>
+                          {% for angkatan in daftar_angkatan %}
+                              <option value="{{ angkatan.id_angkatan }}">{{ angkatan.tahun }}</option>
+                          {% endfor %}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="space-y-6">
+                    <div>
+                      <label for="hari" class="block text-sm font-semibold text-gray-700 mb-2">Hari</label>
+                      <select name="hari" id="hari" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400">
+                          <option value="">-- Pilih Hari --</option>
+                          <option value="Senin">Senin</option>
+                          <option value="Selasa">Selasa</option>
+                          <option value="Rabu">Rabu</option>
+                          <option value="Kamis">Kamis</option>
+                          <option value="Jumat">Jumat</option>
+                          <option value="Sabtu">Sabtu</option>
+                      </select>
+                    </div>
+                    <div class="flex space-x-4">
+                      <div class="flex-1">
+                        <label for="jam_mulai" class="block text-sm font-semibold text-gray-700 mb-2">Jam Mulai</label>
+                        <input type="time" name="jam_mulai" id="jam_mulai" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400">
+                      </div>
+                      <div class="flex-1">
+                        <label for="jam_selesai" class="block text-sm font-semibold text-gray-700 mb-2">Jam Selesai</label>
+                        <input type="time" name="jam_selesai" id="jam_selesai" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400">
+                      </div>
+                    </div>
+                    <div>
+                      <label for="ruangan" class="block text-sm font-semibold text-gray-700 mb-2">Ruangan</label>
+                      <input type="text" name="ruangan" id="ruangan" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400">
+                    </div>
+                  </div>
+                </div>
+                <div class="pt-6 mt-6 border-t">
+                  <button type="submit" class="w-full bg-orange-500 text-white font-semibold px-5 py-3 rounded-xl shadow-md hover:bg-orange-600 transition">
+                    Simpan Jadwal Baru
+                  </button>
+                </div>
+              </form>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

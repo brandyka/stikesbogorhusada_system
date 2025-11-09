@@ -75,7 +75,7 @@
                             {% for kelas in daftar_kelas %}
               <tr class="hover:bg-orange-50 transition">
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ kelas.id_kelas }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ kelas.id_kelas}}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ kelas.nama_kelas}}</td>
 
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
                                     <a href="{{ url_for('edit_kelas', id_kelas=kelas.id_kelas) }}" 
