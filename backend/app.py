@@ -82,21 +82,172 @@ def dashboard_mahasiswa():
         if not mahasiswa_data:
             session.clear()
             return redirect(url_for('login', error="Data profil tidak ditemukan."))
-        return render_template('dashboard_mhs.html', 
+        return render_template('mahasiswa/dashboard_mhs.html', 
                                user=username, 
                                data=mahasiswa_data) 
     except Exception as e:
         print(f"Error fetching mahasiswa dashboard data: {e}")
         return "Terjadi error saat mengambil data profil."
+#================================ PAGE JADWAL ======================================
+@app.route('/dashboard/mahasiswa/jadwal')
+def jadwal_mahasiswa():
+    if session.get('role') != 'mahasiswa':
+        return redirect(url_for('login'))
+        
+    try:
+        username = session.get('username')
+        
+        # Ambil ID dari session (yang sudah disimpan saat di dashboard)
+        id_kelas_mhs = session.get('id_kelas')
+        id_angkatan_mhs = session.get('id_angkatan')
 
+        if not id_kelas_mhs or not id_angkatan_mhs:
+             # Jika session tidak ada, ambil ulang dari DB (safety net)
+             conn_check = create_connection()
+             cursor_check = conn_check.cursor(dictionary=True)
+             sql_get_ids = """
+                SELECT m.id_kelas, m.id_angkatan 
+                FROM akun a
+                JOIN mahasiswa m ON a.nim_mahasiswa = m.NIM
+                WHERE a.Username = %s
+             """
+             cursor_check.execute(sql_get_ids, (username,))
+             mahasiswa_ids = cursor_check.fetchone()
+             cursor_check.close()
+             conn_check.close()
+             
+             if mahasiswa_ids:
+                 id_kelas_mhs = mahasiswa_ids['id_kelas']
+                 id_angkatan_mhs = mahasiswa_ids['id_angkatan']
+             else:
+                 return "Data mahasiswa tidak ditemukan.", 404
+
+        # ----- Ambil Data Jadwal -----
+        conn = create_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # 
+        sql_get_jadwal = """
+            SELECT 
+                j.hari, 
+                j.jam_mulai, 
+                j.jam_selesai, 
+                j.ruangan,
+                mk.nama_matkul,
+                d.Nama AS nama_dosen
+            FROM jadwal j
+            LEFT JOIN matkul mk ON j.kd_mk = mk.kd_mk
+            LEFT JOIN dosen d ON j.nip_dosen = d.NIP
+            WHERE j.id_kelas = %s AND j.id_angkatan = %s
+            ORDER BY FIELD(j.hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'), j.jam_mulai
+        """
+        cursor.execute(sql_get_jadwal, (id_kelas_mhs, id_angkatan_mhs))
+        daftar_jadwal = cursor.fetchall()
+        
+        cursor.close()
+        conn.close()
+
+        # Render file HTML baru, kirim data jadwal ke sana
+        return render_template('mahasiswa/jadwal_mhs.html', 
+                               user=username, 
+                               daftar_jadwal=daftar_jadwal)
+
+    except Exception as e:
+        print(f"Error fetching jadwal mahasiswa: {e}")
+        if 'cursor' in locals() and cursor:
+            cursor.close()
+        if 'conn' in locals() and conn:
+            conn.close()
+        return "Terjadi error saat mengambil data jadwal."
 #=============================== DOSEN SECTION ===================================
 #=================================================================================
 @app.route('/dashboard/dosen')
 def dashboard_dosen():
-    if session.get('role') == 'dosen':
-        return render_template('dashboard_dosen.html', user=session['username'])
-    return redirect(url_for('login'))
+    if session.get('role') != 'dosen':
+        return redirect(url_for('login'))
+        
+    try:
+        username = session.get('username')
+        conn = create_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Query ini meniru logika Anda, tapi untuk Dosen
+        sql_query = """
+            SELECT 
+                d.NIP, 
+                d.Nama, 
+                d.ProgramStudi
+            FROM akun act
+            JOIN dosen d ON act.nip_dosen = d.NIP
+            WHERE act.Username = %s
+        """
+        cursor.execute(sql_query, (username,))
+        dosen_data = cursor.fetchone()
+        
+        cursor.close()
+        conn.close()
 
+        if not dosen_data:
+            session.clear()
+            return redirect(url_for('login', error="Data profil dosen tidak ditemukan."))
+        
+        # Simpan NIP di session agar bisa dipakai di halaman lain (spt absensi)
+        session['nip_dosen'] = dosen_data['NIP']
+            
+        # Kirim data dosen ke 'dosen/dashboard_dosen.html'
+        return render_template('dosen/dashboard_dosen.html', 
+                               user=username, 
+                               data=dosen_data) 
+    
+    except Exception as e:
+        print(f"Error fetching dosen dashboard data: {e}")
+        return "Terjadi error saat mengambil data profil dosen."
+
+@app.route('/dashboard/dosen/jadwal')
+def jadwal_dosen():
+    if session.get('role') != 'dosen':
+        return redirect(url_for('login'))
+        
+    try:
+        username = session.get('username')
+        nip_dosen = session.get('nip_dosen') # Ambil NIP dari session
+
+        # Safety net jika session hilang
+        if not nip_dosen:
+            return redirect(url_for('dashboard_dosen'))
+
+        conn = create_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Query ini HANYA mengambil data jadwal untuk dosen tsb
+        # [Image of SQL query joining jadwal, matkul, kelas, and angkatan tables]
+        sql_query_jadwal = """
+            SELECT 
+                j.id_jadwal, j.hari, j.jam_mulai, j.jam_selesai, j.ruangan,
+                mk.nama_matkul,
+                k.nama_kelas,
+                a.tahun AS angkatan_tahun
+            FROM jadwal j
+            LEFT JOIN matkul mk ON j.kd_mk = mk.kd_mk
+            LEFT JOIN kelas k ON j.id_kelas = k.id_kelas
+            LEFT JOIN angkatan a ON j.id_angkatan = a.id_angkatan
+            WHERE j.nip_dosen = %s
+            ORDER BY FIELD(j.hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'), j.jam_mulai
+        """
+        cursor.execute(sql_query_jadwal, (nip_dosen,))
+        daftar_jadwal = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+            
+        # Render file HTML BARU
+        return render_template('dosen/jadwal_dosen.html', 
+                               user=username, 
+                               daftar_jadwal=daftar_jadwal)
+    
+    except Exception as e:
+        print(f"Error fetching dosen jadwal data: {e}")
+        return "Terjadi error saat mengambil data jadwal dosen."
 #================================= KAPRODI SECTION ================================
 #==================================================================================
 @app.route('/dashboard/kaprodi')
@@ -619,7 +770,7 @@ def edit_kelas(id_kelas): # Ganti 'nim' menjadi 'kodemk'
         cursor = conn.cursor(dictionary=True) 
         
         # Sesuaikan Query SELECT
-        cursor.execute("SELECT * FROM kelas WHERE id_kelas = %s", (id_kelas))
+        cursor.execute("SELECT * FROM kelas WHERE id_kelas = %s", (id_kelas,))
         kelas_data = cursor.fetchone() 
         
         if not kelas_data:
@@ -979,7 +1130,9 @@ def edit_akun_mahasiswa(username):
                            user=session['username'], 
                            akun=akun_data,
                            daftar_mahasiswa=daftar_mahasiswa)
-    
+
+
+
 # KELOLA AKUN KAPRODI
 @app.route('/dashboard/admin/kelola-akun/kaprodi')
 def admin_akun_kaprodi():
@@ -1100,7 +1253,7 @@ def edit_akun_kaprodi(username):
                            akun=akun_data,
                            daftar_kaprodi=daftar_kaprodi)
 
-#============================ PAGE KELOLA BIMBINGAN ==================================
+#============================ PAGE BIMBINGAN ==================================
 @app.route('/dashboard/admin/kelola-bimbingan')
 def admin_kelola_bimbingan():
     if session.get('role') == 'admin':
@@ -1108,12 +1261,212 @@ def admin_kelola_bimbingan():
     return redirect(url_for('login'))
 
 
-# KELOLA JADWAL
+#========================== PAGE KELOLA JADWAL ==========================================
 @app.route('/dashboard/admin/kelola-jadwal')
 def admin_kelola_jadwal():
     if session.get('role') == 'admin':
         return render_template('admin/kelola-jadwal.html', user=session['username'])
     return redirect(url_for('login'))
+
+#JADWAL MATAKULIAH
+@app.route('/dashboard/admin/kelola-jadwal/matakuliah')
+def admin_jadwal_matakuliah_list():
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+    
+    conn = None
+    cursor = None
+    try:
+        conn = create_connection()
+        cursor = conn.cursor(dictionary=True)
+        # Query ini menggabungkan 5 TABEL berdasarkan database Anda
+        cursor.execute("""
+            SELECT 
+                j.id_jadwal, 
+                m.nama_matkul, 
+                d.Nama AS nama_dosen, 
+                k.nama_kelas, 
+                a.tahun AS tahun_angkatan,
+                j.hari, 
+                j.jam_mulai, 
+                j.jam_selesai, 
+                j.ruangan
+            FROM jadwal j
+            LEFT JOIN matkul m ON j.kd_mk = m.kd_mk
+            LEFT JOIN dosen d ON j.nip_dosen = d.NIP
+            LEFT JOIN kelas k ON j.id_kelas = k.id_kelas
+            LEFT JOIN angkatan a ON j.id_angkatan = a.id_angkatan
+        """)
+        daftar_jadwal = cursor.fetchall()
+        
+    except Exception as e:
+        print(f"Error fetching schedule list: {e}")
+        daftar_jadwal = []
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+            
+    return render_template('admin/kelola_jadwal_matakuliah_list.html', 
+                           user=session['username'], 
+                           daftar_jadwal=daftar_jadwal)
+
+@app.route('/dashboard/admin/kelola-jadwal/matakuliah/tambah', methods=['GET', 'POST'])
+def tambah_jadwal_matakuliah():
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+        
+    conn = create_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    if request.method == 'POST':
+        # Ambil semua data dari form (sesuai tabel 'jadwal' Anda)
+        kd_mk = request.form['kd_mk']
+        nip_dosen = request.form['nip_dosen']
+        id_kelas = request.form['id_kelas']
+        id_angkatan = request.form['id_angkatan']
+        ruangan = request.form['ruangan']
+        hari = request.form['hari']
+        jam_mulai = request.form['jam_mulai']
+        jam_selesai = request.form['jam_selesai']
+        
+        try:
+            cursor.execute("""
+                INSERT INTO jadwal (kd_mk, nip_dosen, id_kelas, id_angkatan, ruangan, hari, jam_mulai, jam_selesai) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """, (kd_mk, nip_dosen, id_kelas, id_angkatan, ruangan, hari, jam_mulai, jam_selesai))
+            conn.commit()
+        except Exception as e:
+            print(f"Error inserting schedule: {e}")
+        finally:
+            cursor.close()
+            conn.close()
+        return redirect(url_for('admin_jadwal_matakuliah_list'))
+
+    # (Method GET) Ambil data untuk dropdown form
+    try:
+        cursor.execute("SELECT kd_mk, nama_matkul FROM matkul")
+        daftar_matkul = cursor.fetchall()
+        
+        cursor.execute("SELECT NIP, Nama FROM dosen")
+        daftar_dosen = cursor.fetchall()
+        
+        cursor.execute("SELECT id_kelas, nama_kelas FROM kelas")
+        daftar_kelas = cursor.fetchall()
+        
+        cursor.execute("SELECT id_angkatan, tahun FROM angkatan")
+        daftar_angkatan = cursor.fetchall()
+        
+    except Exception as e:
+        print(f"Error fetching lists for schedule form: {e}")
+        daftar_matkul, daftar_dosen, daftar_kelas, daftar_angkatan = [], [], [], []
+    finally:
+        cursor.close()
+        conn.close()
+
+    return render_template('admin/tambah_jadwal_matakuliah_form.html', 
+                           user=session['username'],
+                           daftar_matkul=daftar_matkul,
+                           daftar_dosen=daftar_dosen,
+                           daftar_kelas=daftar_kelas,
+                           daftar_angkatan=daftar_angkatan)
+
+@app.route('/dashboard/admin/kelola-jadwal/matakuliah/edit/<int:id_jadwal>', methods=['GET', 'POST'])
+def edit_jadwal_matakuliah(id_jadwal):
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+        
+    conn = create_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    if request.method == 'POST':
+        # Ambil data dari form
+        kd_mk = request.form['kd_mk']
+        nip_dosen = request.form['nip_dosen']
+        id_kelas = request.form['id_kelas']
+        id_angkatan = request.form['id_angkatan']
+        ruangan = request.form['ruangan']
+        hari = request.form['hari']
+        jam_mulai = request.form['jam_mulai']
+        jam_selesai = request.form['jam_selesai']
+        
+        try:
+            cursor.execute("""
+                UPDATE jadwal SET 
+                    kd_mk = %s, 
+                    nip_dosen = %s, 
+                    id_kelas = %s, 
+                    id_angkatan = %s, 
+                    ruangan = %s, 
+                    hari = %s, 
+                    jam_mulai = %s, 
+                    jam_selesai = %s
+                WHERE id_jadwal = %s
+            """, (kd_mk, nip_dosen, id_kelas, id_angkatan, ruangan, hari, jam_mulai, jam_selesai, id_jadwal))
+            conn.commit()
+        except Exception as e:
+            print(f"Error updating schedule: {e}")
+        finally:
+            cursor.close()
+            conn.close()
+        return redirect(url_for('admin_jadwal_matakuliah_list'))
+
+    # (Method GET) Ambil data untuk dropdown dan data jadwal yang ada
+    try:
+        # 1. Ambil data jadwal yang mau di-edit
+        cursor.execute("SELECT * FROM jadwal WHERE id_jadwal = %s", (id_jadwal,))
+        jadwal_data = cursor.fetchone()
+        
+        # 2. Ambil data untuk semua dropdown
+        cursor.execute("SELECT kd_mk, nama_matkul FROM matkul")
+        daftar_matkul = cursor.fetchall()
+        
+        cursor.execute("SELECT NIP, Nama FROM dosen")
+        daftar_dosen = cursor.fetchall()
+        
+        cursor.execute("SELECT id_kelas, nama_kelas FROM kelas")
+        daftar_kelas = cursor.fetchall()
+        
+        cursor.execute("SELECT id_angkatan, tahun FROM angkatan")
+        daftar_angkatan = cursor.fetchall()
+        
+    except Exception as e:
+        print(f"Error fetching data for schedule edit: {e}")
+        return "Error mengambil data"
+    finally:
+        cursor.close()
+        conn.close()
+        
+    if not jadwal_data:
+        return "Jadwal tidak ditemukan", 404
+
+    return render_template('admin/edit_jadwal_matakuliah_form.html', 
+                           user=session['username'],
+                           jadwal=jadwal_data, # Data jadwal yang mau di-edit
+                           daftar_matkul=daftar_matkul,
+                           daftar_dosen=daftar_dosen,
+                           daftar_kelas=daftar_kelas,
+                           daftar_angkatan=daftar_angkatan)
+
+@app.route('/dashboard/admin/kelola-jadwal/matakuliah/hapus/<int:id_jadwal>')
+def hapus_jadwal_matakuliah(id_jadwal):
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+    
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM jadwal WHERE id_jadwal = %s", (id_jadwal,))
+        conn.commit()
+    except Exception as e:
+        print(f"Error deleting schedule: {e}")
+    finally:
+        if 'conn' in locals() and conn.is_connected():
+            cursor.close()
+            conn.close()
+            
+    return redirect(url_for('admin_jadwal_matakuliah_list'))
+#JADWAL BIMBINGAN
+
 @app.route('/logout')
 def logout():
     session.clear()
