@@ -1,117 +1,148 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kelola Data Kelas | STIKes Bogor Husada</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body {
-      font-family: "Inter", "Segoe UI", sans-serif;
-    }
-  </style>
-</head>
-<body class="bg-gray-50">
-  <div class="flex min-h-screen">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kelola Data Kelas | STIKes Bogor Husada</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        font-family: "Inter", "Segoe UI", sans-serif;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <div class="flex min-h-screen">
+      <aside class="w-64 p-6 flex flex-col" style="background: linear-gradient(180deg, #f0e8f5 0%, #f3ebf6 30%, #f5eef4 50%, #f3ebf6 70%, #f0e8f5 100%)">
+        <div class="mb-8">
+          <h1 class="text-2xl font-bold text-orange-500">sbh</h1>
+          <p class="text-sm text-gray-600 mt-1">STIKes Bogor Husada</p>
+        </div>
+        <nav class="flex-1">
+          <ul class="space-y-2">
+            <li>
+              <a href="{{ url_for('dashboard_admin') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                  ></path>
+                </svg>
+                <span>Utama</span>
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('admin_kelola_data') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-white text-orange-500 font-semibold shadow-sm">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                  ></path>
+                </svg>
+                <span>Kelola Data</span>
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('admin_kelola_jadwal') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <span>Kelola Jadwal</span>
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('admin_kelola_akun') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                  ></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                <span>Kelola Akun</span>
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('admin_kelola_bimbingan') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <span>Kelola Bimbingan</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </aside>
 
-        <aside class="w-64 p-6 flex flex-col" 
-      style="background: linear-gradient(180deg, #f0e8f5 0%, #f3ebf6 30%, #f5eef4 50%, #f3ebf6 70%, #f0e8f5 100%)">
-      <div class="mb-8">
-        <h1 class="text-2xl font-bold text-orange-500">sbh</h1>
-        <p class="text-sm text-gray-600 mt-1">STIKes Bogor Husada</p>
-      </div>
-      <nav class="flex-1">
-        <ul class="space-y-2">
-          <li><a href="{{ url_for('dashboard_admin') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition"><span>Utama</span></a></li>
-                    <li><a href="{{ url_for('admin_kelola_data') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-white text-orange-500 font-semibold shadow-sm"><span>Kelola Data</span></a></li>
-          <li><a href="{{ url_for('admin_kelola_jadwal') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition"><span>Kelola Jadwal</span></a></li>
-          <li><a href="{{ url_for('admin_kelola_akun') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition"><span>Kelola Akun</span></a></li>
-          <li><a href="{{ url_for('admin_kelola_bimbingan') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition"><span>Kelola Bimbingan</span></a></li>
-        </ul>
-      </nav>
-    </aside>
+      <div class="flex-1 flex flex-col">
+        <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center shadow-sm">
+          <h2 class="text-2xl font-bold text-gray-800">Kelola Data Akademik</h2>
+          <a href="{{ url_for('logout') }}" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold">
+            <span>Logout</span>
+          </a>
+        </header>
 
-        <div class="flex-1 flex flex-col">
-            <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center shadow-sm">
-        <h2 class="text-2xl font-bold text-gray-800">Kelola Data Akademik</h2>
-        <a href="{{ url_for('logout') }}" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold">
-          <span>Logout</span>
-        </a>
-      </header>
+        <main class="flex-1 p-8 bg-gray-50">
+          <div class="flex justify-between items-center mb-6">
+            <div>
+              <h3 class="text-2xl font-bold text-gray-800">Daftar Data Kelas</h3>
+              <a href="{{ url_for('admin_kelola_data') }}" class="text-sm text-orange-500 hover:underline flex items-center mt-1">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Kembali ke Kelola Data
+              </a>
+            </div>
 
-            <main class="flex-1 p-8 bg-gray-50">
-        <div class="flex justify-between items-center mb-6">
-          <div>
-            <h3 class="text-2xl font-bold text-gray-800">Daftar Data Kelas</h3>
-            <a href="{{ url_for('admin_kelola_data') }}" 
-               class="text-sm text-orange-500 hover:underline flex items-center mt-1">
-              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            <a href="{{ url_for('tambah_kelas') }}" class="bg-orange-500 text-white font-semibold px-5 py-3 rounded-xl shadow-md hover:bg-orange-600 transition flex items-center space-x-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
               </svg>
-              Kembali ke Kelola Data
+              <span>Tambah Data kelas</span>
             </a>
           </div>
-          
-          <a href="{{ url_for('tambah_kelas') }}" 
-             class="bg-orange-500 text-white font-semibold px-5 py-3 rounded-xl shadow-md hover:bg-orange-600 transition flex items-center space-x-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-            </svg>
-            <span>Tambah Data kelas</span>
-          </a>
-        </div>
 
-                <div class="overflow-x-auto rounded-2xl shadow-md border border-gray-100 bg-white">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Id kelas</th>
-                <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Nama kelas</th>
-              </tr>
-            </thead>
+          <div class="overflow-x-auto rounded-2xl shadow-md border border-gray-100 bg-white">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Id kelas</th>
+                  <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Nama kelas</th>
+                </tr>
+              </thead>
 
-            <tbody class="bg-white divide-y divide-gray-200">
-                            {% for kelas in daftar_kelas %}
-              <tr class="hover:bg-orange-50 transition">
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ kelas.id_kelas }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ kelas.nama_kelas}}</td>
+              <tbody class="bg-white divide-y divide-gray-200">
+                {% for kelas in daftar_kelas %}
+                <tr class="hover:bg-orange-50 transition">
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ kelas.id_kelas }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ kelas.nama_kelas}}</td>
 
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
-                                    <a href="{{ url_for('edit_kelas', id_kelas=kelas.id_kelas) }}" 
-                     class="text-blue-500 hover:text-blue-700" title="Edit">
-                    <svg class="w-5 h-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.536L16.732 3.732z"></path>
-                    </svg>
-                  </a>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
+                    <a href="{{ url_for('edit_kelas', id_kelas=kelas.id_kelas) }}" class="text-blue-500 hover:text-blue-700" title="Edit">
+                      <svg class="w-5 h-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.536L16.732 3.732z"></path>
+                      </svg>
+                    </a>
 
-                                    <a href="{{ url_for('hapus_kelas', id_kelas=kelas.id_kelas) }}" 
-                     class="text-red-500 hover:text-red-700" title="Hapus"
-                     onclick="return confirm('Anda yakin ingin menghapus data {{ kelas.nama_kelas }}?');">
-                    <svg class="w-5 h-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                  </a>
-
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </main>
+                    <a href="{{ url_for('hapus_kelas', id_kelas=kelas.id_kelas) }}" class="text-red-500 hover:text-red-700" title="Hapus" onclick="return confirm('Anda yakin ingin menghapus data {{ kelas.nama_kelas }}?');">
+                      <svg class="w-5 h-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </main>
+      </div>
     </div>
-  </div>
-
-    <button onclick="alert('Butuh bantuan?')" 
-          class="fixed bottom-8 right-8 bg-gray-900 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-gray-700 transition">
-    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-            d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.79 4 4 0 1.847-1.24 3.4-3 3.875V17m-2 2h2m-4-8a.5.5 0 100-1 .5.5 0 000 1z">
-      </path>
-    </svg>
-  </button>
-</body>
+  </body>
 </html>
