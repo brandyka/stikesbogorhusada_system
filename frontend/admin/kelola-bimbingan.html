@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- DIUBAH: Judul Halaman -->
     <title>Kelola jadwal | STIKes Bogor Husada</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -14,7 +13,6 @@
   </head>
   <body class="bg-gray-50">
     <div class="flex min-h-screen">
-      <!-- Sidebar -->
       <aside class="w-64 p-6 flex flex-col" style="background: linear-gradient(180deg, #f0e8f5 0%, #f3ebf6 30%, #f5eef4 50%, #f3ebf6 70%, #f0e8f5 100%)">
         <div class="mb-8">
           <h1 class="text-2xl font-bold text-orange-500">sbh</h1>
@@ -24,7 +22,6 @@
         <nav class="flex-1">
           <ul class="space-y-2">
             <li>
-              <!-- DIUBAH: Link kembali ke rute dashboard_admin -->
               <a href="{{ url_for('dashboard_admin') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -38,7 +35,6 @@
               </a>
             </li>
             <li>
-              <!-- DIUBAH: Link ke rute halmaan halaman kelola data -->
               <a href="{{ url_for('admin_kelola_data') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -52,8 +48,7 @@
               </a>
             </li>
             <li>
-              <!-- DIUBAH: Link ini adalah halaman aktif -->
-              <a href="{{ url_for('admin_kelola_jadwal') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition>
+              <a href="{{ url_for('admin_kelola_jadwal') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                 </svg>
@@ -61,7 +56,6 @@
               </a>
             </li>
             <li>
-              <!-- DIUBAH: Link ke rute admin_kelola_akun -->
               <a href="{{ url_for('admin_kelola_akun') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -76,7 +70,6 @@
               </a>
             </li>
             <li>
-              <!-- DIUBAH: Link ke rute admin_kelola_bimbingan -->
               <a href="{{ url_for('admin_kelola_bimbingan') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-white text-orange-500 font-semibold shadow-sm">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -87,9 +80,7 @@
           </ul>
         </nav>
       </aside>
-      <!-- Main Content -->
       <div class="flex-1 flex flex-col">
-        <!-- Header -->
         <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center shadow-sm">
           <h2 class="text-2xl font-bold text-gray-800">Kelola bimbingan</h2>
           <a href="/logout" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold">
@@ -100,20 +91,17 @@
           </a>
         </header>
         <main class="flex-1 p-8 bg-gray-50">
-        <div class="flex justify-between items-center mb-6">
-          <div>
-            <h3 class="text-2xl font-bold text-gray-800">Kelola Bimbingan</h3>
+          <div class="flex justify-between items-center mb-6">
+            <div>
+              <h3 class="text-2xl font-bold text-gray-800">Kelola Bimbingan</h3>
+            </div>
+            <a href="tambah_jadwal_form.html" class="bg-orange-500 text-white font-semibold px-5 py-3 rounded-xl shadow-md hover:bg-orange-600 transition flex items-center space-x-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
+              <span>Tambah bimbingan baru</span>
+            </a>
           </div>
-          <a href="tambah_jadwal_form.html"
-             class="bg-orange-500 text-white font-semibold px-5 py-3 rounded-xl shadow-md hover:bg-orange-600 transition flex items-center space-x-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-            </svg>
-            <span>Tambah bimbingan baru</span>
-          </a>
-        </div>
-        <!-- Table -->
           <div class="bg-white rounded-xl shadow-sm overflow-hidden">
             <table class="w-full">
               <thead class="bg-gray-50 border-b border-gray-200">
@@ -205,4 +193,3 @@
     </div>
   </body>
 </html>
-        

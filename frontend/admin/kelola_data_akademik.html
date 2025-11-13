@@ -110,11 +110,12 @@
 
           <!-- Management Cards (Sesuai Screenshot) -->
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            
             <!-- Card 1: Dosen (Bisa diklik atau tidak, terserah Anda) -->
             <a href="{{ url_for('admin_kelola_dosen') }}" class="block bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl shadow-md p-6 hover:shadow-lg transition">
               <div class="flex flex-col items-center text-center">
-                <svg class="w-12 h-12 text-orange-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <svg class="w-12 h-12 text-orange-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
                 <h4 class="text-xl font-bold text-gray-800 mb-2">Kelola Data Dosen</h4>
                 <p class="text-sm text-gray-700">Manajemen data dan informasi dosen</p>
               </div>
@@ -123,7 +124,14 @@
             <!-- Card 2: Mahasiswa -->
             <a href="{{ url_for('admin_kelola_mahasiswa') }}" class="block bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl shadow-md p-6 hover:shadow-lg transition">
               <div class="flex flex-col items-center text-center">
-                <svg class="w-12 h-12 text-orange-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zM12 14v6m-6-3.422l.665-1.154a12.083 12.083 0 011.66-2.268M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path></svg>
+                <svg class="w-12 h-12 text-orange-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 14l9-5-9-5-9 5 9 5zM12 14v6m-6-3.422l.665-1.154a12.083 12.083 0 011.66-2.268M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
+                  ></path>
+                </svg>
                 <h4 class="text-xl font-bold text-gray-800 mb-2">Kelola Data Mahasiswa</h4>
                 <p class="text-sm text-gray-700">Manajemen data dan informasi mahasiswa</p>
               </div>
@@ -132,7 +140,14 @@
             <!-- Card 3: Mata Kuliah -->
             <a href="{{ url_for('admin_kelola_matakuliah') }}" class="block bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl shadow-md p-6 hover:shadow-lg transition">
               <div class="flex flex-col items-center text-center">
-                <svg class="w-12 h-12 text-orange-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                <svg class="w-12 h-12 text-orange-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                  ></path>
+                </svg>
                 <h4 class="text-xl font-bold text-gray-800 mb-2">Kelola Data Mata Kuliah</h4>
                 <p class="text-sm text-gray-700">Manajemen data dan informasi mata kuliah</p>
               </div>
@@ -141,31 +156,37 @@
             <!-- Card 4: Kelas -->
             <a href="{{ url_for('admin_kelola_kelas') }}" class="block bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl shadow-md p-6 hover:shadow-lg transition">
               <div class="flex flex-col items-center text-center">
-                <svg class="w-12 h-12 text-orange-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                <svg class="w-12 h-12 text-orange-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                  ></path>
+                </svg>
                 <h4 class="text-xl font-bold text-gray-800 mb-2">Kelola Data Kelas</h4>
                 <p class="text-sm text-gray-700">Manajemen data dan informasi Kelas</p>
               </div>
             </a>
 
-             <!-- Card 4: Angkatan -->
+            <!-- Card 4: Angkatan -->
             <a href="{{ url_for('admin_kelola_angkatan') }}" class="block bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl shadow-md p-6 hover:shadow-lg transition">
               <div class="flex flex-col items-center text-center">
-                <svg class="w-12 h-12 text-orange-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                <svg class="w-12 h-12 text-orange-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                  ></path>
+                </svg>
                 <h4 class="text-xl font-bold text-gray-800 mb-2">Kelola Data Angkatan</h4>
                 <p class="text-sm text-gray-700">Manajemen data dan informasi Angkatan</p>
               </div>
             </a>
-
           </div>
         </main>
       </div>
     </div>
-
-    <!-- Help Button (Sesuai Screenshot) -->
-    <button class="fixed bottom-8 right-8 bg-gray-900 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-gray-700 transition">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.79 4 4 0 1.847-1.24 3.4-3 3.875V17m-2 2h2m-4-8a.5.5 0 100-1 .5.5 0 000 1z"></path></svg>
-    </button>
-
   </body>
 </html>
-
