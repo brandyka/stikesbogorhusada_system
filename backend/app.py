@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, redirect, session, url_for,send_from_directory
+from flask import Flask, render_template, request, redirect, session, url_for,send_from_directory, flash
 from db_conn import create_connection
 import os
+from datetime import datetime, date
 
 frontend_path = os.path.join(os.path.dirname(__file__), '../frontend')
 
@@ -58,14 +59,16 @@ def dashboard_mahasiswa():
     if session.get('role') != 'mahasiswa':
         return redirect(url_for('login'))
         
+    conn = None
+    cursor = None
     try:
         username = session.get('username')
         conn = create_connection()
         cursor = conn.cursor(dictionary=True)
         sql_query = """
             SELECT 
-                m.NIM, 
-                m.Nama, 
+                m.NIM, m.Nama, 
+                m.id_kelas, m.id_angkatan,  -- <-- PERBAIKAN: Ambil ID untuk session
                 k.nama_kelas, 
                 a.tahun AS angkatan_tahun
             FROM akun act
@@ -76,37 +79,55 @@ def dashboard_mahasiswa():
         """
         cursor.execute(sql_query, (username,))
         mahasiswa_data = cursor.fetchone()
-        cursor.close()
-        conn.close()
 
         if not mahasiswa_data:
             session.clear()
-            return redirect(url_for('login', error="Data profil tidak ditemukan."))
+            flash("Data profil tidak ditemukan.", 'error') # <-- PERBAIKAN: Gunakan flash
+            return redirect(url_for('login'))
+            
+        # === PERBAIKAN PENTING: Simpan data penting ke session ===
+        session['nim_mahasiswa'] = mahasiswa_data['NIM']
+        session['id_kelas'] = mahasiswa_data['id_kelas']
+        session['id_angkatan'] = mahasiswa_data['id_angkatan']
+        # ========================================================
+            
         return render_template('mahasiswa/dashboard_mhs.html', 
                                user=username, 
                                data=mahasiswa_data) 
     except Exception as e:
         print(f"Error fetching mahasiswa dashboard data: {e}")
-        return "Terjadi error saat mengambil data profil."
+        flash("Terjadi error saat mengambil data profil.", 'error') # <-- PERBAIKAN: Gunakan flash
+        return redirect(url_for('login')) # <-- PERBAIKAN: Redirect
+    
+    finally: # <-- PERBAIKAN: Tambahkan finally block
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
 #================================ PAGE JADWAL ======================================
 @app.route('/dashboard/mahasiswa/jadwal')
 def jadwal_mahasiswa():
     if session.get('role') != 'mahasiswa':
         return redirect(url_for('login'))
         
+    conn = None
+    cursor = None
     try:
         username = session.get('username')
         
-        # Ambil ID dari session (yang sudah disimpan saat di dashboard)
+        # --- Ambil data vital mahasiswa ---
+        nim_mhs = session.get('nim_mahasiswa')
         id_kelas_mhs = session.get('id_kelas')
         id_angkatan_mhs = session.get('id_angkatan')
 
-        if not id_kelas_mhs or not id_angkatan_mhs:
-             # Jika session tidak ada, ambil ulang dari DB (safety net)
+        # PERBAIKAN: Blok 'if' ini sekarang hanya sebagai safety net,
+        # karena dashboard_mahasiswa sudah menyimpan data ke session.
+        if not nim_mhs or not id_kelas_mhs or not id_angkatan_mhs:
              conn_check = create_connection()
              cursor_check = conn_check.cursor(dictionary=True)
              sql_get_ids = """
-                SELECT m.id_kelas, m.id_angkatan 
+                SELECT m.NIM, m.id_kelas, m.id_angkatan 
                 FROM akun a
                 JOIN mahasiswa m ON a.nim_mahasiswa = m.NIM
                 WHERE a.Username = %s
@@ -117,61 +138,198 @@ def jadwal_mahasiswa():
              conn_check.close()
              
              if mahasiswa_ids:
+                 nim_mhs = mahasiswa_ids['NIM']
                  id_kelas_mhs = mahasiswa_ids['id_kelas']
                  id_angkatan_mhs = mahasiswa_ids['id_angkatan']
+                 session['nim_mahasiswa'] = nim_mhs
+                 session['id_kelas'] = id_kelas_mhs
+                 session['id_angkatan'] = id_angkatan_mhs
              else:
-                 return "Data mahasiswa tidak ditemukan.", 404
+                 flash("Data mahasiswa tidak ditemukan.", 'error')
+                 return redirect(url_for('login'))
 
-        # ----- Ambil Data Jadwal -----
+        # ----- Ambil Data Jadwal REGULER & Status Absensi HARI INI -----
         conn = create_connection()
         cursor = conn.cursor(dictionary=True)
         
-        # 
         sql_get_jadwal = """
             SELECT 
-                j.hari, 
-                j.jam_mulai, 
-                j.jam_selesai, 
+                j.id_jadwal, j.hari, 
+                TIME_FORMAT(j.jam_mulai, '%H:%i') AS jam_mulai_f, 
+                TIME_FORMAT(j.jam_selesai, '%H:%i') AS jam_selesai_f, 
                 j.ruangan,
                 mk.nama_matkul,
-                d.Nama AS nama_dosen
+                d.Nama AS nama_dosen,
+                p.id_pertemuan AS id_pertemuan_dibuka,
+                p.materi,
+                p.pertemuan_ke,
+                am.status_kehadiran AS status_kehadiran_saya
             FROM jadwal j
             LEFT JOIN matkul mk ON j.kd_mk = mk.kd_mk
             LEFT JOIN dosen d ON j.nip_dosen = d.NIP
+            LEFT JOIN pertemuan p ON p.id_jadwal = j.id_jadwal 
+                                 AND p.status_absensi = 'dibuka' 
+                                 AND p.tanggal = CURDATE()
+            LEFT JOIN absensi_mahasiswa am ON am.id_pertemuan = p.id_pertemuan
+                                          AND am.nim_mahasiswa = %s
             WHERE j.id_kelas = %s AND j.id_angkatan = %s
             ORDER BY FIELD(j.hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'), j.jam_mulai
         """
-        cursor.execute(sql_get_jadwal, (id_kelas_mhs, id_angkatan_mhs))
+        cursor.execute(sql_get_jadwal, (nim_mhs, id_kelas_mhs, id_angkatan_mhs))
         daftar_jadwal = cursor.fetchall()
         
-        cursor.close()
-        conn.close()
+        # === PERBAIKAN: Gunakan 'date.today()' bukan 'datetime.now()' ===
+        days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu']
+        day_index = date.today().weekday() 
+        hari_ini = days[day_index]
+        # ================================================================
 
-        # Render file HTML baru, kirim data jadwal ke sana
         return render_template('mahasiswa/jadwal_mhs.html', 
                                user=username, 
-                               daftar_jadwal=daftar_jadwal)
+                               daftar_jadwal=daftar_jadwal,
+                               hari_ini=hari_ini)
 
     except Exception as e:
         print(f"Error fetching jadwal mahasiswa: {e}")
-        if 'cursor' in locals() and cursor:
+        flash("Terjadi error saat mengambil data jadwal.", 'error')
+        return redirect(url_for('dashboard_mahasiswa')) 
+    
+    finally:
+        if cursor:
             cursor.close()
-        if 'conn' in locals() and conn:
+        if conn:
             conn.close()
-        return "Terjadi error saat mengambil data jadwal."
+
+@app.route('/dashboard/mahasiswa/absen', methods=['POST'])
+def mahasiswa_absen():
+    """
+    Route untuk mahasiswa melakukan absensi (mencatat kehadiran)
+    """
+    if session.get('role') != 'mahasiswa' or 'nim_mahasiswa' not in session:
+        flash("Silakan login kembali.", 'error')
+        return redirect(url_for('login'))
+    
+    conn = None
+    cursor = None
+    try:
+        nim_mahasiswa = session['nim_mahasiswa']
+        id_pertemuan = request.form.get('id_pertemuan')
+        
+        if not id_pertemuan:
+            flash("Data pertemuan tidak valid.", 'error')
+            return redirect(url_for('jadwal_mahasiswa'))
+        
+        conn = create_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # 1. Cek apakah pertemuan masih dibuka
+        sql_cek_pertemuan = """
+            SELECT p.id_pertemuan, p.status_absensi, p.tanggal,
+                   j.id_kelas, j.id_angkatan
+            FROM pertemuan p
+            JOIN jadwal j ON p.id_jadwal = j.id_jadwal
+            WHERE p.id_pertemuan = %s
+        """
+        cursor.execute(sql_cek_pertemuan, (id_pertemuan,))
+        pertemuan = cursor.fetchone()
+        
+        if not pertemuan:
+            flash("Pertemuan tidak ditemukan.", 'error')
+            return redirect(url_for('jadwal_mahasiswa'))
+        
+        if pertemuan['status_absensi'] != 'dibuka':
+            flash("Absensi sudah ditutup oleh dosen.", 'error')
+            return redirect(url_for('jadwal_mahasiswa'))
+        
+        # 2. Cek apakah tanggal pertemuan adalah hari ini
+        # PERBAIKAN: Impor 'date' dari 'datetime' jika belum
+        from datetime import date
+        if pertemuan['tanggal'] != date.today():
+            flash("Absensi hanya bisa dilakukan pada hari pertemuan.", 'error')
+            return redirect(url_for('jadwal_mahasiswa'))
+        
+        # 3. Cek apakah mahasiswa terdaftar di kelas & angkatan yang sesuai
+        id_kelas_mhs = session.get('id_kelas')
+        id_angkatan_mhs = session.get('id_angkatan')
+        
+        if pertemuan['id_kelas'] != id_kelas_mhs or pertemuan['id_angkatan'] != id_angkatan_mhs:
+            flash("Anda tidak terdaftar di kelas ini.", 'error')
+            return redirect(url_for('jadwal_mahasiswa'))
+        
+        # --- PERBAIKAN LOGIKA (UPSERT) ---
+        
+        # 4. Cek apakah mahasiswa sudah absen
+        sql_cek_absen = """
+            SELECT id_absensi, status_kehadiran
+            FROM absensi_mahasiswa
+            WHERE id_pertemuan = %s AND nim_mahasiswa = %s
+        """
+        cursor.execute(sql_cek_absen, (id_pertemuan, nim_mahasiswa))
+        existing_absen = cursor.fetchone()
+        
+        from datetime import datetime
+        waktu_sekarang = datetime.now()
+        
+        if existing_absen:
+            # Kasus 1: Mahasiswa sudah ada di daftar absensi
+            if existing_absen['status_kehadiran'] == 'hadir':
+                flash("Anda sudah melakukan absensi untuk pertemuan ini.", 'info')
+                return redirect(url_for('jadwal_mahasiswa'))
+            
+            # Kasus 2: Mahasiswa ada di daftar (misal: 'alpa'), ubah jadi 'hadir'
+            sql_update = """
+                UPDATE absensi_mahasiswa
+                SET status_kehadiran = 'hadir', waktu_absen = %s
+                WHERE id_absensi = %s
+            """
+            cursor.execute(sql_update, (waktu_sekarang, existing_absen['id_absensi']))
+        
+        else:
+            # Kasus 3: Mahasiswa TIDAK ADA di daftar (misal: mahasiswa baru)
+            # Langsung INSERT data kehadiran mereka
+            sql_insert = """
+                INSERT INTO absensi_mahasiswa (id_pertemuan, nim_mahasiswa, status_kehadiran, waktu_absen)
+                VALUES (%s, %s, 'hadir', %s)
+            """
+            cursor.execute(sql_insert, (id_pertemuan, nim_mahasiswa, waktu_sekarang))
+        
+        # 5. Simpan perubahan (baik itu UPDATE atau INSERT)
+        conn.commit()
+        # --- AKHIR PERBAIKAN LOGIKA ---
+        
+        flash("Absensi berhasil! Anda tercatat hadir.", 'success')
+        return redirect(url_for('jadwal_mahasiswa'))
+    
+    except Exception as e:
+        print(f"Error mahasiswa absen: {e}")
+        # PERBAIKAN: Rollback jika terjadi error saat commit
+        if conn:
+            conn.rollback()
+        flash("Terjadi error saat melakukan absensi.", 'error')
+        return redirect(url_for('jadwal_mahasiswa'))
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 #=============================== DOSEN SECTION ===================================
 #=================================================================================
 @app.route('/dashboard/dosen')
 def dashboard_dosen():
+    """
+    Halaman dashboard utama dosen (Beranda).
+    """
     if session.get('role') != 'dosen':
         return redirect(url_for('login'))
         
+    conn = None
+    cursor = None
     try:
         username = session.get('username')
         conn = create_connection()
         cursor = conn.cursor(dictionary=True)
         
-        # Query ini meniru logika Anda, tapi untuk Dosen
         sql_query = """
             SELECT 
                 d.NIP, 
@@ -183,71 +341,454 @@ def dashboard_dosen():
         """
         cursor.execute(sql_query, (username,))
         dosen_data = cursor.fetchone()
-        
-        cursor.close()
-        conn.close()
 
         if not dosen_data:
             session.clear()
-            return redirect(url_for('login', error="Data profil dosen tidak ditemukan."))
+            flash("Data profil dosen tidak ditemukan.", 'error')
+            return redirect(url_for('login'))
         
-        # Simpan NIP di session agar bisa dipakai di halaman lain (spt absensi)
         session['nip_dosen'] = dosen_data['NIP']
-            
-        # Kirim data dosen ke 'dosen/dashboard_dosen.html'
+                
         return render_template('dosen/dashboard_dosen.html', 
-                               user=username, 
-                               data=dosen_data) 
+                                user=username, 
+                                data=dosen_data) 
     
     except Exception as e:
         print(f"Error fetching dosen dashboard data: {e}")
-        return "Terjadi error saat mengambil data profil dosen."
+        flash("Terjadi error saat mengambil data profil dosen.", 'error')
+        return redirect(url_for('login'))
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+# ... (setelah route dashboard_dosen)
 
 @app.route('/dashboard/dosen/jadwal')
 def jadwal_dosen():
-    if session.get('role') != 'dosen':
+    """
+    Halaman untuk menampilkan daftar jadwal mengajar dosen yang sedang login.
+    """
+    if session.get('role') != 'dosen' or 'nip_dosen' not in session:
+        flash("Silakan login kembali.", 'error')
         return redirect(url_for('login'))
         
+    conn = None
+    cursor = None
     try:
-        username = session.get('username')
-        nip_dosen = session.get('nip_dosen') # Ambil NIP dari session
+        nip_dosen = session['nip_dosen']
+        conn = create_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Query ini mengasumsikan Anda punya tabel 'matakuliah' dan 'kelas'
+        # Sesuaikan nama tabel dan kolom jika perlu
+        sql_query = """
+           SELECT 
+                j.id_jadwal,
+                j.hari,
+                TIME_FORMAT(j.jam_mulai, '%H:%i') AS jam_mulai_f,
+                TIME_FORMAT(j.jam_selesai, '%H:%i') AS jam_selesai_f,
+                j.ruangan,
+                mk.nama_matkul AS nama_mk,
+                k.nama_kelas,
+                a.tahun
+            FROM jadwal j
+            LEFT JOIN matkul mk ON j.kd_mk = mk.kd_mk  -- 1. Diubah dari j.id_mk
+            LEFT JOIN kelas k ON j.id_kelas = k.id_kelas
+            LEFT JOIN angkatan a ON j.id_angkatan = a.id_angkatan
+            WHERE j.nip_dosen = %s
+            ORDER BY FIELD(j.hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'), j.jam_mulai
+        """
+        cursor.execute(sql_query, (nip_dosen,))
+        jadwal_list = cursor.fetchall()
+        
+        return render_template('dosen/jadwal_dosen.html', 
+                               jadwal_list=jadwal_list)
+    
+    except Exception as e:
+        print(f"Error fetching jadwal dosen: {e}")
+        flash("Terjadi error saat mengambil data jadwal.", 'error')
+        return redirect(url_for('dashboard_dosen'))
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
-        # Safety net jika session hilang
-        if not nip_dosen:
-            return redirect(url_for('dashboard_dosen'))
+@app.route('/dashboard/dosen/jadwal/<int:id_jadwal>/pertemuan', methods=['GET', 'POST'])
+def kelola_pertemuan(id_jadwal):
+    """
+    Halaman untuk mengelola (melihat dan membuat) pertemuan untuk jadwal tertentu.
+    """
+    if session.get('role') != 'dosen' or 'nip_dosen' not in session:
+        return redirect(url_for('login'))
 
+    conn = None
+    cursor = None
+    try:
         conn = create_connection()
         cursor = conn.cursor(dictionary=True)
 
-        # Query ini HANYA mengambil data jadwal untuk dosen tsb
-        # [Image of SQL query joining jadwal, matkul, kelas, and angkatan tables]
-        sql_query_jadwal = """
-            SELECT 
-                j.id_jadwal, j.hari, j.jam_mulai, j.jam_selesai, j.ruangan,
-                mk.nama_matkul,
-                k.nama_kelas,
-                a.tahun AS angkatan_tahun
+        # === AWAL BLOK PERBAIKAN (TRANSAKSI) ===
+        if request.method == 'POST':
+            # Matikan autocommit untuk memulai transaksi
+            conn.autocommit = False 
+            
+            try:
+                pertemuan_ke = request.form['pertemuan_ke']
+                tanggal = request.form['tanggal']
+                materi = request.form['materi']
+                
+                # 1. Ambil info jadwal
+                cursor.execute("SELECT id_kelas, id_angkatan FROM jadwal WHERE id_jadwal = %s", (id_jadwal,))
+                jadwal_info = cursor.fetchone()
+                
+                if not jadwal_info:
+                    flash("Info jadwal tidak ditemukan.", "error")
+                    return redirect(url_for('jadwal_dosen')) # Tidak perlu rollback, belum ada perubahan
+
+                id_kelas_target = jadwal_info['id_kelas']
+                id_angkatan_target = jadwal_info['id_angkatan']
+
+                # 2. Insert pertemuan baru
+                sql_insert = """
+                    INSERT INTO pertemuan (id_jadwal, pertemuan_ke, tanggal, materi, status_absensi)
+                    VALUES (%s, %s, %s, %s, 'dibuka')
+                """
+                cursor.execute(sql_insert, (id_jadwal, pertemuan_ke, tanggal, materi))
+                id_pertemuan_baru = cursor.lastrowid
+                
+                # 3. Ambil semua mahasiswa
+                sql_get_mhs = "SELECT NIM FROM mahasiswa WHERE id_kelas = %s AND id_angkatan = %s"
+                cursor.execute(sql_get_mhs, (id_kelas_target, id_angkatan_target))
+                mahasiswa_list = cursor.fetchall()
+
+                if not mahasiswa_list:
+                    flash('Pertemuan dibuat, namun tidak ada mahasiswa di kelas ini.', 'warning')
+                    # Tetap simpan pertemuan yang baru dibuat
+                    conn.commit() 
+                    return redirect(url_for('kelola_pertemuan', id_jadwal=id_jadwal))
+
+                # 4. Daftarkan semua mahasiswa
+                sql_insert_absen = """
+                    INSERT INTO absensi_mahasiswa (id_pertemuan, nim_mahasiswa, status_kehadiran)
+                    VALUES (%s, %s, 'alpa')
+                """
+                data_absen = [(id_pertemuan_baru, mhs['NIM']) for mhs in mahasiswa_list]
+                cursor.executemany(sql_insert_absen, data_absen)
+                
+                # Jika semua (1, 2, 3, 4) berhasil, simpan semua perubahan
+                conn.commit() 
+                flash('Pertemuan baru berhasil dibuat dan absensi dibuka.', 'success')
+            
+            except Exception as e:
+                # Jika ada satu saja error, batalkan semua perubahan
+                conn.rollback() 
+                print(f"Error saat buat pertemuan (transaksi dibatalkan): {e}")
+                flash('Gagal membuat pertemuan, terjadi error database.', 'error')
+            
+            finally:
+                # Kembalikan koneksi ke mode autocommit normal
+                conn.autocommit = True 
+            
+            return redirect(url_for('kelola_pertemuan', id_jadwal=id_jadwal))
+        # === AKHIR BLOK PERBAIKAN ===
+
+
+        # --- Bagian GET ---
+        # (Kode di bawah ini sudah benar)
+        sql_detail = """
+            SELECT mk.nama_matkul, k.nama_kelas, a.tahun
             FROM jadwal j
             LEFT JOIN matkul mk ON j.kd_mk = mk.kd_mk
             LEFT JOIN kelas k ON j.id_kelas = k.id_kelas
             LEFT JOIN angkatan a ON j.id_angkatan = a.id_angkatan
-            WHERE j.nip_dosen = %s
-            ORDER BY FIELD(j.hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'), j.jam_mulai
+            WHERE j.id_jadwal = %s AND j.nip_dosen = %s
         """
-        cursor.execute(sql_query_jadwal, (nip_dosen,))
-        daftar_jadwal = cursor.fetchall()
+        cursor.execute(sql_detail, (id_jadwal, session['nip_dosen']))
+        detail_jadwal = cursor.fetchone()
 
-        cursor.close()
-        conn.close()
+        if not detail_jadwal:
+            flash('Jadwal tidak ditemukan.', 'error')
+            return redirect(url_for('jadwal_dosen'))
+
+        sql_pertemuan = """
+            SELECT id_pertemuan, pertemuan_ke, tanggal, materi, status_absensi
+            FROM pertemuan
+            WHERE id_jadwal = %s
+            ORDER BY pertemuan_ke
+        """
+        cursor.execute(sql_pertemuan, (id_jadwal,))
+        pertemuan_list = cursor.fetchall()
+        
+        return render_template('dosen/kelola_pertemuan.html',
+                               detail_jadwal=detail_jadwal,
+                               pertemuan_list=pertemuan_list,
+                               id_jadwal=id_jadwal)
+
+    except Exception as e:
+        print(f"Error kelola pertemuan: {e}")
+        flash("Terjadi error.", 'error')
+        return redirect(url_for('jadwal_dosen'))
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+@app.route('/dashboard/dosen/pertemuan/<int:id_pertemuan>')
+def detail_pertemuan(id_pertemuan):
+    """
+    Halaman untuk melihat daftar absensi mahasiswa untuk pertemuan spesifik.
+    """
+    if session.get('role') != 'dosen' or 'nip_dosen' not in session:
+        return redirect(url_for('login'))
+        
+    conn = None
+    cursor = None
+    try:
+        conn = create_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Ambil detail pertemuan
+        sql_pertemuan = """
+            SELECT p.pertemuan_ke, p.tanggal, p.materi, p.status_absensi,
+                   mk.nama_matkul, k.nama_kelas
+            FROM pertemuan p
+            JOIN jadwal j ON p.id_jadwal = j.id_jadwal
+            LEFT JOIN matkul mk ON j.kd_mk = mk.kd_mk
+            LEFT JOIN kelas k ON j.id_kelas = k.id_kelas
+            WHERE p.id_pertemuan = %s AND j.nip_dosen = %s
+        """
+        cursor.execute(sql_pertemuan, (id_pertemuan, session['nip_dosen']))
+        detail = cursor.fetchone()
+
+        if not detail:
+            flash('Pertemuan tidak ditemukan atau Anda tidak punya akses.', 'error')
+            return redirect(url_for('jadwal_dosen'))
             
-        # Render file HTML BARU
-        return render_template('dosen/jadwal_dosen.html', 
-                               user=username, 
-                               daftar_jadwal=daftar_jadwal)
+        # Ambil daftar mahasiswa dan status absensinya
+        sql_absensi = """
+            SELECT m.NIM, m.Nama, am.status_kehadiran, am.waktu_absen
+            FROM absensi_mahasiswa am
+            JOIN mahasiswa m ON am.nim_mahasiswa = m.NIM
+            WHERE am.id_pertemuan = %s
+            ORDER BY m.Nama
+        """
+        cursor.execute(sql_absensi, (id_pertemuan,))
+        absensi_list = cursor.fetchall()
+        
+        # --- PERBAIKAN DI SINI ---
+        return render_template('dosen/detail_pertemuan.html',
+                               detail=detail,
+                               absensi_list=absensi_list,
+                               id_pertemuan=id_pertemuan) # Kirim id_pertemuan ke template
+        # -------------------------
+        
+    except Exception as e:
+        # Ini adalah blok yang menyebabkan error di screenshot Anda
+        print(f"Error detail pertemuan: {e}")
+        flash("Terjadi error.", 'error')
+        return redirect(url_for('jadwal_dosen'))
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+@app.route('/dashboard/dosen/pertemuan/<int:id_pertemuan>/toggle_status', methods=['POST'])
+def toggle_status_absensi(id_pertemuan):
+    """
+    Toggle status absensi antara 'dibuka' dan 'ditutup'
+    """
+    if session.get('role') != 'dosen' or 'nip_dosen' not in session:
+        return redirect(url_for('login'))
+    
+    conn = None
+    cursor = None
+    try:
+        conn = create_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Cek apakah pertemuan ini milik dosen yang login
+        sql_check = """
+            SELECT p.id_pertemuan, p.status_absensi, p.id_jadwal
+            FROM pertemuan p
+            JOIN jadwal j ON p.id_jadwal = j.id_jadwal
+            WHERE p.id_pertemuan = %s AND j.nip_dosen = %s
+        """
+        cursor.execute(sql_check, (id_pertemuan, session['nip_dosen']))
+        pertemuan = cursor.fetchone()
+        
+        if not pertemuan:
+            flash('Pertemuan tidak ditemukan atau Anda tidak punya akses.', 'error')
+            return redirect(url_for('jadwal_dosen'))
+        
+        # Toggle status
+        status_baru = 'ditutup' if pertemuan['status_absensi'] == 'dibuka' else 'dibuka'
+        
+        sql_update = "UPDATE pertemuan SET status_absensi = %s WHERE id_pertemuan = %s"
+        cursor.execute(sql_update, (status_baru, id_pertemuan))
+        
+        # --- PERBAIKAN ---
+        conn.commit() # Simpan perubahan ke database
+        # -------------------
+        
+        flash(f'Status absensi berhasil diubah menjadi "{status_baru}".', 'success')
+        return redirect(url_for('kelola_pertemuan', id_jadwal=pertemuan['id_jadwal']))
     
     except Exception as e:
-        print(f"Error fetching dosen jadwal data: {e}")
-        return "Terjadi error saat mengambil data jadwal dosen."
+        print(f"Error toggle status: {e}")
+        flash("Terjadi error saat mengubah status.", 'error')
+        return redirect(url_for('jadwal_dosen'))
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+@app.route('/dashboard/dosen/pertemuan/<int:id_pertemuan>/hapus', methods=['POST'])
+def hapus_pertemuan(id_pertemuan):
+    """
+    Hapus pertemuan dan semua data absensi terkait
+    """
+    if session.get('role') != 'dosen' or 'nip_dosen' not in session:
+        return redirect(url_for('login'))
+    
+    conn = None
+    cursor = None
+    try:
+        conn = create_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Cek apakah pertemuan ini milik dosen yang login
+        sql_check = """
+            SELECT p.id_pertemuan, p.id_jadwal
+            FROM pertemuan p
+            JOIN jadwal j ON p.id_jadwal = j.id_jadwal
+            WHERE p.id_pertemuan = %s AND j.nip_dosen = %s
+        """
+        cursor.execute(sql_check, (id_pertemuan, session['nip_dosen']))
+        pertemuan = cursor.fetchone()
+        
+        if not pertemuan:
+            flash('Pertemuan tidak ditemukan atau Anda tidak punya akses.', 'error')
+            return redirect(url_for('jadwal_dosen'))
+        
+        id_jadwal = pertemuan['id_jadwal']
+        
+        # Hapus data absensi mahasiswa terlebih dahulu (foreign key constraint)
+        cursor.execute("DELETE FROM absensi_mahasiswa WHERE id_pertemuan = %s", (id_pertemuan,))
+        
+        # Hapus pertemuan
+        cursor.execute("DELETE FROM pertemuan WHERE id_pertemuan = %s", (id_pertemuan,))
+        
+        conn.commit()
+        flash('Pertemuan berhasil dihapus.', 'success')
+        return redirect(url_for('kelola_pertemuan', id_jadwal=id_jadwal))
+    
+    except Exception as e:
+        print(f"Error hapus pertemuan: {e}")
+        flash("Terjadi error saat menghapus pertemuan.", 'error')
+        return redirect(url_for('jadwal_dosen'))
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+@app.route('/dashboard/dosen/pertemuan/update_status', methods=['POST'])
+def update_absensi_dosen():
+    """
+    Dosen mengubah status absensi seorang mahasiswa secara manual.
+    """
+    if session.get('role') != 'dosen' or 'nip_dosen' not in session:
+        return redirect(url_for('login'))
+
+    conn = None
+    cursor = None
+    
+    # Ambil data dari form
+    id_pertemuan = request.form.get('id_pertemuan')
+    nim_mahasiswa = request.form.get('nim_mahasiswa')
+    status_baru = request.form.get('status_baru')
+    
+    # URL untuk redirect kembali
+    redirect_url = url_for('detail_pertemuan', id_pertemuan=id_pertemuan)
+    
+    if not all([id_pertemuan, nim_mahasiswa, status_baru]):
+        flash("Data tidak lengkap.", 'error')
+        # Redirect aman jika id_pertemuan tidak ada
+        return redirect(url_for('jadwal_dosen')) 
+
+    if status_baru not in ['hadir', 'alpa', 'izin', 'sakit']:
+        flash("Status tidak valid.", 'error')
+        return redirect(redirect_url)
+
+    try:
+        conn = create_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # 1. Cek dulu apakah dosen ini berhak mengubah absensi ini
+        sql_check = """
+            SELECT p.id_pertemuan
+            FROM pertemuan p
+            JOIN jadwal j ON p.id_jadwal = j.id_jadwal
+            WHERE p.id_pertemuan = %s AND j.nip_dosen = %s
+        """
+        cursor.execute(sql_check, (id_pertemuan, session['nip_dosen']))
+        if not cursor.fetchone():
+            flash("Anda tidak memiliki akses ke pertemuan ini.", 'error')
+            return redirect(url_for('jadwal_dosen'))
+
+        # 2. Tentukan apakah 'waktu_absen' perlu di-reset atau tidak
+        from datetime import datetime
+        waktu_absen_val = None
+        
+        if status_baru == 'hadir':
+            # --- PERBAIKAN TYPO ---
+            sql_get_time = "SELECT waktu_absen FROM absensi_mahasiswa WHERE id_pertemuan = %s AND nim_mahasiswa = %s"
+            # ----------------------
+            cursor.execute(sql_get_time, (id_pertemuan, nim_mahasiswa))
+            current_absen = cursor.fetchone()
+            
+            if current_absen and current_absen['waktu_absen']:
+                 waktu_absen_val = current_absen['waktu_absen']
+            else:
+                 waktu_absen_val = datetime.now()
+        
+        # 3. Update datanya
+        sql_update = """
+            UPDATE absensi_mahasiswa
+            SET status_kehadiran = %s, waktu_absen = %s
+            WHERE id_pertemuan = %s AND nim_mahasiswa = %s
+        """
+        cursor.execute(sql_update, (status_baru, waktu_absen_val, id_pertemuan, nim_mahasiswa))
+        conn.commit()
+        
+        flash(f"Status absensi untuk NIM {nim_mahasiswa} berhasil diubah.", 'success')
+        return redirect(redirect_url)
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        print(f"Error update absensi dosen: {e}")
+        flash("Terjadi error saat update data.", 'error')
+        return redirect(redirect_url)
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 #================================= KAPRODI SECTION ================================
 #==================================================================================
 @app.route('/dashboard/kaprodi')

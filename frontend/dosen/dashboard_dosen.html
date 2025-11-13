@@ -17,7 +17,17 @@
             </div>
             <nav>
                 <ul class="space-y-2">
-                    <li><a href="{{ url_for('dashboard_dosen') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-white text-orange-500 font-semibold shadow-sm"><span>Beranda</span></a></li>
+                    <li>
+                        <a href="{{ url_for('dashboard_dosen') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-white text-orange-500 font-semibold shadow-sm">
+                            <span>Beranda</span>
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <a href="{{ url_for('jadwal_dosen') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
+                            <span>Jadwal Mengajar</span>
+                        </a>
+                    </li>
                 </ul>
             </nav>
         </aside>

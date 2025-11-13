@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kelola Pertemuan | STIKes Bogor Husada</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style> body { font-family: "Inter", "Segoe UI", sans-serif; } </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex min-h-screen">
+       
+        <!-- Sidebar -->
+        <aside class="w-64 p-6" style="background: linear-gradient(180deg, #f0e8f5 0%, #f3ebf6 30%, #f5eef4 50%, #f3ebf6 70%, #f0e8f5 100%)">
+            <div class="mb-8">
+                <h1 class="text-2xl font-bold text-orange-500">sbh</h1>
+                <p class="text-sm text-gray-600 mt-1">STIKes Bogor Husada</p>
+            </div>
+            <nav>
+                <ul class="space-y-2">
+                    <li>
+                        <a href="{{ url_for('dashboard_dosen') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
+                            <span>Beranda</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('jadwal_dosen') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-white text-orange-500 font-semibold shadow-sm">
+                            <span>Jadwal Mengajar</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <!-- Header -->
+            <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center shadow-sm">
+                <h2 class="text-2xl font-bold text-gray-800">Kelola Pertemuan</h2>
+                <a href="{{ url_for('logout') }}" class="text-orange-500 hover:text-orange-600 font-semibold">Logout</a>
+            </header>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 p-8">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="mb-4 p-4 rounded-lg {% if category == 'success' %}bg-green-100 text-green-800{% elif category == 'error' %}bg-red-100 text-red-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Back Button -->
+                <a href="{{ url_for('jadwal_dosen') }}" class="text-sm text-orange-600 hover:underline mb-4 inline-block">&larr; Kembali ke Jadwal</a>
+               
+                <!-- Judul Mata Kuliah -->
+                <h3 class="text-xl font-bold text-gray-800 mb-2">{{ detail_jadwal.nama_matkul }}</h3>
+                <p class="text-gray-600 mb-6">{{ detail_jadwal.nama_kelas }} - Angkatan {{ detail_jadwal.tahun }}</p>
+
+                <!-- Form Buat Pertemuan Baru -->
+                <div class="bg-white rounded-2xl shadow-md p-8 mb-8">
+                    <h4 class="text-lg font-bold text-gray-800 mb-4">Buat Pertemuan Baru</h4>
+                    <form action="{{ url_for('kelola_pertemuan', id_jadwal=id_jadwal) }}" method="POST" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="pertemuan_ke" class="block text-sm font-medium text-gray-700">Pertemuan Ke-</label>
+                                <input type="number" name="pertemuan_ke" id="pertemuan_ke" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="tanggal" class="block text-sm font-medium text-gray-700">Tanggal</label>
+                                <input type="date" name="tanggal" id="tanggal" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="materi" class="block text-sm font-medium text-gray-700">Materi Perkuliahan</label>
+                            <input type="text" name="materi" id="materi" placeholder="Contoh: Pengenalan Database" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                                Buat Pertemuan & Buka Absensi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Daftar Pertemuan -->
+                <div class="bg-white rounded-2xl shadow-md p-8">
+                    <h4 class="text-lg font-bold text-gray-800 mb-4">Daftar Pertemuan</h4>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pertemuan</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Materi</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% if pertemuan_list %}
+                                    {% for p in pertemuan_list %}
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Pertemuan {{ p.pertemuan_ke }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ p.tanggal.strftime('%d %B %Y') }}</td>
+                                        <td class="px-6 py-4 text-sm text-gray-700">{{ p.materi }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                            {% if p.status_absensi == 'dibuka' %}
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Dibuka</span>
+                                            {% else %}
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Ditutup</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <div class="flex justify-end items-center gap-3">
+                                                <!-- Lihat Absensi -->
+                                                <a href="{{ url_for('detail_pertemuan', id_pertemuan=p.id_pertemuan) }}" class="text-orange-600 hover:underline">
+                                                    Lihat Absensi
+                                                </a>
+                                                
+                                                <!-- Toggle Status -->
+                                                <form action="{{ url_for('toggle_status_absensi', id_pertemuan=p.id_pertemuan) }}" method="POST" style="display:inline;">
+                                                    <button type="submit" class="text-blue-600 hover:underline">
+                                                        {% if p.status_absensi == 'dibuka' %}
+                                                            Tutup Absensi
+                                                        {% else %}
+                                                            Buka Absensi
+                                                        {% endif %}
+                                                    </button>
+                                                </form>
+                                                
+                                                <!-- Hapus -->
+                                                <form action="{{ url_for('hapus_pertemuan', id_pertemuan=p.id_pertemuan) }}" method="POST" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pertemuan ini? Data absensi akan ikut terhapus.');">
+                                                    <button type="submit" class="text-red-600 hover:underline">
+                                                        Hapus
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">Belum ada pertemuan yang dibuat.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+</body>
+</html>
