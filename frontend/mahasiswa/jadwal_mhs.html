@@ -1,139 +1,150 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Jadwal Kuliah | STIKes Bogor Husada</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style> body { font-family: "Inter", "Segoe UI", sans-serif; } </style>
-</head>
-<body class="bg-gray-50">
+    <style>
+      body {
+        font-family: "Inter", "Segoe UI", sans-serif;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
     <div class="flex min-h-screen">
-        
-        <aside class="w-64 p-6" style="background: linear-gradient(180deg, #f0e8f5 0%, #f3ebf6 30%, #f5eef4 50%, #f3ebf6 70%, #f0e8f5 100%)">
-            <div class="mb-8">
-                <h1 class="text-2xl font-bold text-orange-500">sbh</h1>
-                <p class="text-sm text-gray-600 mt-1">STIKes Bogor Husada</p>
-            </div>
-            <nav>
-                <ul class="space-y-2">
-                    <li>
-                        <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
-                            <span>Beranda</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('jadwal_mahasiswa') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-white text-orange-500 font-semibold shadow-sm">
-                            <span>Jadwal Kuliah</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </aside>
-
-        <div class="flex-1 flex flex-col">
-            <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center shadow-sm">
-                <h2 class="text-2xl font-bold text-gray-800">Jadwal Kuliah & Absensi</h2>
-                <a href="{{ url_for('logout') }}" class="text-orange-500 hover:text-orange-600 font-semibold">Logout</a>
-            </header>
-
-            <main class="flex-1 p-8">
-                
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                  {% if messages %}
-                    {% for category, message in messages %}
-                      
-                      {% if category == 'success' %}
-                      <div class="rounded-md bg-green-50 p-4 mb-4 border border-green-200">
-                        <p class="text-sm font-medium text-green-800">{{ message }}</p>
-                      </div>
-                      
-                      {% elif category == 'info' %}
-                      <div class="rounded-md bg-blue-50 p-4 mb-4 border border-blue-200">
-                        <p class="text-sm font-medium text-blue-800">{{ message }}</p>
-                      </div>
-                      
-                      {% else %} {# 'error' atau kategori lain akan default ke merah #}
-                      <div class="rounded-md bg-red-50 p-4 mb-4 border border-red-200">
-                        <p class="text-sm font-medium text-red-800">{{ message }}</p>
-                      </div>
-                      {% endif %}
-                      
-                    {% endfor %}
-                  {% endif %}
-                {% endwith %}
-                <div class="bg-white rounded-2xl shadow-md p-8">
-                    <h3 class="text-xl font-bold text-gray-800 mb-6">Jadwal Kuliah (Hari Ini: {{ hari_ini }})</h3>
-                    
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mata Kuliah</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dosen</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jadwal</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Info Pertemuan Hari Ini</th>
-                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Absensi</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                {% if daftar_jadwal %}
-                                    {% for j in daftar_jadwal %}
-                                    <tr class="{{ 'bg-orange-50' if j.hari == hari_ini else '' }}">
-                                        
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ j.nama_matkul }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ j.nama_dosen }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                            <p class="font-medium">{{ j.hari }}, {{ j.jam_mulai_f }} - {{ j.jam_selesai_f }}</p>
-                                            <p>Ruang: {{ j.ruangan }}</p>
-                                        </td>
-                                        
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                            {% if j.id_pertemuan_dibuka %}
-                                                <p><strong>Pertemuan {{ j.pertemuan_ke }}</strong></p>
-                                                <p>{{ j.materi }}</p>
-                                            {% else %}
-                                                <p>-</p>
-                                            {% endif %}
-                                        </td>
-                                        
-                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                            
-                                            {% if not j.id_pertemuan_dibuka %}
-                                                <span class="text-gray-500">Absensi Ditutup</span>
-                                            
-                                            {% elif j.status_kehadiran_saya == 'hadir' %}
-                                                <span class="font-semibold text-green-600">Hadir (Tercatat)</span>
-                                            
-                                            {% elif j.status_kehadiran_saya in ['izin', 'sakit'] %}
-                                                <span class="text-yellow-600 font-semibold">{{ j.status_kehadiran_saya|capitalize }}</span>
-
-                                            {% elif j.status_kehadiran_saya == 'alpa' or j.status_kehadiran_saya == None %}
-                                                <form action="{{ url_for('mahasiswa_absen') }}" method="POST">
-                                                    <input type="hidden" name="id_pertemuan" value="{{ j.id_pertemuan_dibuka }}">
-                                                    <button type="submit" class="text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded-md px-4 py-2 text-sm font-semibold">
-                                                        Hadir Sekarang
-                                                    </button>
-                                                </form>
-                                                
-                                            {% else %}
-                                                <span class="text-gray-500">Absensi Ditutup</span>
-                                            {% endif %}
-
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                {% else %}
-                                    <tr>
-                                        <td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">Anda tidak memiliki jadwal kuliah.</td>
-                                    </tr>
-                                {% endif %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </main>
+      <aside class="w-64 p-6" style="background: linear-gradient(180deg, #f0e8f5 0%, #f3ebf6 30%, #f5eef4 50%, #f3ebf6 70%, #f0e8f5 100%)">
+        <div class="mb-8">
+          <h1 class="text-2xl font-bold text-orange-500">sbh</h1>
+          <p class="text-sm text-gray-600 mt-1">STIKes Bogor Husada</p>
         </div>
+        <nav>
+          <ul class="space-y-2">
+            <li>
+              <a href="{{ url_for('dashboard_mahasiswa') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                  ></path>
+                </svg>
+                <span>Beranda</span>
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('jadwal_mahasiswa') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-white text-orange-500 font-semibold shadow-sm">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <span>Jadwal Kuliah</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                  ></path>
+                </svg>
+                <span>Bimbingan</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <div class="flex-1 flex flex-col">
+        <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center shadow-sm">
+          <h2 class="text-2xl font-bold text-gray-800">Jadwal Kuliah & Absensi</h2>
+          <a href="{{ url_for('logout') }}" class="text-orange-500 hover:text-orange-600 font-semibold">Logout</a>
+        </header>
+
+        <main class="flex-1 p-8">
+          {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %} {% for category, message in messages %} {% if category == 'success' %}
+          <div class="rounded-md bg-green-50 p-4 mb-4 border border-green-200">
+            <p class="text-sm font-medium text-green-800">{{ message }}</p>
+          </div>
+
+          {% elif category == 'info' %}
+          <div class="rounded-md bg-blue-50 p-4 mb-4 border border-blue-200">
+            <p class="text-sm font-medium text-blue-800">{{ message }}</p>
+          </div>
+
+          {% else %} {# 'error' atau kategori lain akan default ke merah #}
+          <div class="rounded-md bg-red-50 p-4 mb-4 border border-red-200">
+            <p class="text-sm font-medium text-red-800">{{ message }}</p>
+          </div>
+          {% endif %} {% endfor %} {% endif %} {% endwith %}
+          <div class="bg-white rounded-2xl shadow-md p-8">
+            <h3 class="text-xl font-bold text-gray-800 mb-6">Jadwal Kuliah (Hari Ini: {{ hari_ini }})</h3>
+
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mata Kuliah</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dosen</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jadwal</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Info Pertemuan Hari Ini</th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Absensi</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  {% if daftar_jadwal %} {% for j in daftar_jadwal %}
+                  <tr class="{{ 'bg-orange-50' if j.hari == hari_ini else '' }}">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ j.nama_matkul }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ j.nama_dosen }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                      <p class="font-medium">{{ j.hari }}, {{ j.jam_mulai_f }} - {{ j.jam_selesai_f }}</p>
+                      <p>Ruang: {{ j.ruangan }}</p>
+                    </td>
+
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                      {% if j.id_pertemuan_dibuka %}
+                      <p><strong>Pertemuan {{ j.pertemuan_ke }}</strong></p>
+                      <p>{{ j.materi }}</p>
+                      {% else %}
+                      <p>-</p>
+                      {% endif %}
+                    </td>
+
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                      {% if not j.id_pertemuan_dibuka %}
+                      <span class="text-gray-500">Absensi Ditutup</span>
+
+                      {% elif j.status_kehadiran_saya == 'hadir' %}
+                      <span class="font-semibold text-green-600">Hadir (Tercatat)</span>
+
+                      {% elif j.status_kehadiran_saya in ['izin', 'sakit'] %}
+                      <span class="text-yellow-600 font-semibold">{{ j.status_kehadiran_saya|capitalize }}</span>
+
+                      {% elif j.status_kehadiran_saya == 'alpa' or j.status_kehadiran_saya == None %}
+                      <form action="{{ url_for('mahasiswa_absen') }}" method="POST">
+                        <input type="hidden" name="id_pertemuan" value="{{ j.id_pertemuan_dibuka }}" />
+                        <button type="submit" class="text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded-md px-4 py-2 text-sm font-semibold">Hadir Sekarang</button>
+                      </form>
+
+                      {% else %}
+                      <span class="text-gray-500">Absensi Ditutup</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% endfor %} {% else %}
+                  <tr>
+                    <td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">Anda tidak memiliki jadwal kuliah.</td>
+                  </tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
-</body>
+  </body>
 </html>
