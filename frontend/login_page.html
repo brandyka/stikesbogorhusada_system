@@ -1,75 +1,174 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login | STIKES Bogor Husada</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
+      /* Menggunakan Inter sebagai font utama */
       body {
-        background: white;
+        font-family: "Inter", "Segoe UI", sans-serif;
+      }
+      
+      /* Animasi fade in untuk elemen form */
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      
+      .fade-in {
+        animation: fadeIn 0.8s ease-out;
+      }
+
+      /* Warna fokus kustom untuk checkbox dan input */
+      input[type="checkbox"]:checked {
+        border-color: transparent;
+        background-color: #f97316; /* orange-500 */
+      }
+      input[type="checkbox"]:focus {
+        --tw-ring-color: #f97316; /* orange-500 */
       }
     </style>
   </head>
-  <body class="flex min-h-screen">
-    <!-- Left Section -->
-    <div class="w-1/2 flex flex-col justify-center items-center text-center p-12" style="background: linear-gradient(135deg, #e8d5f2 0%, #ffe8f0 50%, #ffcc80 100%)">
-      <div class="bg-white rounded-3xl p-8 mb-8 shadow-lg">
-        <img src="https://assets.nsd.co.id/images/kampus/logo/8ofZnuE1_400x400.jpg" alt="Logo STIKes" class="w-20 h-20 rounded-2xl object-cover" />
+
+  <body class="flex flex-col lg:flex-row min-h-screen bg-white">
+    
+    <aside
+      class="w-full lg:w-5/12 xl:w-1/3 flex flex-col justify-center items-center text-center p-8 lg:p-12 
+      bg-gradient-to-br from-orange-500 via-orange-400 to-yellow-300 text-white 
+      shadow-xl lg:shadow-2xl"
+    >
+      <div class="bg-white rounded-[2rem] p-6 mb-8 shadow-xl transform transition duration-500 hover:scale-[1.03]">
+        <img
+          src="https://assets.nsd.co.id/images/kampus/logo/8ofZnuE1_400x400.jpg"
+          alt="Logo STIKes Bogor Husada"
+          class="w-24 h-24 rounded-2xl object-cover"
+          onerror="this.src='https://placehold.co/96x96/FF6600/FFFFFF?text=SBH'; this.onerror=null;"
+        />
       </div>
+      <h1 class="text-3xl lg:text-4xl xl:text-5xl font-extrabold mb-3">
+        STIKes Bogor Husada
+      </h1>
+      <p class="text-xl lg:text-2xl font-light mb-6">
+        Sistem Akademik Terpadu
+      </p>
+      <p class="text-sm text-white/90 max-w-md italic">
+        "Gerbang untuk mengakses semua layanan akademik Anda. Selamat datang kembali!"
+      </p>
+    </aside>
 
-      <h1 class="text-4xl font-bold text-gray-700 mb-4">STIKes Bogor Husada</h1>
-      <p class="text-xl text-gray-600 mb-6">Sistem Akademik Terpadu</p>
-      <p class="text-sm text-gray-500 max-w-md">Portal terintegrasi untuk mahasiswa, dosen, dan administrasi akademik</p>
-    </div>
-
-    <!-- Right Section -->
-    <div class="w-1/2 bg-white flex flex-col justify-center items-center p-12">
-      <div class="w-full max-w-md">
-        <h2 class="text-3xl font-bold text-gray-800 mb-2">Sistem Akademik Terpadu</h2>
-        <p class="text-gray-500 mb-8">Masuk ke akun Anda</p>
+    <main
+      class="w-full lg:w-7/12 xl:w-2/3 bg-white flex flex-col justify-center items-center p-8 lg:p-12"
+    >
+      <div class="w-full max-w-sm sm:max-w-md fade-in">
+        <h2 class="text-3xl lg:text-4xl font-extrabold text-gray-900 mb-2">
+          Selamat Datang
+        </h2>
+        <p class="text-gray-500 mb-10 text-lg">Masuk ke akun Anda</p>
 
         {% if error %}
-        <p class="text-red-500 text-sm mb-4 bg-red-50 p-3 rounded-lg">{{ error }}</p>
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-md" role="alert">
+          <p class="font-semibold text-red-700">Login Gagal</p>
+          <p class="text-sm text-red-600 mt-1">
+            {{ error | default("Username atau password salah.") }}
+          </p>
+        </div>
         {% endif %}
 
-        <form method="POST" action="/login" class="space-y-5">
+        <form method="POST" action="/login" class="space-y-6">
+          
           <div>
-            <label for="username" class="block text-sm font-semibold text-gray-700 mb-2">Username</label>
-            <input
-              type="text"
-              name="username"
-              id="username"
-              required
-              placeholder="Masukkan Username"
-              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
-            />
+            <label
+              for="username"
+              class="block text-sm font-semibold text-gray-700 mb-2"
+              >Username / NIM / NIDN</label
+            >
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                </svg>
+              </span>
+              <input
+                type="text"
+                name="username"
+                id="username"
+                required
+                placeholder="Masukkan Username atau Nomor Induk"
+                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl transition duration-150 
+                       focus:outline-none focus:ring-4 focus:ring-orange-100 focus:border-orange-500"
+              />
+            </div>
           </div>
 
           <div>
-            <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
-            <input
-              type="password"
-              name="password"
-              id="password"
-              required
-              placeholder="Masukkan password"
-              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
-            />
+            <label
+              for="password"
+              class="block text-sm font-semibold text-gray-700 mb-2"
+              >Password</label
+            >
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M18 8a6 6 0 11-12 0v1a1 1 0 00-1 1v5a1 1 0 001 1h10a1 1 0 001-1v-5a1 1 0 00-1-1V8zm-6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                </svg>
+              </span>
+              <input
+                type="password"
+                name="password"
+                id="password"
+                required
+                placeholder="Masukkan password Anda"
+                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl transition duration-150 
+                       focus:outline-none focus:ring-4 focus:ring-orange-100 focus:border-orange-500"
+              />
+            </div>
           </div>
+          
           <div class="flex items-center justify-between">
-            <label class="flex items-center">
-              <input type="checkbox" class="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-400" />
-              <span class="ml-2 text-sm text-gray-600">Ingat Saya</span>
+            <label class="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                class="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-2 focus:ring-offset-2"
+                style="color: #f97316;" 
+              />
+              <span class="ml-2 text-sm text-gray-600 select-none">Ingat Saya</span>
             </label>
-            <a href="#" class="text-sm text-orange-500 hover:text-orange-600 font-semibold">Lupa Password?</a>
+            <a
+              href="#"
+              class="text-sm font-semibold text-orange-500 hover:text-orange-600 transition duration-150"
+              >Lupa Password?</a
+            >
           </div>
 
-          <button type="submit" class="w-full bg-gradient-to-r from-orange-400 to-yellow-500 hover:from-orange-500 hover:to-yellow-600 text-white py-3 rounded-lg font-semibold transition duration-200 shadow-md">Masuk</button>
+          <button
+            type="submit"
+            class="w-full bg-gradient-to-r from-orange-500 to-yellow-500 text-white py-3.5 rounded-xl font-bold text-lg 
+                   transition duration-300 transform hover:scale-[1.01] hover:shadow-lg 
+                   focus:outline-none focus:ring-4 focus:ring-orange-200"
+          >
+            <svg class="h-5 w-5 inline mr-2 -mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10 0a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm-4 4a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+            MASUK KE AKUN
+          </button>
         </form>
 
-        <p class="text-xs text-gray-400 text-center mt-8">© 2025 Sistem Akademik Terpadu — All rights reserved</p>
+        <footer class="text-center mt-12 pt-6 border-t border-gray-100">
+          <p class="text-xs text-gray-500">
+            Perlu bantuan? Hubungi <a href="#" class="text-orange-500 hover:underline">Tim IT</a>.
+          </p>
+          <p class="text-xs text-gray-400 mt-2">
+            © 2025 STIKes Bogor Husada — All rights reserved
+          </p>
+        </footer>
       </div>
-    </div>
+    </main>
   </body>
 </html>

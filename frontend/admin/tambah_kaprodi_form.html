@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tambah Kaprodi | STIKes Bogor Husada</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        font-family: "Inter", "Segoe UI", sans-serif;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <div class="flex min-h-screen">
+      <!-- Sidebar -->
+      <aside class="w-64 p-6 flex flex-col" style="background: linear-gradient(180deg, #f0e8f5 0%, #f3ebf6 30%, #f5eef4 50%, #f3ebf6 70%, #f0e8f5 100%)">
+        <div class="mb-8">
+          <h1 class="text-2xl font-bold text-orange-500">sbh</h1>
+          <p class="text-sm text-gray-600 mt-1">STIKes Bogor Husada</p>
+        </div>
+        <nav class="flex-1">
+          <ul class="space-y-2">
+            <li>
+              <a href="{{ url_for('dashboard_admin') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
+                <!-- SVG Icon -->
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                <span>Utama</span>
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('admin_kelola_data') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-white text-orange-500 font-semibold shadow-sm">
+                <!-- SVG Icon -->
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                <span>Kelola Data</span>
+              </a>
+            </li>
+            <!-- ... (Link navigasi lainnya) ... -->
+          </ul>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col">
+        <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center shadow-sm">
+          <h2 class="text-2xl font-bold text-gray-800">Tambah Data Kaprodi</h2>
+          <a href="{{ url_for('logout') }}" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold">
+            <span>Logout</span>
+          </a>
+        </header>
+
+        <main class="flex-1 p-8 bg-gray-50">
+          <div class="max-w-2xl mx-auto">
+            <div class="flex justify-between items-center mb-6">
+              <div>
+                <h3 class="text-2xl font-bold text-gray-800">Form Tambah Kaprodi</h3>
+                <a href="{{ url_for('admin_kelola_kaprodi') }}" class="text-sm text-orange-500 hover:underline flex items-center mt-1">
+                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                  </svg>
+                  Kembali ke Daftar Kaprodi
+                </a>
+              </div>
+            </div>
+
+            <!-- Form -->
+            <div class="bg-white rounded-2xl shadow-md p-8 border border-gray-100">
+              <!-- PERBAIKAN: Pastikan 'method="POST"' dan 'action' benar -->
+              <form action="{{ url_for('tambah_kaprodi') }}" method="POST" class="space-y-6">
+                
+                <!-- Input NIP -->
+                <div>
+                  <label for="NIP" class="block text-sm font-medium text-gray-700">NIP Kaprodi</label>
+                  <!-- PERBAIKAN: name="NIP" harus sama dengan request.form['NIP'] -->
+                  <input
+                    type="text"
+                    name="NIP"
+                    id="NIP"
+                    required
+                    placeholder="Contoh: K001"
+                    class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                  />
+                </div>
+
+                <!-- Input Nama -->
+                <div>
+                  <label for="Nama" class="block text-sm font-medium text-gray-700">Nama Kaprodi</Vl>
+                  <!-- PERBAIKAN: name="Nama" harus sama dengan request.form['Nama'] -->
+                  <input
+                    type="text"
+                    name="Nama"
+                    id="Nama"
+                    required
+                    placeholder="Contoh: Dr. Budi Santoso, M.Kom."
+                    class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                  />
+                </div>
+
+                <!-- Tombol Submit -->
+                <div class="pt-2">
+                  <button
+                    type="submit"
+                    class="w-full bg-orange-500 text-white font-semibold px-5 py-3 rounded-xl shadow-md hover:bg-orange-600 transition flex items-center justify-center space-x-2"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                    <span>Simpan Data</span>
+                  </button>
+                </div>
+
+              </form>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

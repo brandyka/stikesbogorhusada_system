@@ -5,137 +5,247 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kelola Jadwal Kuliah | STIKes Bogor Husada</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
       body {
         font-family: "Inter", "Segoe UI", sans-serif;
+        background-color: #f8fafc;
+      }
+      [x-cloak] { display: none !important; }
+      
+      /* Styling kustom untuk sidebar gradient (Konsisten) */
+      .sidebar-gradient {
+        background: linear-gradient(180deg, #fff7ed 0%, #ffedd5 100%);
+        border-right: 1px solid #f3f4f6;
+      }
+      
+      /* Styling untuk membuat kolom aksi tetap terlihat di mobile */
+      @media screen and (max-width: 768px) {
+        .actions-cell {
+          position: sticky;
+          right: 0;
+          background-color: #fff;
+          z-index: 10;
+          box-shadow: -2px 0 3px rgba(0,0,0,0.05);
+        }
       }
     </style>
   </head>
   <body class="bg-gray-50">
-    <div class="flex min-h-screen">
-      <aside class="w-64 p-6 flex flex-col" style="background: linear-gradient(180deg, #f0e8f5 0%, #f3ebf6 30%, #f5eef4 50%, #f3ebf6 70%, #f0e8f5 100%)">
-        <div class="mb-8">
-          <h1 class="text-2xl font-bold text-orange-500">sbh</h1>
-          <p class="text-sm text-gray-600 mt-1">STIKes Bogor Husada</p>
+    <div x-data="{ 
+            sidebarOpen: window.innerWidth >= 1024 ? true : false,
+            searchText: '',
+            filterHari: 'Semua',
+            filterKelas: 'Semua',
+            // Data jadwal diisi langsung dari backend (daftar_jadwal)
+            jadwalData: [
+                {% for j in daftar_jadwal %}
+                    {
+                        id: '{{ j.id_jadwal }}',
+                        matkul: '{{ j.nama_matkul | e }}',
+                        dosen: '{{ j.nama_dosen | e }}',
+                        kelas: '{{ j.nama_kelas | e }}',
+                        angkatan: '{{ j.tahun_angkatan | e }}',
+                        hari: '{{ j.hari | e }}',
+                        jam_mulai: '{{ j.jam_mulai | e }}',
+                        jam_selesai: '{{ j.jam_selesai | e }}',
+                        ruangan: '{{ j.ruangan | e }}',
+                        editUrl: '{{ url_for('edit_jadwal_matakuliah', id_jadwal=j.id_jadwal) }}',
+                        deleteUrl: '{{ url_for('hapus_jadwal_matakuliah', id_jadwal=j.id_jadwal) }}',
+                    },
+                {% endfor %}
+            ],
+            
+            get filteredJadwal() {
+                return this.jadwalData.filter(j => {
+                    const searchMatch = j.matkul.toLowerCase().includes(this.searchText.toLowerCase()) || 
+                                          j.dosen.toLowerCase().includes(this.searchText.toLowerCase()) ||
+                                          j.kelas.toLowerCase().includes(this.searchText.toLowerCase());
+                    const hariMatch = this.filterHari === 'Semua' || j.hari === this.filterHari;
+                    const kelasMatch = this.filterKelas === 'Semua' || j.kelas === this.filterKelas;
+                    return searchMatch && hariMatch && kelasMatch;
+                });
+            },
+
+            get uniqueHari() {
+                const hari = new Set(this.jadwalData.map(j => j.hari));
+                return ['Semua', ...Array.from(hari)];
+            },
+
+            get uniqueKelas() {
+                const kelas = new Set(this.jadwalData.map(j => j.kelas));
+                return ['Semua', ...Array.from(kelas)];
+            }
+        }"
+         @resize.window="sidebarOpen = window.innerWidth >= 1024 ? true : false"
+         class="relative flex min-h-screen">
+      
+      <div x-show="sidebarOpen && window.innerWidth < 1024" @click="sidebarOpen = false" 
+           class="fixed inset-0 z-30 bg-gray-900/40 transition-opacity duration-300 lg:hidden" x-cloak>
+      </div>
+
+      <aside 
+        @keydown.escape.window="sidebarOpen = false"
+        class="fixed inset-y-0 left-0 z-40 w-64 p-4 flex flex-col overflow-y-auto
+               transform transition-transform duration-300 ease-in-out
+               lg:static lg:h-auto lg:shadow-none sidebar-gradient"
+        :class="sidebarOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'"
+        x-cloak
+      >
+        <div class="flex justify-between items-center mb-10 mt-2">
+          <div class="flex items-center space-x-2">
+             <img src="https://placehold.co/32x32/FF6600/FFFFFF?text=SBH" alt="Logo" class="w-8 h-8 rounded-full">
+            <div>
+              <h1 class="text-xl font-extrabold text-orange-600 tracking-wider">SBH ADMIN</h1>
+              <p class="text-xs text-gray-500 mt-0.5">Sistem Akademik</p>
+            </div>
+          </div>
+          <button @click="sidebarOpen = false" class="lg:hidden text-gray-600 p-1 hover:text-orange-500 rounded-lg">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
         </div>
-        <nav class="flex-1">
-          <ul class="space-y-2">
-            <li>
-              <a href="{{ url_for('dashboard_admin') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                  ></path>
-                </svg>
-                <span>Utama</span>
-              </a>
-            </li>
-            <li>
-              <a href="{{ url_for('admin_kelola_data') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                  ></path>
-                </svg>
-                <span>Kelola Data</span>
-              </a>
-            </li>
-            <li>
-              <a href="{{ url_for('admin_kelola_jadwal') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-white text-orange-500 font-semibold shadow-sm">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                </svg>
-                <span>Kelola Jadwal</span>
-              </a>
-            </li>
-            <li>
-              <a href="{{ url_for('admin_kelola_akun') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                  ></path>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-                <span>Kelola Akun</span>
-              </a>
-            </li>
-            <li>
-              <a href="{{ url_for('admin_kelola_bimbingan') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-                <span>Kelola Bimbingan</span>
-              </a>
-            </li>
-          </ul>
+
+        <nav class="flex-1 space-y-2">
+            <a href="{{ url_for('dashboard_admin') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white hover:text-orange-500 transition duration-150">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+              <span>Utama</span>
+            </a>
+            <a href="{{ url_for('admin_kelola_data') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-orange-500 text-white font-semibold shadow-lg shadow-orange-200/50">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+              <span>Kelola Data</span>
+            </a>
+            <a href="{{ url_for('admin_kelola_jadwal') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white hover:text-orange-500 transition duration-150">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+              <span>Kelola Jadwal</span>
+            </a>
+            <a href="{{ url_for('admin_kelola_akun') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white hover:text-orange-500 transition duration-150">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0..."></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+              <span>Kelola Akun</span>
+            </a>
+            <a href="{{ url_for('admin_kelola_bimbingan') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white hover:text-orange-500 transition duration-150">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+              <span>Kelola Bimbingan</span>
+            </a>
         </nav>
       </aside>
+
       <div class="flex-1 flex flex-col">
-        <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center shadow-sm">
-          <h2 class="text-2xl font-bold text-gray-800">Kelola Jadwal</h2>
-          <a href="{{ url_for('logout') }}" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold"><span>Logout</span></a>
+        <header class="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 sm:px-8 py-4 flex justify-between items-center shadow-sm">
+            <button @click.stop="sidebarOpen = !sidebarOpen" class="lg:hidden text-gray-600 p-2 hover:text-orange-500 rounded-lg">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-gray-800 hidden lg:block">Kelola Jadwal Mata Kuliah</h2>
+          <a href="{{ url_for('logout') }}" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold">
+            <span class="hidden sm:inline">Logout</span>
+          </a>
         </header>
-        <main class="flex-1 p-8 bg-gray-50">
-          <div class="flex justify-between items-center mb-6">
-            <div>
-              <h3 class="text-2xl font-bold text-gray-800">Daftar Jadwal Mata Kuliah</h3>
-              <a href="{{ url_for('admin_kelola_jadwal') }}" class="text-sm text-orange-500 hover:underline flex items-center mt-1">
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                Kembali ke Menu Jadwal
-              </a>
-            </div>
-            <a href="{{ url_for('tambah_jadwal_matakuliah') }}" class="bg-orange-500 text-white font-semibold px-5 py-3 rounded-xl shadow-md hover:bg-orange-600 transition flex items-center space-x-2">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-              <span>Tambah Jadwal</span>
+
+        <main class="flex-1 p-4 sm:p-8 bg-gray-100">
+          
+          <div class="mb-8">
+            <h3 class="text-3xl font-extrabold text-gray-900 mb-1">Daftar Jadwal Mata Kuliah</h3>
+            <a href="{{ url_for('admin_kelola_jadwal') }}" class="text-sm text-gray-500 hover:text-cyan-500 hover:underline flex items-center mt-1 transition">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+              Kembali ke Menu Jadwal
             </a>
           </div>
-          <div class="overflow-x-auto rounded-2xl shadow-md border border-gray-100 bg-white">
+          
+          <div class="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0">
+            
+            <div class="flex flex-col sm:flex-row w-full md:w-auto space-y-3 sm:space-y-0 sm:space-x-3">
+                
+                <div class="relative flex-grow">
+                    <input
+                        type="text"
+                        x-model="searchText"
+                        placeholder="Cari Matkul, Dosen, atau Kelas..."
+                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition duration-150"
+                    />
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </span>
+                </div>
+                
+                <select x-model="filterHari" class="py-2 px-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition duration-150">
+                    <template x-for="hari in uniqueHari" :key="hari">
+                        <option :value="hari" x-text="'Hari: ' + hari"></option>
+                    </template>
+                </select>
+
+                <select x-model="filterKelas" class="py-2 px-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition duration-150">
+                    <template x-for="kelas in uniqueKelas" :key="kelas">
+                        <option :value="kelas" x-text="'Kelas: ' + kelas"></option>
+                    </template>
+                </select>
+            </div>
+            
+            <a href="{{ url_for('tambah_jadwal_matakuliah') }}" class="w-full md:w-auto bg-gradient-to-r from-cyan-500 to-teal-500 text-white font-semibold px-5 py-2.5 rounded-xl shadow-lg hover:shadow-xl transition duration-300 flex items-center justify-center space-x-2 transform hover:scale-[1.01]">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+              <span>Tambah Jadwal Baru</span>
+            </a>
+          </div>
+          
+          <div class="overflow-x-auto rounded-2xl shadow-xl border border-gray-100 bg-white">
             <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
+              <thead class="bg-gray-50 border-b-2 border-gray-100">
                 <tr>
-                  <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Mata Kuliah</th>
-                  <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Dosen</th>
-                  <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Kelas</th>
-                  <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Angkatan</th>
-                  <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Hari</th>
-                  <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Jam</th>
-                  <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Ruangan</th>
-                  <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Aksi</th>
+                  <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Mata Kuliah</th>
+                  <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Dosen Pengampu</th>
+                  <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Kelas/Angkatan</th>
+                  <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Hari</th>
+                  <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Waktu</th>
+                  <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Ruangan</th>
+                  <th class="px-6 py-4 text-center text-xs font-extrabold text-gray-600 uppercase tracking-wider actions-cell">Aksi</th>
                 </tr>
               </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                {% for j in daftar_jadwal %}
-                <tr class="hover:bg-orange-50 transition">
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ j.nama_matkul }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ j.nama_dosen }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ j.nama_kelas }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ j.tahun_angkatan }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ j.hari }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ j.jam_mulai }} - {{ j.jam_selesai }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ j.ruangan }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
-                    <a href="{{ url_for('edit_jadwal_matakuliah', id_jadwal=j.id_jadwal) }}" class="text-blue-500 hover:text-blue-700" title="Edit">
-                      <svg class="w-5 h-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.536L16.732 3.732z"></path>
-                      </svg>
-                    </a>
-                    <a href="{{ url_for('hapus_jadwal_matakuliah', id_jadwal=j.id_jadwal) }}" class="text-red-500 hover:text-red-700" title="Hapus" onclick="return confirm('Anda yakin ingin menghapus jadwal ini?');">
-                      <svg class="w-5 h-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                      </svg>
-                    </a>
-                  </td>
+
+              <tbody class="bg-white divide-y divide-gray-100">
+                <template x-for="j in filteredJadwal" :key="j.id">
+                    <tr class="hover:bg-cyan-50 transition ease-in-out duration-150">
+                      
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900" x-text="j.matkul"></td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800" x-text="j.dosen"></td>
+                      
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800" x-text="j.kelas + ' (' + j.angkatan + ')'"></span>
+                      </td>
+
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-semibold" x-text="j.hari"></td>
+                      
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                          <span x-text="j.jam_mulai + ' - ' + j.jam_selesai" class="font-mono text-xs bg-gray-100 p-1 rounded"></span>
+                      </td>
+
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800" x-text="j.ruangan"></td>
+
+                      <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2 actions-cell">
+                        <a :href="j.editUrl" class="text-blue-500 hover:text-blue-700 p-1.5 rounded-full hover:bg-blue-50 transition" title="Edit">
+                          <svg class="w-5 h-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.536L16.732 3.732z"></path>
+                          </svg>
+                        </a>
+                        <a @click.prevent="if(confirm('Anda yakin ingin menghapus jadwal ' + j.matkul + ' di kelas ' + j.kelas + '?')) window.location.href = j.deleteUrl" 
+                           href="#" 
+                           class="text-red-500 hover:text-red-700 p-1.5 rounded-full hover:bg-red-50 transition" 
+                           title="Hapus">
+                          <svg class="w-5 h-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                          </svg>
+                        </a>
+                      </td>
+                    </tr>
+                </template>
+                <tr x-show="filteredJadwal.length === 0">
+                    <td colspan="7" class="px-6 py-10 text-center text-gray-500 font-medium">
+                        <p>Tidak ada jadwal yang ditemukan untuk kriteria yang dipilih atau data jadwal masih kosong.</p>
+                    </td>
                 </tr>
-                {% endfor %}
               </tbody>
             </table>
           </div>

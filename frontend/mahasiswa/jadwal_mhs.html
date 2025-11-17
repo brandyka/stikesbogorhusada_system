@@ -1,139 +1,347 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Jadwal Kuliah | STIKes Bogor Husada</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style> body { font-family: "Inter", "Segoe UI", sans-serif; } </style>
-</head>
-<body class="bg-gray-50">
-    <div class="flex min-h-screen">
-        
-        <aside class="w-64 p-6" style="background: linear-gradient(180deg, #f0e8f5 0%, #f3ebf6 30%, #f5eef4 50%, #f3ebf6 70%, #f0e8f5 100%)">
-            <div class="mb-8">
-                <h1 class="text-2xl font-bold text-orange-500">sbh</h1>
-                <p class="text-sm text-gray-600 mt-1">STIKes Bogor Husada</p>
+    
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+      body {
+        font-family: "Inter", "Segoe UI", sans-serif;
+        background-color: #f8fafc;
+      }
+      [x-cloak] { display: none !important; }
+      
+      /* Styling kustom untuk sidebar gradient (Konsisten) */
+      .sidebar-gradient {
+        background: linear-gradient(180deg, #fff7ed 0%, #ffedd5 100%);
+        border-right: 1px solid #f3f4f6;
+      }
+
+      /* Highlight khusus untuk hari ini */
+      .highlight-today {
+        background-color: #eff6ff; /* blue-50 */
+        border-left: 4px solid #3b82f6; /* blue-500 */
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <div x-data="{ sidebarOpen: window.innerWidth >= 1024 ? true : false }" 
+         @resize.window="sidebarOpen = window.innerWidth >= 1024 ? true : false"
+         class="relative flex min-h-screen">
+      
+      <div x-show="sidebarOpen && window.innerWidth < 1024" @click="sidebarOpen = false" 
+           class="fixed inset-0 z-30 bg-gray-900/40 transition-opacity duration-300 lg:hidden" x-cloak>
+      </div>
+
+      <aside 
+        @keydown.escape.window="sidebarOpen = false"
+        class="fixed inset-y-0 left-0 z-40 w-64 p-4 flex flex-col overflow-y-auto
+               transform transition-transform duration-300 ease-in-out
+               lg:static lg:h-auto lg:shadow-none sidebar-gradient"
+        :class="sidebarOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'"
+        x-cloak
+      >
+        <div class="flex justify-between items-center mb-10 mt-2">
+          <div class="flex items-center space-x-2">
+             <img src="https://placehold.co/32x32/FF6600/FFFFFF?text=SBH" alt="Logo" class="w-8 h-8 rounded-full">
+            <div>
+              <h1 class="text-xl font-extrabold text-orange-600 tracking-wider">SBH MAHASISWA</h1>
+              <p class="text-xs text-gray-500 mt-0.5">Sistem Akademik</p>
             </div>
-            <nav>
-                <ul class="space-y-2">
-                    <li>
-                        <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
-                            <span>Beranda</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('jadwal_mahasiswa') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-white text-orange-500 font-semibold shadow-sm">
-                            <span>Jadwal Kuliah</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </aside>
+          </div>
+          <button @click="sidebarOpen = false" class="lg:hidden text-gray-600 p-1 hover:text-orange-500 rounded-lg">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
 
-        <div class="flex-1 flex flex-col">
-            <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center shadow-sm">
-                <h2 class="text-2xl font-bold text-gray-800">Jadwal Kuliah & Absensi</h2>
-                <a href="{{ url_for('logout') }}" class="text-orange-500 hover:text-orange-600 font-semibold">Logout</a>
-            </header>
+        <nav class="flex-1 space-y-2">
+            <a href="{{ url_for('dashboard_mahasiswa') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white hover:text-blue-500 transition duration-150">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                <span>Beranda</span>
+            </a>
+            <a href="{{ url_for('jadwal_mahasiswa') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-500 text-white font-semibold shadow-lg shadow-blue-200/50">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <span>Jadwal Kuliah</span>
+            </a>
+            <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white hover:text-blue-500 transition duration-150">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                <span>Bimbingan</span>
+            </a>
+        </nav>
+      </aside>
 
-            <main class="flex-1 p-8">
+      <div class="flex-1 flex flex-col">
+        <header class="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 sm:px-8 py-4 flex justify-between items-center shadow-sm">
+            <button @click.stop="sidebarOpen = !sidebarOpen" class="lg:hidden text-gray-600 p-2 hover:text-orange-500 rounded-lg">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-gray-800 hidden lg:block">Jadwal Kuliah & Absensi</h2>
+            <a href="{{ url_for('logout') }}" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold">
+                <span class="hidden sm:inline">Logout</span>
+                <svg class="w-5 h-5 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+            </a>
+        </header>
+
+        <main class="flex-1 p-4 sm:p-8 bg-gray-100">
+            <h3 class="text-3xl font-extrabold text-gray-900 mb-6">Jadwal Kuliah Semester Ini</h3>
                 
+            <div class="mb-6">
                 {% with messages = get_flashed_messages(with_categories=true) %}
-                  {% if messages %}
-                    {% for category, message in messages %}
-                      
-                      {% if category == 'success' %}
-                      <div class="rounded-md bg-green-50 p-4 mb-4 border border-green-200">
-                        <p class="text-sm font-medium text-green-800">{{ message }}</p>
-                      </div>
-                      
-                      {% elif category == 'info' %}
-                      <div class="rounded-md bg-blue-50 p-4 mb-4 border border-blue-200">
-                        <p class="text-sm font-medium text-blue-800">{{ message }}</p>
-                      </div>
-                      
-                      {% else %} {# 'error' atau kategori lain akan default ke merah #}
-                      <div class="rounded-md bg-red-50 p-4 mb-4 border border-red-200">
-                        <p class="text-sm font-medium text-red-800">{{ message }}</p>
-                      </div>
-                      {% endif %}
-                      
-                    {% endfor %}
-                  {% endif %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                        <div class="mb-4 p-4 rounded-xl border border-{{ 'green' if category == 'success' else 'red' }}-200 bg-{{ 'green' if category == 'success' else 'red' }}-50 text-{{ 'green' if category == 'success' else 'red' }}-800 font-medium" role="alert">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    {% endif %}
                 {% endwith %}
-                <div class="bg-white rounded-2xl shadow-md p-8">
-                    <h3 class="text-xl font-bold text-gray-800 mb-6">Jadwal Kuliah (Hari Ini: {{ hari_ini }})</h3>
-                    
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mata Kuliah</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dosen</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jadwal</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Info Pertemuan Hari Ini</th>
-                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Absensi</th>
+            </div>
+
+            {% if perubahan_list %}
+            <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-900 p-4 rounded-xl shadow-md mb-8 flex items-center space-x-3" role="alert">
+                <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.772-1.333-2.68-1.333-3.452 0L3.21 16c-.772 1.333.18 3 1.732 3z"></path></svg>
+                <div>
+                    <p class="font-bold">Pemberitahuan Perubahan Jadwal</p>
+                    <p class="text-sm">Ada jadwal kuliah yang **telah di-reschedule** oleh Kaprodi/Dosen. Mohon periksa tabel **"Jadwal Pengganti"** di bawah.</p>
+                </div>
+            </div>
+            {% endif %}
+
+
+            <div class="bg-white rounded-2xl shadow-xl border border-gray-100">
+                <h4 class="text-xl font-bold text-gray-800 p-6 border-b border-gray-100">Jadwal Kuliah Mingguan</h4>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Mata Kuliah</th>
+                                <th class="px-6 py-3 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Dosen</th>
+                                <th class="px-6 py-3 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Hari & Waktu</th>
+                                <th class="px-6 py-3 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Ruangan</th>
+                                <th class="px-6 py-3 text-center text-xs font-extrabold text-gray-600 uppercase tracking-wider">Status Hari Ini</th>
+                                <th class="px-6 py-3 text-center text-xs font-extrabold text-gray-600 uppercase tracking-wider">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-100">
+                            {% if daftar_jadwal %}
+                                {% for j in daftar_jadwal %}
+                                
+                                {% set meetings_today = pertemuan_map.get(j.id_jadwal) %}
+                                
+                                <tr class="hover:bg-blue-50 {{ 'highlight-today' if j.hari == hari_ini else '' }}">
+                                    
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{{ j.nama_matkul }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ j.nama_dosen }}</td>
+                                    
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                        <p class="font-bold text-gray-800">{{ j.hari }}</p>
+                                        <p class="font-mono text-xs bg-gray-100 p-1 rounded inline-block">{{ j.jam_mulai_f }} - {{ j.jam_selesai_f }}</p>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-semibold">{{ j.ruangan }}</td>
+                                    
+                                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                        {% if meetings_today %}
+                                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-blue-500 text-white">
+                                                Absensi Dibuka
+                                            </span>
+                                        {% else %}
+                                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-200 text-gray-700">
+                                                Tidak Ada Jadwal
+                                            </span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2">
+                                        {% if meetings_today %}
+                                        <button type="button" 
+                                                class="btn-lihat-pertemuan text-white bg-blue-500 hover:bg-blue-600 transition-all duration-150 font-semibold rounded-xl text-xs px-3 py-2 shadow-md hover:shadow-lg"
+                                                data-modal-id="pertemuan-modal-{{ j.id_jadwal }}"
+                                                data-matkul="{{ j.nama_matkul }}">
+                                            <svg class="w-4 h-4 inline-block -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.657 0 3 .895 3 2s-1.343 2-3 2-3-.895-3-2 1.343-2 3-2zM12 8V7m0 5v1m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                            Absen Sekarang
+                                        </button>
+                                        {% else %}
+                                        <a href="{{ url_for('rekap_absen_matkul', id_jadwal=j.id_jadwal) }}" 
+                                            class="text-gray-500 hover:text-gray-700 text-xs font-semibold py-2 px-3 rounded-xl border border-gray-300 hover:bg-gray-100 transition-all duration-150">
+                                            Lihat Rekap
+                                        </a>
+                                        {% endif %}
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                {% if daftar_jadwal %}
-                                    {% for j in daftar_jadwal %}
-                                    <tr class="{{ 'bg-orange-50' if j.hari == hari_ini else '' }}">
-                                        
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ j.nama_matkul }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ j.nama_dosen }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                            <p class="font-medium">{{ j.hari }}, {{ j.jam_mulai_f }} - {{ j.jam_selesai_f }}</p>
-                                            <p>Ruang: {{ j.ruangan }}</p>
-                                        </td>
-                                        
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                            {% if j.id_pertemuan_dibuka %}
-                                                <p><strong>Pertemuan {{ j.pertemuan_ke }}</strong></p>
-                                                <p>{{ j.materi }}</p>
-                                            {% else %}
-                                                <p>-</p>
-                                            {% endif %}
-                                        </td>
-                                        
-                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                            
-                                            {% if not j.id_pertemuan_dibuka %}
-                                                <span class="text-gray-500">Absensi Ditutup</span>
-                                            
-                                            {% elif j.status_kehadiran_saya == 'hadir' %}
-                                                <span class="font-semibold text-green-600">Hadir (Tercatat)</span>
-                                            
-                                            {% elif j.status_kehadiran_saya in ['izin', 'sakit'] %}
-                                                <span class="text-yellow-600 font-semibold">{{ j.status_kehadiran_saya|capitalize }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" class="px-6 py-10 whitespace-nowrap text-sm text-gray-500 text-center">Anda tidak memiliki jadwal kuliah.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-                                            {% elif j.status_kehadiran_saya == 'alpa' or j.status_kehadiran_saya == None %}
-                                                <form action="{{ url_for('mahasiswa_absen') }}" method="POST">
-                                                    <input type="hidden" name="id_pertemuan" value="{{ j.id_pertemuan_dibuka }}">
-                                                    <button type="submit" class="text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded-md px-4 py-2 text-sm font-semibold">
-                                                        Hadir Sekarang
-                                                    </button>
-                                                </form>
-                                                
-                                            {% else %}
-                                                <span class="text-gray-500">Absensi Ditutup</span>
-                                            {% endif %}
+            {% if perubahan_list %}
+            <div class="bg-white rounded-2xl shadow-xl border border-gray-100 mt-8">
+                <h4 class="text-xl font-bold text-gray-800 p-6 border-b border-gray-100">Jadwal Pengganti (Reschedule)</h4>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Mata Kuliah</th>
+                                <th class="px-6 py-3 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Jadwal Pengganti (Baru)</th>
+                                <th class="px-6 py-3 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Jadwal Asli (Dibatalkan)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-100">
+                            {% for p in perubahan_list %}
+                            <tr class="bg-yellow-50 border-l-4 border-yellow-500 hover:bg-yellow-100 transition duration-150"> 
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                                    <p>{{ p.nama_matkul }}</p>
+                                    <p class="text-xs text-gray-600">{{ p.nama_dosen }}</p>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                    <p class="font-medium text-red-600">{{ p.tanggal_pengganti.strftime('%A, %d-%m-%Y') }}</p>
+                                    <p class="font-medium text-red-600">{{ p.jam_mulai_pengganti_f }} - {{ p.jam_selesai_pengganti_f }}</p>
+                                    <p class="text-xs text-gray-700">Ruang: {{ p.ruangan_pengganti }}</p>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 line-through"> 
+                                    <p>{{ p.tanggal_asli.strftime('%A, %d-%m-%Y') }}</p>
+                                    <p>{{ p.jam_mulai_asli_f }} - {{ p.jam_selesai_asli_f }}</p>
+                                    <p>Ruang: {{ p.ruangan_asli }}</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </main>
+      </div>
+    </div>
 
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                {% else %}
-                                    <tr>
-                                        <td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">Anda tidak memiliki jadwal kuliah.</td>
-                                    </tr>
+    {% if daftar_jadwal %}
+        {% for j in daftar_jadwal %}
+            {% set meetings_today = pertemuan_map.get(j.id_jadwal) %}
+            {% if meetings_today %}
+            <div id="pertemuan-modal-{{ j.id_jadwal }}" class="modal-container fixed inset-0 bg-gray-900 bg-opacity-70 z-50 overflow-y-auto h-full w-full flex items-center justify-center hidden">
+                <div class="relative mx-auto p-6 border w-full max-w-lg shadow-2xl rounded-xl bg-white transform transition-all duration-300">
+                    
+                    <div class="flex justify-between items-center pb-3 border-b-2 border-blue-100 mb-4">
+                        <h3 class="text-2xl font-extrabold text-gray-900 modal-title">Absensi Kuliah</h3>
+                        <button type="button" class="btn-modal-close text-gray-400 hover:text-gray-800 p-2 rounded-full">
+                            <span class="text-2xl font-light">&times;</span>
+                        </button>
+                    </div>
+
+                    <div class="mt-5 space-y-4">
+                        <p class="text-base font-semibold text-gray-700 border-l-4 border-blue-500 pl-3">Mata Kuliah: {{ j.nama_matkul }}</p>
+                        
+                        {% for meeting in meetings_today %}
+                        <div class="border rounded-xl p-4 flex flex-col sm:flex-row justify-between items-center bg-gray-50">
+                            
+                            <div class="flex-1 text-left mb-3 sm:mb-0">
+                                <h4 class="font-bold text-lg text-gray-800">Pertemuan {{ meeting.pertemuan_ke }}</h4>
+                                <p class="text-sm text-gray-600 italic">{{ meeting.materi }}</p>
+                            </div>
+                            
+                            <div class="w-full sm:w-auto text-center space-y-2">
+                                
+                                {% if meeting.status_kehadiran_saya == 'hadir' %}
+                                    <span class="inline-flex items-center text-green-600 font-bold bg-green-50 p-2 rounded-xl w-full justify-center">
+                                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                        Hadir (Tercatat)
+                                    </span>
+                                
+                                {% elif meeting.status_kehadiran_saya in ['izin', 'sakit'] %}
+                                    <span class="inline-flex items-center text-yellow-600 font-bold bg-yellow-50 p-2 rounded-xl w-full justify-center">
+                                        {{ meeting.status_kehadiran_saya|capitalize }}
+                                    </span>
+
+                                {% else %} {# Absen atau None #}
+                                    <form action="{{ url_for('mahasiswa_absen') }}" method="POST" class="flex flex-row space-x-2">
+                                        <input type="hidden" name="id_pertemuan" value="{{ meeting.id_pertemuan }}">
+                                        
+                                        <button type="submit" name="status_kehadiran" value="hadir" 
+                                                class="flex-1 text-white bg-green-500 hover:bg-green-600 rounded-xl px-2 py-2 text-xs font-bold transition">
+                                            Hadir
+                                        </button>
+                                        
+                                        <div x-data="{ open: false }" class="relative flex-1">
+                                            <button @click="open = true" type="button" class="w-full bg-gray-300 text-gray-800 hover:bg-gray-400 rounded-xl px-2 py-2 text-xs font-bold transition">
+                                                Izin/Sakit
+                                            </button>
+                                            
+                                            <div x-show="open" @click.outside="open = false" x-cloak
+                                                class="absolute right-0 mt-2 w-40 origin-top-right rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                                                <div class="py-1">
+                                                    <button type="submit" name="status_kehadiran" value="sakit" class="block w-full text-left px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-50">Sakit</button>
+                                                    <button type="submit" name="status_kehadiran" value="izin" class="block w-full text-left px-4 py-2 text-sm text-blue-700 hover:bg-blue-50">Izin</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
                                 {% endif %}
-                            </tbody>
-                        </table>
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
                 </div>
-            </main>
-        </div>
-    </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // --- Logika untuk Modal Pertemuan ---
+            const allBtnLihat = document.querySelectorAll('.btn-lihat-pertemuan');
+            const allBtnClose = document.querySelectorAll('.btn-modal-close');
+            const allModalContainers = document.querySelectorAll('.modal-container');
+
+            function showModal(event) {
+                const modalId = event.currentTarget.dataset.modalId;
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.remove('hidden');
+                }
+            }
+
+            function hideModal(event) {
+                event.currentTarget.closest('.modal-container').classList.add('hidden');
+            }
+
+            // Pasang listener ke semua tombol "Lihat Absensi"
+            allBtnLihat.forEach(button => {
+                button.addEventListener('click', showModal);
+            });
+
+            // Pasang listener ke semua tombol "X"
+            allBtnClose.forEach(button => {
+                button.addEventListener('click', hideModal);
+            });
+            
+            // Pasang listener untuk klik di luar area modal
+            allModalContainers.forEach(modal => {
+                modal.addEventListener('click', function(event) {
+                    if (event.target === modal) {
+                        modal.classList.add('hidden');
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

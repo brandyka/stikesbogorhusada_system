@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Permintaan Perubahan | STIKes Bogor Husada</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style> body { font-family: "Inter", "Segoe UI", sans-serif; } </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex min-h-screen">
+        
+        <!-- Sidebar (Sudah Benar) -->
+        <aside class="w-64 p-6 flex flex-col" style="background: linear-gradient(180deg, #f0e8f5 0%, #f3ebf6 30%, #f5eef4 50%, #f3ebf6 70%, #f0e8f5 100%)">
+            <div class="mb-8">
+                <h1 class="text-2xl font-bold text-orange-500">sbh</h1>
+                <p class="text-sm text-gray-600 mt-1">STIKes Bogor Husada</p>
+            </div>
+            <nav class="flex-1">
+                <ul class="space-y-2">
+                    <li>
+                        <a href="{{ url_for('dashboard_kaprodi') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                            <span>Utama</span>
+                        </a>
+                    </li>
+                    <!-- ... link lain ... -->
+                    <li>
+                        <a href="{{ url_for('request_kaprodi') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-white text-orange-500 font-semibold shadow-sm">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                            <span>Requests</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <!-- Header (Sudah Benar) -->
+            <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center shadow-sm">
+                <h2 class="text-2xl font-bold text-gray-800">Permintaan Perubahan Jadwal</h2>
+                <a href="{{ url_for('logout') }}" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    <span>Logout</span>
+                </a>
+            </header>
+
+            <!-- Content Area -->
+            <main class="flex-1 p-8 bg-gray-50">
+                
+                <!-- Flash Messages (Sudah Benar) -->
+                <div class="mb-6">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="{% if category == 'success' %} bg-green-100 border-green-400 text-green-700 {% else %} bg-red-100 border-red-400 text-red-700 {% endif %} border px-4 py-3 rounded relative" role="alert">
+                                    <span class="block sm:inline">{{ message }}</span>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+
+                <!-- Tab Interface (Sudah Benar) -->
+                <div x-data="{ activeTab: 'pending' }" class="bg-white rounded-2xl shadow-md p-8">
+                    
+                    <div class="border-b border-gray-200 mb-6">
+                        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                            <button @click="activeTab = 'pending'" 
+                                    :class="{ 'border-orange-500 text-orange-600': activeTab === 'pending', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'pending' }"
+                                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                Pending ({{ pending_list|length }})
+                            </button>
+                            <button @click="activeTab = 'approved'" 
+                                    :class="{ 'border-orange-500 text-orange-600': activeTab === 'approved', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'approved' }"
+                                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                Riwayat Disetujui
+                            </button>
+                            <button @click="activeTab = 'rejected'" 
+                                    :class="{ 'border-orange-500 text-orange-600': activeTab === 'rejected', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'rejected' }"
+                                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                Riwayat Ditolak
+                            </button>
+                        </nav>
+                    </div>
+
+                    <!-- ============================================== -->
+                    <!-- == TAB 1: PENDING == -->
+                    <!-- ============================================== -->
+                    <div x-show="activeTab === 'pending'">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dosen & Matkul</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jadwal Asli</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jadwal Pengganti</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alasan</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% if pending_list %}
+                                        {% for req in pending_list %}
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm font-medium text-gray-900">{{ req.nama_dosen }}</div>
+                                                <div class="text-sm text-gray-700">{{ req.nama_matkul }}</div>
+                                                <div class="text-sm text-gray-500">{{ req.nama_kelas }} ({{ req.angkatan_tahun }})</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                <!-- [FIX 1] Menghapus filter |datetimeformat -->
+                                                <div>{{ req.hari_asli }}, {{ req.tanggal_asli }}</div>
+                                                <div>{{ req.jam_mulai_asli_f }} - {{ req.jam_selai_asli_f }}</div>
+                                                <div class="text-gray-500">{{ req.ruangan_asli }}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                <!-- [FIX 1] Menghapus filter |datetimeformat -->
+                                                <div>{{ req.tanggal_pengganti }}</div>
+                                                <div>{{ req.jam_mulai_pengganti_f }} - {{ req.jam_selesai_pengganti_f }}</div>
+                                                <div class="text-gray-500">{{ req.ruangan_pengganti or req.ruangan_asli }}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-normal text-sm text-gray-700 max-w-xs">{{ req.alasan_perubahan }}</td>
+                                            
+                                            <!-- ================================== -->
+                                            <!-- == [FIX 2] PERBAIKAN TOMBOL AKSI == -->
+                                            <!-- ================================== -->
+                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                
+                                                <!-- Form untuk SETUJU (Ini yang diperbaiki) -->
+                                                <form action="{{ url_for('approve_request', id_perubahan=req.id_perubahan) }}" method="POST" class="inline-block">
+                                                    <button type="submit" 
+                                                            onclick="return confirm('Anda yakin ingin MENYETUJUI perubahan jadwal ini?')"
+                                                            class="text-white bg-green-500 hover:bg-green-600 font-medium rounded-lg text-xs px-3 py-1.5">
+                                                        Setuju
+                                                    </button>
+                                                </form>
+                                                
+                                                <!-- Tombol untuk TOLAK (Ini yang diperbaiki) -->
+                                                <button type="button" 
+                                                        class="btn-tolak text-white bg-red-500 hover:bg-red-600 font-medium rounded-lg text-xs px-3 py-1.5 ml-2"
+                                                        data-id-perubahan="{{ req.id_perubahan }}">
+                                                    Tolak
+                                                </button>
+
+                                            </td>
+                                            <!-- ================================== -->
+
+                                        </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">Tidak ada permintaan pending.</td></tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- TAB 2: DISETUJUI -->
+                    <div x-show="activeTab === 'approved'" style="display: none;">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dosen & Matkul</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jadwal Asli</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jadwal Pengganti</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% if approved_list %}
+                                        {% for req in approved_list %}
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm font-medium text-gray-900">{{ req.nama_dosen }}</div>
+                                                <div class="text-sm text-gray-700">{{ req.nama_matkul }}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                <!-- [FIX 1] Menghapus filter |datetimeformat -->
+                                                <div>{{ req.hari_asli }}, {{ req.tanggal_asli }}</div>
+                                                <div class="text-gray-500 line-through">{{ req.jam_mulai_asli_f }} - {{ req.jam_selai_asli_f }}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-semibold">
+                                                <!-- [FIX 1] Menghapus filter |datetimeformat -->
+                                                <div>{{ req.tanggal_pengganti }}</div>
+                                                <div>{{ req.jam_mulai_pengganti_f }} - {{ req.jam_selesai_pengganti_f }}</div>
+                                                <div class="text-gray-500 font-normal">{{ req.ruangan_pengganti or req.ruangan_asli }}</div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr><td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">Tidak ada riwayat permintaan disetujui.</td></tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- TAB 3: DITOLAK -->
+                    <div x-show="activeTab === 'rejected'" style="display: none;">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dosen & Matkul</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detail Pengajuan</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alasan Ditolak</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% if rejected_list %}
+                                        {% for req in rejected_list %}
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm font-medium text-gray-900">{{ req.nama_dosen }}</div>
+                                                <div class="text-sm text-gray-700">{{ req.nama_matkul }}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                <!-- [FIX 1] Menghapus filter |datetimeformat -->
+                                                <div>Asli: {{ req.tanggal_asli }}</div>
+                                                <div class="text-gray-500">Diajukan: {{ req.tanggal_pengganti }}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-normal text-sm text-red-600 max-w-sm">
+                                                {{ req.catatan_kaprodi }}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr><td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">Tidak ada riwayat permintaan ditolak.</td></tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal Tolak (Sudah Benar) -->
+    <div id="modalTolak" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center hidden">
+      <div class="relative mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+        
+        <form id="formTolak" action="" method="POST">
+          
+          <div class="flex justify-between items-center pb-3 border-b">
+            <h3 class="text-xl font-bold text-gray-800">Tolak Permintaan</h3>
+            <button type="button" id="btnModalCloseTolak" class="text-gray-400 hover:text-gray-600">
+              <span class="text-2xl">&times;</span>
+            </button>
+          </div>
+
+          <div class="mt-5">
+            <div class="form-group">
+              <label for="catatan_kaprodi" class="block text-sm font-medium text-gray-700">Alasan Penolakan (Wajib)</label>
+              <textarea name="catatan_kaprodi" id="catatan_kaprodi" rows="4" required placeholder="Contoh: Ruangan akan dipakai untuk rapat"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"></textarea>
+            </div>
+          </div>
+
+          <div class="mt-6 pt-3 border-t flex justify-end space-x-3">
+            <button type="button" id="btnModalCancelTolak" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
+              Batal
+            </button>
+            <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">
+              Kirim Penolakan
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+    
+    <!-- Script Modal (Sudah Benar) -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('modalTolak');
+        const btnClose = document.getElementById('btnModalCloseTolak');
+        const btnCancel = document.getElementById('btnModalCancelTolak');
+        const allBtnTolak = document.querySelectorAll('.btn-tolak');
+        const formTolak = document.getElementById('formTolak');
+
+        function showModal(event) {
+          const idPerubahan = event.currentTarget.dataset.idPerubahan;
+          formTolak.action = `/dashboard/kaprodi/requests/reject/${idPerubahan}`;
+          modal.classList.remove('hidden');
+        }
+
+        function hideModal() {
+          modal.classList.add('hidden');
+          formTolak.action = "";
+          formTolak.reset();
+        }
+
+        allBtnTolak.forEach(button => {
+          button.addEventListener('click', showModal);
+        });
+
+        btnClose.addEventListener('click', hideModal);
+        btnCancel.addEventListener('click', hideModal);
+      });
+    </script>
+</body>
+</html>
