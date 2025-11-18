@@ -5,46 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login | STIKES Bogor Husada</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-    
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
     <style>
-      /* Menggunakan Inter sebagai font utama */
       body {
         font-family: "Inter", "Segoe UI", sans-serif;
       }
-      
-      /* Animasi fade in untuk elemen form */
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(15px); }
-        to { opacity: 1; transform: translateY(0); }
+
+      .sidebar-gradient {
+        background: linear-gradient(180deg, #f3e8ff 0%, #ffe4e6 100%);
       }
-      
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(15px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
       .fade-in {
         animation: fadeIn 0.8s ease-out;
       }
 
-      /* Warna fokus kustom untuk checkbox dan input */
       input[type="checkbox"]:checked {
         border-color: transparent;
-        background-color: #f97316; /* orange-500 */
+        background-color: #f97316;
       }
       input[type="checkbox"]:focus {
-        --tw-ring-color: #f97316; /* orange-500 */
+        --tw-ring-color: #f97316;
       }
     </style>
   </head>
 
   <body class="flex flex-col lg:flex-row min-h-screen bg-white">
-    
-    <aside
-      class="w-full lg:w-5/12 xl:w-1/3 flex flex-col justify-center items-center text-center p-8 lg:p-12 
-      bg-gradient-to-br from-orange-500 via-orange-400 to-yellow-300 text-white 
-      shadow-xl lg:shadow-2xl"
-    >
-      <div class="bg-white rounded-[2rem] p-6 mb-8 shadow-xl transform transition duration-500 hover:scale-[1.03]">
+    <aside class="w-full lg:w-5/12 xl:w-1/3 flex flex-col justify-center items-center text-center p-8 lg:p-12 sidebar-gradient text-gray-800 shadow-xl lg:shadow-none border-b lg:border-b-0 lg:border-r border-purple-100">
+      <div class="bg-white rounded-[2rem] p-6 mb-8 shadow-xl shadow-purple-100 transform transition duration-500 hover:scale-[1.03]">
         <img
           src="https://assets.nsd.co.id/images/kampus/logo/8ofZnuE1_400x400.jpg"
           alt="Logo STIKes Bogor Husada"
@@ -52,43 +54,27 @@
           onerror="this.src='https://placehold.co/96x96/FF6600/FFFFFF?text=SBH'; this.onerror=null;"
         />
       </div>
-      <h1 class="text-3xl lg:text-4xl xl:text-5xl font-extrabold mb-3">
-        STIKes Bogor Husada
-      </h1>
-      <p class="text-xl lg:text-2xl font-light mb-6">
-        Sistem Akademik Terpadu
-      </p>
-      <p class="text-sm text-white/90 max-w-md italic">
-        "Gerbang untuk mengakses semua layanan akademik Anda. Selamat datang kembali!"
-      </p>
+
+      <h1 class="text-3xl lg:text-4xl xl:text-5xl font-extrabold mb-3 text-amber-500">STIKes Bogor Husada</h1>
+      <p class="text-xl lg:text-2xl font-light mb-6 text-gray-700">Sistem Akademik Terpadu</p>
+      <p class="text-sm text-gray-500 max-w-md italic">"Gerbang untuk mengakses semua layanan akademik Anda. Selamat datang kembali!"</p>
     </aside>
 
-    <main
-      class="w-full lg:w-7/12 xl:w-2/3 bg-white flex flex-col justify-center items-center p-8 lg:p-12"
-    >
+    <main class="w-full lg:w-7/12 xl:w-2/3 bg-white flex flex-col justify-center items-center p-8 lg:p-12">
       <div class="w-full max-w-sm sm:max-w-md fade-in">
-        <h2 class="text-3xl lg:text-4xl font-extrabold text-gray-900 mb-2">
-          Selamat Datang
-        </h2>
+        <h2 class="text-3xl lg:text-4xl font-extrabold text-gray-900 mb-2">Selamat Datang</h2>
         <p class="text-gray-500 mb-10 text-lg">Masuk ke akun Anda</p>
 
         {% if error %}
         <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-md" role="alert">
           <p class="font-semibold text-red-700">Login Gagal</p>
-          <p class="text-sm text-red-600 mt-1">
-            {{ error | default("Username atau password salah.") }}
-          </p>
+          <p class="text-sm text-red-600 mt-1">{{ error | default("Username atau password salah.") }}</p>
         </div>
         {% endif %}
 
         <form method="POST" action="/login" class="space-y-6">
-          
           <div>
-            <label
-              for="username"
-              class="block text-sm font-semibold text-gray-700 mb-2"
-              >Username / NIM / NIDN</label
-            >
+            <label for="username" class="block text-sm font-semibold text-gray-700 mb-2">Username / NIM / NIDN</label>
             <div class="relative">
               <span class="absolute inset-y-0 left-0 flex items-center pl-3">
                 <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -101,18 +87,13 @@
                 id="username"
                 required
                 placeholder="Masukkan Username atau Nomor Induk"
-                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl transition duration-150 
-                       focus:outline-none focus:ring-4 focus:ring-orange-100 focus:border-orange-500"
+                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl transition duration-150 focus:outline-none focus:ring-4 focus:ring-orange-100 focus:border-orange-500"
               />
             </div>
           </div>
 
           <div>
-            <label
-              for="password"
-              class="block text-sm font-semibold text-gray-700 mb-2"
-              >Password</label
-            >
+            <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
             <div class="relative">
               <span class="absolute inset-y-0 left-0 flex items-center pl-3">
                 <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -125,33 +106,52 @@
                 id="password"
                 required
                 placeholder="Masukkan password Anda"
-                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl transition duration-150 
-                       focus:outline-none focus:ring-4 focus:ring-orange-100 focus:border-orange-500"
+                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl transition duration-150 focus:outline-none focus:ring-4 focus:ring-orange-100 focus:border-orange-500"
               />
+              <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500">
+                <svg id="iconClosed" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 
+                    19.5c1.76 0 3.433-.408 4.915-1.137M6.228 6.228A10.45 10.45 
+                    0 0112 4.5c4.756 0 8.773 3.162 
+                    10.065 7.5a10.52 10.52 0 01-4.293 
+                    5.774M6.228 6.228L3 3m3.228 
+                    3.228l3.65 3.65m7.894 7.894L21 
+                    21m-3.228-3.228l-3.65-3.65m0 0a3 
+                    3 0 10-4.243-4.243m4.242 
+                    4.242L9.879 9.88"
+                  />
+                </svg>
+
+                <svg id="iconOpen" class="w-5 h-5 hidden" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M12 4.5c-4.756 0-8.773 
+                    3.162-10.065 
+                    7.5C3.227 16.338 7.244 19.5 12 
+                    19.5s8.773-3.162 10.065-7.5C20.773 
+                    7.662 16.756 4.5 12 4.5z"
+                  />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
+                </svg>
+              </button>
             </div>
           </div>
-          
+
           <div class="flex items-center justify-between">
             <label class="flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                class="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-2 focus:ring-offset-2"
-                style="color: #f97316;" 
-              />
+              <input type="checkbox" class="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-2 focus:ring-offset-2" style="color: #f97316" />
               <span class="ml-2 text-sm text-gray-600 select-none">Ingat Saya</span>
             </label>
-            <a
-              href="#"
-              class="text-sm font-semibold text-orange-500 hover:text-orange-600 transition duration-150"
-              >Lupa Password?</a
-            >
+            <a href="#" class="text-sm font-semibold text-orange-500 hover:text-orange-600 transition duration-150">Lupa Password?</a>
           </div>
 
           <button
             type="submit"
-            class="w-full bg-gradient-to-r from-orange-500 to-yellow-500 text-white py-3.5 rounded-xl font-bold text-lg 
-                   transition duration-300 transform hover:scale-[1.01] hover:shadow-lg 
-                   focus:outline-none focus:ring-4 focus:ring-orange-200"
+            class="w-full bg-gradient-to-r from-orange-500 to-yellow-500 text-white py-3.5 rounded-xl font-bold text-lg transition duration-300 transform hover:scale-[1.01] hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-orange-200"
           >
             <svg class="h-5 w-5 inline mr-2 -mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10 0a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm-4 4a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
@@ -161,14 +161,24 @@
         </form>
 
         <footer class="text-center mt-12 pt-6 border-t border-gray-100">
-          <p class="text-xs text-gray-500">
-            Perlu bantuan? Hubungi <a href="#" class="text-orange-500 hover:underline">Tim IT</a>.
-          </p>
-          <p class="text-xs text-gray-400 mt-2">
-            © 2025 STIKes Bogor Husada — All rights reserved
-          </p>
+          <p class="text-xs text-gray-500">Perlu bantuan? Hubungi <a href="#" class="text-orange-500 hover:underline">Tim IT</a>.</p>
+          <p class="text-xs text-gray-400 mt-2">© 2025 STIKes Bogor Husada — All rights reserved</p>
         </footer>
       </div>
     </main>
+    <script>
+      const password = document.getElementById("password");
+      const toggle = document.getElementById("togglePassword");
+      const iconOpen = document.getElementById("iconOpen");
+      const iconClosed = document.getElementById("iconClosed");
+
+      toggle.addEventListener("click", () => {
+        const type = password.type === "password" ? "text" : "password";
+        password.type = type;
+
+        iconOpen.classList.toggle("hidden");
+        iconClosed.classList.toggle("hidden");
+      });
+    </script>
   </body>
 </html>
