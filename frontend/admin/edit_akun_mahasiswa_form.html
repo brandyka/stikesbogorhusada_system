@@ -1,74 +1,173 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Edit Akun Mahasiswa | STIKes Bogor Husada</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <style> body { font-family: "Inter", "Segoe UI", sans-serif; } </style>
-</head>
-<body class="bg-gray-50">
-    <div class="flex min-h-screen">
-        <aside class="w-64 p-6 flex flex-col" style="background: linear-gradient(180deg, #f0e8f5 0%, #f3ebf6 30%, #f5eef4 50%, #f3ebf6 70%, #f0e8f5 100%)">
-            <div class="mb-8">
-                <h1 class="text-2xl font-bold text-orange-500">sbh</h1>
-                <p class="text-sm text-gray-600 mt-1">STIKes Bogor Husada</p>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <style>
+      body {
+        font-family: "Inter", "Segoe UI", sans-serif;
+        background-color: #f8fafc;
+      }
+      [x-cloak] {
+        display: none !important;
+      }
+      /* Gradasi Sidebar Lilac-Pink */
+      .sidebar-gradient {
+        background: linear-gradient(180deg, #f3e8ff 0%, #ffe4e6 100%);
+        border-right: 1px solid #e9d5ff;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <div x-data="{ sidebarOpen: window.innerWidth >= 1024 }" @resize.window="sidebarOpen = window.innerWidth >= 1024" class="relative flex min-h-screen">
+      
+      <!-- Mobile Overlay -->
+      <div x-show="sidebarOpen && window.innerWidth < 1024" @click="sidebarOpen = false" class="fixed inset-0 z-30 bg-gray-900/40 transition-opacity duration-300 lg:hidden" x-cloak></div>
+
+      <!-- SIDEBAR -->
+      <aside
+        @keydown.escape.window="sidebarOpen = false"
+        class="fixed inset-y-0 left-0 z-40 w-64 p-4 flex flex-col overflow-y-auto transform transition-transform duration-300 ease-in-out lg:static lg:h-auto lg:shadow-none sidebar-gradient"
+        :class="sidebarOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'"
+        x-cloak
+      >
+        <div class="flex justify-between items-center mb-10 mt-2">
+          <div class="flex items-center space-x-2">
+            <img src="https://assets.nsd.co.id/images/kampus/logo/8ofZnuE1_400x400.jpg" alt="Logo" class="w-8 h-8 rounded-full" />
+            <div>
+              <h1 class="text-xl font-extrabold text-gray-800 tracking-wider">SBH ADMIN</h1>
+              <p class="text-xs text-gray-500 mt-0.5">Sistem Akademik</p>
             </div>
-            <nav class="flex-1">
-              <ul class="space-y-2">
-                <li><a href="{{ url_for('dashboard_admin') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition"><span>Utama</span></a></li>
-                <li><a href="{{ url_for('admin_kelola_data') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition"><span>Kelola Data</span></a></li>
-                <li><a href="{{ url_for('admin_kelola_jadwal') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition"><span>Kelola Jadwal</span></a></li>
-                <li><a href="{{ url_for('admin_kelola_akun') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-white text-orange-500 font-semibold shadow-sm"><span>Kelola Akun</span></a></li>
-                <li><a href="{{ url_for('admin_kelola_bimbingan') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition"><span>Kelola Bimbingan</span></a></li>
-              </ul>
-            </nav>
-        </aside>
-        <div class="flex-1 flex flex-col">
-            <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center shadow-sm">
-              <h2 class="text-2xl font-bold text-gray-800">Kelola Akun</h2>
-              <a href="{{ url_for('logout') }}" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold"><span>Logout</span></a>
-            </header>
-            <main class="flex-1 p-8 bg-gray-50">
-              <div class="flex justify-between items-center mb-6">
-                <div>
-                  <h3 class="text-2xl font-bold text-gray-800">Edit Akun: {{ akun.Username }}</h3>
-                  <a href="{{ url_for('admin_akun_mahasiswa') }}" class="text-sm text-orange-500 hover:underline flex items-center mt-1">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                    Kembali ke Daftar Akun Mahasiswa
-                  </a>
-                </div>
-              </div>
-              <form method="POST" action="{{ url_for('edit_akun_mahasiswa', username=akun.Username) }}" class="bg-white rounded-2xl shadow-md p-8 max-w-lg mx-auto">
-                <div class="space-y-6">
-                  <div>
-                    <label for="username" class="block text-sm font-semibold text-gray-700 mb-2">Username (Read Only)</label>
-                    <input type="text" name="username_display" id="username" value="{{ akun.Username }}" readonly class="w-full px-4 py-3 border border-gray-200 bg-gray-100 rounded-xl focus:outline-none">
-                  </div>
-                  <div>
-                    <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
-                    <input type="text" name="password" id="password" value="{{ akun.Password }}" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400">
-                  </div>
-                  <div>
-                    <label for="nim_mahasiswa" class="block text-sm font-semibold text-gray-700 mb-2">Hubungkan ke Mahasiswa</label>
-                    <select name="nim_mahasiswa" id="nim_mahasiswa" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400">
-                        <option value="">-- Pilih Mahasiswa --</option>
-                        {% for mhs in daftar_mahasiswa %}
-                            <option value="{{ mhs.NIM }}" {% if mhs.NIM == akun.nim_mahasiswa %}selected{% endif %}>
-                                {{ mhs.NIM }} - {{ mhs.Nama }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                  </div>
-                  <div class="pt-2">
-                    <button type="submit" class="w-full bg-orange-500 text-white font-semibold px-5 py-3 rounded-xl shadow-md hover:bg-orange-600 transition">
-                      Update Data Akun
-                    </button>
-                  </div>
-                </div>
-              </form>
-            </main>
+          </div>
+          <button @click="sidebarOpen = false" class="lg:hidden text-gray-600 p-1 hover:text-amber-500 rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
         </div>
+
+        <nav class="flex-1 space-y-2">
+          <a href="{{ url_for('dashboard_admin') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500/10 hover:text-amber-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+            <span>Utama</span>
+          </a>
+
+          <a href="{{ url_for('admin_kelola_data') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500/10 hover:text-amber-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+            <span>Kelola Data</span>
+          </a>
+
+          <a href="{{ url_for('admin_kelola_jadwal') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500/10 hover:text-amber-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            <span>Kelola Jadwal</span>
+          </a>
+
+          <!-- Menu Kelola Akun (Aktif - Amber Solid) -->
+          <a href="{{ url_for('admin_kelola_akun') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500 text-white font-semibold shadow-lg shadow-amber-200/50 transition duration-150">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <span>Kelola Akun</span>
+          </a>
+
+          <a href="{{ url_for('admin_kelola_bimbingan') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500/10 hover:text-amber-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <span>Kelola Bimbingan</span>
+          </a>
+        </nav>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <div class="flex-1 flex flex-col">
+        <header class="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 sm:px-8 py-4 flex justify-between items-center shadow-sm">
+          <button @click.stop="sidebarOpen = !sidebarOpen" class="lg:hidden text-gray-600 p-2 hover:text-amber-500 rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+          </button>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-gray-800 hidden lg:block">Kelola Akun</h2>
+          <a href="{{ url_for('logout') }}" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold">
+            <span class="hidden sm:inline">Logout</span>
+          </a>
+        </header>
+
+        <main class="flex-1 p-4 sm:p-8 bg-gray-100 flex justify-center">
+          <div class="w-full max-w-xl">
+            
+            <!-- Header Form & Back Link -->
+            <div class="flex justify-between items-center mb-6">
+              <div>
+                <h3 class="text-3xl font-extrabold text-gray-900 mb-1">Edit Akun: {{ akun.Username }}</h3>
+                <a href="{{ url_for('admin_akun_mahasiswa') }}" class="text-sm text-gray-500 hover:text-amber-600 hover:underline inline-flex items-center mt-1 transition">
+                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                  Kembali ke Daftar Akun Mahasiswa
+                </a>
+              </div>
+            </div>
+
+            <!-- Card Form -->
+            <form method="POST" action="{{ url_for('edit_akun_mahasiswa', username=akun.Username) }}" class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100">
+              
+              <div class="space-y-6">
+                
+                <!-- Username (Read Only) -->
+                <div>
+                  <label for="username" class="block text-sm font-bold text-gray-700 mb-2">Username (Read Only)</label>
+                  <input 
+                    type="text" 
+                    name="username_display" 
+                    id="username" 
+                    value="{{ akun.Username }}" 
+                    readonly 
+                    class="w-full px-4 py-3 border border-gray-200 bg-gray-100 text-gray-500 rounded-xl focus:outline-none cursor-not-allowed" 
+                  />
+                </div>
+
+                <!-- Password -->
+                <div>
+                  <label for="password" class="block text-sm font-bold text-gray-700 mb-2">Password</label>
+                  <input 
+                    type="text" 
+                    name="password" 
+                    id="password" 
+                    value="{{ akun.Password }}" 
+                    required 
+                    placeholder="Masukkan Password" 
+                    class="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-4 focus:ring-amber-100 focus:border-amber-500 transition duration-200" 
+                  />
+                </div>
+
+                <!-- Hubungkan Mahasiswa -->
+                <div>
+                  <label for="nim_mahasiswa" class="block text-sm font-bold text-gray-700 mb-2">Hubungkan ke Mahasiswa</label>
+                  <select name="nim_mahasiswa" id="nim_mahasiswa" required class="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-4 focus:ring-amber-100 focus:border-amber-500 transition duration-200 cursor-pointer">
+                      <option value="">-- Pilih Mahasiswa --</option>
+                      {% for mhs in daftar_mahasiswa %}
+                          <option value="{{ mhs.NIM }}" {% if mhs.NIM == akun.nim_mahasiswa %}selected{% endif %}>{{ mhs.NIM }} - {{ mhs.Nama }}</option>
+                      {% endfor %}
+                  </select>
+                </div>
+
+                <!-- Tombol Update -->
+                <div class="pt-4">
+                  <button
+                    type="submit"
+                    class="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-lg px-5 py-3 rounded-xl shadow-lg hover:shadow-xl hover:from-amber-600 hover:to-orange-600 transition duration-300 transform hover:scale-[1.01] flex items-center justify-center space-x-2"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                    <span>Update Akun</span>
+                  </button>
+                </div>
+                
+              </div>
+
+            </form>
+          </div>
+        </main>
+      </div>
     </div>
-</body>
+  </body>
 </html>
