@@ -5,68 +5,195 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard Dosen | STIKes Bogor Husada</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style> body { font-family: "Inter", "Segoe UI", sans-serif; } </style>
-</head>
-<body class="bg-gray-50">
-    <div class="flex min-h-screen">
-        
-        <aside class="w-64 p-6" style="background: linear-gradient(180deg, #f0e8f5 0%, #f3ebf6 30%, #f5eef4 50%, #f3ebf6 70%, #f0e8f5 100%)">
-            <div class="mb-8">
-                <h1 class="text-2xl font-bold text-orange-500">sbh</h1>
-                <p class="text-sm text-gray-600 mt-1">STIKes Bogor Husada</p>
+
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <style>
+      body {
+        font-family: "Inter", "Segoe UI", sans-serif;
+        background-color: #f8fafc;
+      }
+      [x-cloak] {
+        display: none !important;
+      }
+
+      /* Sidebar Gradient (Lilac -> Pink) */
+      .sidebar-gradient {
+        background: linear-gradient(180deg, #f3e8ff 0%, #ffe4e6 100%);
+        border-right: 1px solid #e9d5ff;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <div x-data="{ sidebarOpen: window.innerWidth >= 1024 ? true : false }" @resize.window="sidebarOpen = window.innerWidth >= 1024 ? true : false" class="relative flex min-h-screen">
+      <!-- Mobile Overlay -->
+      <div x-show="sidebarOpen && window.innerWidth < 1024" @click="sidebarOpen = false" class="fixed inset-0 z-30 bg-gray-900/40 transition-opacity duration-300 lg:hidden" x-cloak></div>
+
+      <!-- SIDEBAR -->
+      <aside
+        @keydown.escape.window="sidebarOpen = false"
+        class="fixed inset-y-0 left-0 z-40 w-64 p-4 flex flex-col overflow-y-auto transform transition-transform duration-300 ease-in-out lg:static lg:h-auto lg:shadow-none sidebar-gradient"
+        :class="sidebarOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'"
+        x-cloak
+      >
+        <div class="flex justify-between items-center mb-10 mt-2">
+          <div class="flex items-center space-x-2">
+            <img src="https://assets.nsd.co.id/images/kampus/logo/8ofZnuE1_400x400.jpg" alt="Logo" class="w-8 h-8 rounded-full" />
+            <div>
+              <h1 class="text-xl font-extrabold text-gray-800 tracking-wider">SBH DOSEN</h1>
+              <p class="text-xs text-gray-500 mt-0.5">Sistem Akademik</p>
             </div>
-            <nav>
-                <ul class="space-y-2">
-                    <li>
-                        <a href="{{ url_for('dashboard_dosen') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-white text-orange-500 font-semibold shadow-sm">
-                            <span>Beranda</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="{{ url_for('jadwal_dosen') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
-                            <span>Jadwal Mengajar</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </aside>
-
-        <div class="flex-1 flex flex-col">
-            <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center shadow-sm">
-                <h2 class="text-2xl font-bold text-gray-800">Dashboard Dosen</h2>
-                <a href="{{ url_for('logout') }}" class="text-orange-500 hover:text-orange-600 font-semibold">Logout</a>
-            </header>
-
-            <main class="flex-1 p-8">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-xl font-bold text-gray-800">Selamat Datang, {{ data.Nama }}!</h3>
-                </div>
-
-                <div class="bg-white rounded-2xl shadow-md p-8">
-                    <div class="flex items-start space-x-8">
-                        <div class="flex-1 grid grid-cols-2 gap-x-16 gap-y-6">
-                            
-                            <div>
-                                <p class="text-sm text-gray-500 mb-1">Nama Lengkap</p>
-                                <p class="text-base font-semibold text-gray-800">{{ data.Nama }}</p>
-                            </div>
-
-                            <div>
-                                <p class="text-sm text-gray-500 mb-1">NIP</p>
-                                <p class="text-base font-semibold text-gray-800">{{ data.NIP }}</p>
-                            </div>
-
-                            <div>
-                                <p class="text-sm text-gray-500 mb-1">Program Studi</p>
-                                <p class="text-base font-semibold text-gray-800">{{ data.ProgramStudi }}</p>
-                            </div>
-                            
-                        </div>
-                    </div>
-                </div>
-            </main>
+          </div>
+          <button @click="sidebarOpen = false" class="lg:hidden text-gray-600 p-1 hover:text-amber-500 rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
         </div>
+
+        <nav class="flex-1 space-y-2">
+          <!-- Beranda (Aktif) -->
+          <a href="{{ url_for('dashboard_dosen') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500 text-white font-semibold shadow-lg shadow-amber-200/50 transition duration-150">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            </svg>
+            <span>Beranda</span>
+          </a>
+
+          <a href="{{ url_for('jadwal_dosen') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            <span>Jadwal Mengajar</span>
+          </a>
+
+          <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              ></path>
+            </svg>
+            <span>Bimbingan</span>
+          </a>
+
+          <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              ></path>
+            </svg>
+            <span>Penelitian</span>
+          </a>
+        </nav>
+
+        <!-- Footer Sidebar -->
+        <div class="mt-8 border-t pt-4 border-gray-200">
+          <div class="flex items-center space-x-3 mb-4 px-2">
+            <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 font-bold border border-amber-200">{{ data.Nama[0] | default('M') }}</div>
+            <div class="overflow-hidden">
+              <p class="font-semibold text-gray-800 text-sm truncate">{{ data.Nama | default('Dosen') }}</p>
+              <p class="text-xs text-gray-500 truncate">{{ data.NIP | default('-') }}</p>
+            </div>
+          </div>
+          <a href="{{ url_for('logout') }}" class="flex items-center justify-center w-full space-x-2 text-red-500 hover:bg-red-50 rounded-xl py-2 transition duration-150">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+            </svg>
+            <span class="font-medium">Logout</span>
+          </a>
+        </div>
+      </aside>
+
+      <!-- KONTEN UTAMA -->
+      <div class="flex-1 flex flex-col">
+        <!-- Navbar -->
+        <header class="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 sm:px-8 py-4 flex justify-between items-center shadow-sm">
+          <button @click.stop="sidebarOpen = !sidebarOpen" class="lg:hidden text-gray-600 p-2 hover:text-amber-500 rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+          </button>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-gray-800 hidden lg:block">Dashboard Dosen</h2>
+        </header>
+
+        <main class="flex-1 p-4 sm:p-8 bg-gray-100">
+          <!-- 1. Kartu Profil Utama (Mirip Screenshot) -->
+          <div class="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-8">
+            <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+              <!-- Foto Profil -->
+              <div class="flex-shrink-0">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcReqjEpnN9KBLncq5mef_FfoRg9-eHn3jsnvA&s" alt="Foto Dosen" class="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl object-cover shadow-md border border-gray-100" />
+              </div>
+
+              <!-- Info Text -->
+              <div class="flex-1 w-full">
+                <h3 class="text-2xl font-extrabold text-gray-900 mb-4 text-center sm:text-left">{{ data.Nama | default('Nama Dosen') }}</h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                  <div class="flex flex-col">
+                    <span class="text-gray-400 font-medium uppercase tracking-wider text-xs">NIP / NIDN</span>
+                    <span class="text-gray-800 font-semibold text-lg">{{ data.NIP | default('-') }}</span>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-gray-400 font-medium uppercase tracking-wider text-xs">Program Studi</span>
+                    <span class="text-gray-800 font-semibold text-lg">{{ data.ProgramStudi | default('-') }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Notifikasi (Alert Biru) -->
+            <div class="mt-8 bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-center text-blue-700">
+              <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span class="font-medium text-sm">Anda memiliki jadwal mengajar hari ini. Silakan cek menu jadwal.</span>
+            </div>
+          </div>
+
+          <!-- 2. Kartu Menu Akses Cepat (Grid 3 Kolom) -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Card 1: Lihat Jadwal -->
+            <a href="{{ url_for('jadwal_dosen') }}" class="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition duration-200 group border border-transparent hover:border-amber-200">
+              <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 mb-4 group-hover:scale-110 transition-transform">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+              </div>
+              <h4 class="text-lg font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">Lihat Jadwal Mengajar</h4>
+              <p class="text-sm text-gray-500">Kelola jadwal mata kuliah Anda</p>
+            </a>
+
+            <!-- Card 2: Kelola Absensi -->
+            <a href="#" class="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition duration-200 group border border-transparent hover:border-green-200">
+              <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-600 mb-4 group-hover:scale-110 transition-transform">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                </svg>
+              </div>
+              <h4 class="text-lg font-bold text-gray-900 mb-1 group-hover:text-green-600 transition-colors">Kelola Absensi</h4>
+              <p class="text-sm text-gray-500">Atur kehadiran mahasiswa</p>
+            </a>
+
+            <!-- Card 3: Upload Penelitian -->
+            <a href="#" class="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition duration-200 group border border-transparent hover:border-purple-200">
+              <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600 mb-4 group-hover:scale-110 transition-transform">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                </svg>
+              </div>
+              <h4 class="text-lg font-bold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors">Upload Penelitian</h4>
+              <p class="text-sm text-gray-500">Kirim hasil penelitian Anda</p>
+            </a>
+          </div>
+        </main>
+      </div>
     </div>
   </body>
 </html>
