@@ -171,7 +171,7 @@
         <main class="flex-1 p-4 sm:p-8 bg-gray-100">
           <div class="mb-8">
             <h3 class="text-3xl font-extrabold text-gray-900 mb-1">Daftar Jadwal Mata Kuliah</h3>
-            <a href="{{ url_for('admin_kelola_jadwal') }}" class="text-sm text-gray-500 hover:text-orange-500 hover:underline flex items-center mt-1 transition">
+            <a href="{{ url_for('admin_kelola_jadwal') }}" class="text-sm text-gray-500 hover:text-orange-500 hover:underline inline-flex items-center mt-1 transition">
               <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
               Kembali ke Menu Jadwal
             </a>
@@ -234,7 +234,7 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800" x-text="j.dosen"></td>
 
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800" x-text="j.kelas + ' (' + j.angkatan + ')'"></span>
+                      <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-700" x-text="j.kelas + ' (' + j.angkatan + ')'"></span>
                     </td>
 
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-semibold" x-text="j.hari"></td>
