@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detail Penelitian Kaprodi</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        body {
+            background-color: #f8f9fc;
+            font-family: "Inter", sans-serif;
+        }
+        .card {
+            border-radius: 15px;
+        }
+        h3 {
+            font-weight: 700;
+        }
+        .section-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid py-4">
+
+    <div class="card shadow-lg mb-4">
+
+        <div class="card-header bg-white py-4 px-4 border-0">
+            <h3 class="mb-1">
+                <i class="fa-solid fa-microscope text-primary me-2"></i>
+                Detail Penelitian
+            </h3>
+            <p class="text-muted mb-0">
+                Informasi lengkap penelitian yang dilakukan oleh dosen.
+            </p>
+        </div>
+
+        <div class="card-body px-4 pb-4">
+
+            <div class="mb-4">
+                <h5 class="section-title mb-3">🧾 Informasi Penelitian</h5>
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label class="text-muted small">Ketua Penelitian</label>
+                        <p class="fw-semibold mb-0">{{ detail.nama_ketua }}</p>
+                        <p class="text-secondary small">{{ detail.nip_ketua }}</p>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="text-muted small">Tahun Pelaksanaan</label>
+                        <p class="fw-semibold mb-0">{{ detail.tahun_pelaksanaan }}</p>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="text-muted small">Judul Penelitian</label>
+                        <p class="fw-semibold">{{ detail.judul_penelitian }}</p>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="text-muted small">Bidang Ilmu</label>
+                        <p class="text-secondary">
+                            {{ detail.bidang_ilmu or 'Tidak ada bidang ilmu.' }}
+                        </p>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="text-muted small">Status Penelitian</label><br>
+
+                        {% set status_class = {
+                            'Proposal diajukan': 'badge bg-warning text-dark',
+                            'Diterima': 'badge bg-info',
+                            'Sedang berjalan': 'badge bg-primary',
+                            'Selesai': 'badge bg-success'
+                        } %}
+
+                        <span class="px-3 py-2 rounded-pill {{ status_class.get(detail.status_penelitian, 'badge bg-secondary') }}">
+                            {{ detail.status_penelitian }}
+                        </span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="text-muted small">Pendanaan</label><br>
+                        <p class="mb-0">
+                            {{ detail.sumber_pendanaan }} (Rp {{ "{:,.0f}".format(detail.jumlah_dana | float) }})
+                        </p>
+                        <p class="text-secondary small">Durasi: {{ detail.lama_penelitian_bulan }} Bulan</p>
+                    </div>
+
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="mb-4">
+                <h5 class="section-title mb-3">👨‍🏫 Anggota Dosen</h5>
+
+                {% if anggota_dosen_list %}
+                <ul class="list-group">
+                    {% for d in anggota_dosen_list %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <div>
+                            <i class="fa-solid fa-user-tie text-primary me-2"></i>
+                            <strong>{{ d.Nama }}</strong>
+                        </div>
+                        <span class="text-secondary">{{ d.NIP }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted">Tidak ada anggota dosen.</p>
+                {% endif %}
+            </div>
+
+            <hr>
+
+            <div class="mb-4">
+                <h5 class="section-title mb-3">🎓 Anggota Mahasiswa</h5>
+
+                {% if anggota_mhs_list %}
+                <ul class="list-group">
+                    {% for m in anggota_mhs_list %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <div>
+                            <i class="fa-solid fa-user-graduate text-success me-2"></i>
+                            <strong>{{ m.Nama }}</strong>
+                            <span class="text-muted small">({{ m.nama_kelas or 'Kelas tidak tersedia' }})</span>
+                        </div>
+                        <span class="text-secondary">{{ m.NIM }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted">Tidak ada anggota mahasiswa.</p>
+                {% endif %}
+            </div>
+
+            <hr>
+
+            <div>
+                <h5 class="section-title mb-3">📤 Output Penelitian</h5>
+
+                {% if output_list %}
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Jenis Output</th>
+                                <th>Keterangan</th>
+                                </tr>
+                        </thead>
+                        <tbody>
+                            {% for o in output_list %}
+                            <tr>
+                                <td>{{ o.jenis_output }}</td>
+                                <td>{{ o.keterangan or '-' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% else %}
+                <p class="text-muted">Belum ada output penelitian.</p>
+                {% endif %}
+            </div>
+
+            <hr>
+            
+            <div class="mb-4">
+                <h5 class="section-title mb-3">📁 Bukti & Dokumen</h5>
+
+                {% macro display_file(label, filename_path) %}
+                <div class="col-md-3 mb-3">
+                    <div class="card p-3 h-100">
+                        <label class="text-muted small mb-2">{{ label }}</label>
+                        {% if filename_path %}
+                            <a href="{{ url_for('static', filename='dokumen_penelitian/' ~ filename_path) }}" target="_blank"
+                               class="btn btn-sm btn-success">
+                                <i class="fa-solid fa-file-arrow-down me-1"></i> Unduh/Lihat
+                            </a>
+                        {% else %}
+                            <span class="text-danger small">Tidak Tersedia</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endmacro %}
+
+                <div class="row">
+                    {{ display_file('Laporan Akhir', detail.file_laporan_akhir) }}
+                    {{ display_file('Artikel PDF', detail.artikel_pdf) }}
+                    {{ display_file('Sertifikat Penerimaan', detail.sertifikat_penerimaan) }}
+                    {{ display_file('Foto Kegiatan', detail.foto_kegiatan) }}
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <a href="{{ url_for('monitoring_penelitian_kaprodi') }}" class="btn btn-secondary">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Kembali
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

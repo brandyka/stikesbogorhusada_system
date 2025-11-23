@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penelitian Dosen | Input & Monitoring</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Gaya tambahan untuk modal agar tetap di tengah dan bisa di-scroll */
+        .max-h-90vh { max-height: 90vh; }
+    </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+    
+    <div class="bg-white shadow p-4 flex justify-between items-center sticky top-0 z-10">
+        <h1 class="text-2xl font-bold text-blue-700">🔬 Penelitian Dosen</h1>
+        <button onclick="openModal()" 
+                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white font-semibold transition duration-150">
+            <i class="fas fa-plus mr-1"></i> Tambah Penelitian Baru
+        </button>
+    </div>
+
+    <div class="p-6">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="p-3 mb-4 rounded text-white text-sm 
+                    {% if category == 'success' %} bg-green-500
+                    {% elif category == 'error' %} bg-red-500
+                    {% else %} bg-blue-500 {% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="bg-white p-4 rounded shadow">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700">Daftar Penelitian Anda</h2>
+
+            {% if penelitian_list %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full border-collapse border border-gray-200">
+                    <thead>
+                        <tr class="bg-gray-100 text-left text-sm text-gray-600">
+                            <th class="p-3 border">Judul Penelitian</th>
+                            <th class="p-3 border w-24">Tahun</th>
+                            <th class="p-3 border w-32">Status</th>
+                            <th class="p-3 border w-20">Aksi</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for p in penelitian_list %}
+                        <tr class="hover:bg-gray-50 text-sm">
+                            <td class="p-3 border">{{ p.judul_penelitian }}</td>
+                            <td class="p-3 border">{{ p.tahun_pelaksanaan }}</td>
+                            <td class="p-3 border">
+                                <span class="px-2 py-1 rounded text-white text-xs font-medium 
+                                        {% if p.status_penelitian == 'Selesai' %} bg-green-600
+                                        {% elif p.status_penelitian == 'Diterima' or p.status_penelitian == 'Sedang berjalan' %} bg-blue-600
+                                        {% else %} bg-yellow-600 {% endif %}">
+                                    {{ p.status_penelitian }}
+                                </span>
+                            </td>
+                            <td class="p-3 border">
+                                <a href="{{ url_for('detail_penelitian', id_penelitian=p.id_penelitian) }}" 
+                                   class="text-blue-600 hover:text-blue-800 font-medium text-xs">
+                                    Detail
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-gray-600 italic p-4 border rounded">Belum ada data penelitian yang Anda masukkan atau libatkan.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div id="modal" class="fixed inset-0 bg-black/50 hidden justify-center items-center z-50">
+        <div class="bg-white w-11/12 max-w-3xl p-6 rounded shadow-lg overflow-y-auto max-h-90vh">
+
+            <h2 class="text-2xl font-bold mb-4 text-blue-700">Input Penelitian Baru</h2>
+
+            <form id="formPenelitian" enctype="multipart/form-data">
+
+                <h3 class="font-bold text-lg mt-4 mb-2 text-gray-700">1. Identitas Penelitian</h3>
+                
+                <label class="block mt-3 font-semibold text-sm">Judul Penelitian <span class="text-red-500">*</span></label>
+                <input type="text" name="judul_penelitian" required class="w-full p-2 border rounded text-sm">
+
+                <div class="grid grid-cols-3 gap-4 mt-3">
+                    <div>
+                        <label class="block font-semibold text-sm">Bidang Ilmu <span class="text-red-500">*</span></label>
+                        <input type="text" name="bidang_ilmu" required class="w-full p-2 border rounded text-sm">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-sm">Tahun <span class="text-red-500">*</span></label>
+                        <input type="number" min="2000" max="2100" name="tahun_pelaksanaan" required class="w-full p-2 border rounded text-sm" value="{{ now().year if now is defined else 2025 }}">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-sm">Lama Penelitian (bln) <span class="text-red-500">*</span></label>
+                        <input type="number" name="lama_penelitian" required class="w-full p-2 border rounded text-sm" min="1">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mt-3">
+                    <div>
+                        <label class="block font-semibold text-sm">Sumber Pendanaan <span class="text-red-500">*</span></label>
+                        <select name="sumber_pendanaan" class="w-full p-2 border rounded text-sm" required>
+                            <option value="">-- Pilih Sumber Pendanaan --</option>
+                            <option value="Internal Kampus">Internal Kampus</option>
+                            <option value="Hibah Kemenristekdikti">Hibah Kemenristekdikti</option>
+                            <option value="Industri">Mitra Industri/Industri</option> 
+                            <option value="Mandiri">Mandiri</option> 
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-sm">Jumlah Dana (Rp) <span class="text-red-500">*</span></label>
+                        <input type="number" name="jumlah_dana" required class="w-full p-2 border rounded text-sm" min="0">
+                    </div>
+                </div>
+
+                <label class="block mt-3 font-semibold text-sm">Status Penelitian <span class="text-red-500">*</span></label>
+                <select name="status_penelitian" class="w-full p-2 border rounded text-sm" required>
+                    <option value="Proposal diajukan">Proposal diajukan</option>
+                    <option value="Diterima">Diterima</option>
+                    <option value="Sedang berjalan">Sedang berjalan</option>
+                    <option value="Selesai">Selesai</option>
+                </select>
+
+
+                <h3 class="font-bold text-lg mt-5 mb-2 text-gray-700">2. Tim Peneliti</h3>
+                <p class="text-xs text-gray-500 mb-3">Ketua Peneliti: **Anda** (NIP: {{ session.get('nip_dosen', 'N/A') }})</p>
+
+                <label class="block font-semibold text-sm">Anggota Dosen</label>
+                <div id="dosenContainer">
+                    <div class="flex gap-2 mt-1 dosen-row-wrap">
+                        <select name="anggota_dosen[]" class="w-full p-2 border rounded text-sm">
+                            <option value="">-- Pilih dosen --</option>
+                            {% for d in dosen_list %}
+                            <option value="{{ d.NIP }}">{{ d.Nama }} ({{ d.NIP }})</option>
+                            {% endfor %}
+                        </select>
+                        <button type="button" onclick="addDosenRow(this)" class="px-3 bg-green-600 text-white rounded font-bold transition duration-150 transform hover:scale-105">&#43;</button>
+                    </div>
+                </div>
+
+                <label class="block mt-5 font-semibold text-sm">Anggota Mahasiswa</label>
+                <div id="mhsContainer">
+                    <div class="flex gap-2 mt-1 mhs-row-wrap">
+                        <select name="anggota_mahasiswa[]" class="w-full p-2 border rounded text-sm">
+                            <option value="">-- Pilih mahasiswa --</option>
+                            {% for m in mahasiswa_list %}
+                            <option value="{{ m.NIM }}">{{ m.Nama }} ({{ m.NIM }})</option>
+                            {% endfor %}
+                        </select>
+                        <button type="button" onclick="addMhsRow(this)" class="px-3 bg-green-600 text-white rounded font-bold transition duration-150 transform hover:scale-105">&#43;</button>
+                    </div>
+                </div>
+
+                
+                <h3 class="font-bold text-lg mt-5 mb-2 text-gray-700">3. Output Penelitian</h3>
+
+                <div id="outputContainer">
+                    <div class="flex gap-2 mt-1 output-row-wrap">
+                        <input type="text" name="jenis_output[]" placeholder="Jenis Output (Publikasi, HKI, dll.)" class="w-1/2 p-2 border rounded text-sm">
+                        <input type="text" name="keterangan_output[]" placeholder="Keterangan (Nama Jurnal, Status Indeks)" class="w-1/2 p-2 border rounded text-sm">
+                        <button type="button" onclick="addOutputRow(this)" class="px-3 bg-green-600 text-white rounded font-bold transition duration-150 transform hover:scale-105">&#43;</button>
+                    </div>
+                </div>
+
+                <h3 class="font-bold text-lg mt-5 mb-2 text-gray-700">4. Bukti & Dokumen</h3>
+
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div class="p-2 border rounded bg-gray-50">
+                        <p class="font-medium">Laporan Akhir (PDF/Gambar)</p>
+                        <input type="file" name="file_laporan" accept=".pdf,.png,.jpg,.jpeg" class="mt-1 block w-full text-xs text-gray-500">
+                    </div>
+                    <div class="p-2 border rounded bg-gray-50">
+                        <p class="font-medium">Artikel Ilmiah (PDF/Gambar)</p>
+                        <input type="file" name="file_artikel" accept=".pdf,.png,.jpg,.jpeg" class="mt-1 block w-full text-xs text-gray-500">
+                    </div>
+                    <div class="p-2 border rounded bg-gray-50">
+                        <p class="font-medium">Sertifikat (PDF/JPG/PNG)</p>
+                        <input type="file" name="file_sertifikat" accept=".pdf,.png,.jpg,.jpeg" class="mt-1 block w-full text-xs text-gray-500">
+                    </div>
+                    <div class="p-2 border rounded bg-gray-50">
+                        <p class="font-medium">Foto Kegiatan (JPG/PNG)</p>
+                        <input type="file" name="file_foto" accept=".jpg,.jpeg,.png" class="mt-1 block w-full text-xs text-gray-500">
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 border rounded hover:bg-gray-100">Batal</button>
+
+                    <button type="submit" id="submitButton" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                        <i class="fas fa-save mr-1"></i> Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+
+<script>
+// --- UTILITY FUNCTIONS ---
+
+function openModal() {
+    document.getElementById("modal").classList.remove("hidden");
+    document.getElementById("modal").classList.add("flex");
+}
+
+function closeModal() {
+    document.getElementById("modal").classList.remove("flex");
+    document.getElementById("modal").classList.add("hidden");
+    document.getElementById("formPenelitian").reset(); 
+}
+
+// --- DYNAMIC ROW LOGIC ---
+
+// Replikasi konten select options (dibuat global agar bisa diakses JS)
+const dosenOptions = `
+    <option value="">-- Pilih dosen --</option>
+    {% for d in dosen_list %}
+    <option value="{{ d.NIP }}">{{ d.Nama }} ({{ d.NIP }})</option>
+    {% endfor %}
+`;
+const mhsOptions = `
+    <option value="">-- Pilih mahasiswa --</option>
+    {% for m in mahasiswa_list %}
+    <option value="{{ m.NIM }}">{{ m.Nama }} ({{ m.NIM }})</option>
+    {% endfor %}
+`;
+
+function replaceButtonWithRemove(currentButton) {
+    // Ganti tombol '+' menjadi tombol '✕'
+    currentButton.innerHTML = '&#x2715;';
+    currentButton.classList.remove('bg-green-600', 'hover:scale-105');
+    currentButton.classList.add('bg-red-600');
+    currentButton.setAttribute('onclick', 'this.parentElement.remove()');
+}
+
+function addDosenRow(currentButton) {
+    const container = document.getElementById("dosenContainer");
+    
+    replaceButtonWithRemove(currentButton);
+
+    const newDiv = document.createElement('div');
+    newDiv.className = 'flex gap-2 mt-2 dosen-row-wrap';
+    newDiv.innerHTML = `<select name="anggota_dosen[]" class="w-full p-2 border rounded text-sm">${dosenOptions}</select>`;
+    
+    const addButton = document.createElement('button');
+    addButton.setAttribute('type', 'button');
+    addButton.setAttribute('onclick', 'addDosenRow(this)');
+    addButton.className = 'px-3 bg-green-600 text-white rounded font-bold transition duration-150 transform hover:scale-105';
+    addButton.innerHTML = '&#43;';
+    newDiv.appendChild(addButton);
+
+    container.appendChild(newDiv);
+}
+
+
+function addMhsRow(currentButton) {
+    const container = document.getElementById("mhsContainer");
+    replaceButtonWithRemove(currentButton);
+
+    const newDiv = document.createElement('div');
+    newDiv.className = 'flex gap-2 mt-2 mhs-row-wrap';
+    newDiv.innerHTML = `<select name="anggota_mahasiswa[]" class="w-full p-2 border rounded text-sm">${mhsOptions}</select>`;
+    
+    const addButton = document.createElement('button');
+    addButton.setAttribute('type', 'button');
+    addButton.setAttribute('onclick', 'addMhsRow(this)');
+    addButton.className = 'px-3 bg-green-600 text-white rounded font-bold transition duration-150 transform hover:scale-105';
+    addButton.innerHTML = '&#43;';
+    newDiv.appendChild(addButton);
+
+    container.appendChild(newDiv);
+}
+
+
+function addOutputRow(currentButton) {
+    const container = document.getElementById("outputContainer");
+    replaceButtonWithRemove(currentButton);
+
+    const newDiv = document.createElement('div');
+    newDiv.className = 'flex gap-2 mt-2 output-row-wrap';
+    newDiv.innerHTML = `
+        <input type="text" name="jenis_output[]" placeholder="Jenis Output (Publikasi, HKI, dll.)" class="w-1/2 p-2 border rounded text-sm">
+        <input type="text" name="keterangan_output[]" placeholder="Keterangan (Nama Jurnal, Status Indeks)" class="w-1/2 p-2 border rounded text-sm">
+    `;
+    
+    const addButton = document.createElement('button');
+    addButton.setAttribute('type', 'button');
+    addButton.setAttribute('onclick', 'addOutputRow(this)');
+    addButton.className = 'px-3 bg-green-600 text-white rounded font-bold transition duration-150 transform hover:scale-105';
+    addButton.innerHTML = '&#43;';
+    newDiv.appendChild(addButton);
+
+    container.appendChild(newDiv);
+}
+
+
+// --- SUBMIT FORM (AJAX) ---
+document.getElementById("formPenelitian").addEventListener("submit", function(e){
+    e.preventDefault();
+
+    let formData = new FormData(this);
+    const submitButton = document.getElementById("submitButton");
+    
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<span class="animate-spin mr-1"><i class="fas fa-sync-alt"></i></span> Menyimpan...';
+
+    // Menggunakan endpoint 'input_penelitian'
+    fetch("{{ url_for('input_penelitian') }}", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => {
+        if (!res.ok) {
+            return res.json().catch(() => { throw new Error('Error Jaringan/Server') });
+        }
+        return res.json();
+    })
+    .then(data => {
+        alert(data.message);
+        if(data.success){
+            location.reload();
+        }
+    })
+    .catch(err => alert("Terjadi error: " + err))
+    .finally(() => {
+        submitButton.disabled = false;
+        submitButton.innerHTML = '<i class="fas fa-save mr-1"></i> Simpan';
+    });
+});
+
+// Helper untuk mendapatkan tahun saat ini (untuk input value default)
+function now() {
+    return { year: new Date().getFullYear() };
+}
+</script>
+</html>

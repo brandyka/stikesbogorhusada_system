@@ -1,13 +1,23 @@
-from flask import Flask, render_template, request, redirect, session, url_for,send_from_directory, flash
+from flask import Flask, render_template, request, redirect, session, url_for,send_from_directory, flash, jsonify
 from db_conn import create_connection
 import os
 from datetime import datetime, date
 from pyngrok import ngrok
+from werkzeug.utils import secure_filename
 frontend_path = os.path.join(os.path.dirname(__file__), '../frontend')
+
 
 app = Flask(__name__, template_folder=frontend_path)
 app.secret_key = "secret123"
 
+# Gunakan path yang sudah Anda definisikan:
+UPLOAD_FOLDER_PATH = 'static/dokumen_penelitian' 
+
+# 1. SET KE DALAM CONFIG FLASK
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER_PATH
+
+# 2. OPTIONAL: Tambahkan batas ukuran file (sangat disarankan)
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max
 @app.route('/gambar/<path:filename>')
 def gambar(filename):
     return send_from_directory('gambar', filename)
@@ -104,6 +114,9 @@ def dashboard_mahasiswa():
             conn.close()
 
 #================================= PAGE JADWAL ==========================================
+from datetime import date, datetime
+# Asumsi create_connection, url_for, flash, render_template, dan session/request sudah diimport
+
 @app.route('/dashboard/mahasiswa/jadwal')
 def jadwal_mahasiswa():
     if session.get('role') != 'mahasiswa':
@@ -117,29 +130,29 @@ def jadwal_mahasiswa():
         id_kelas_mhs = session.get('id_kelas')
         id_angkatan_mhs = session.get('id_angkatan')
 
+        # Memastikan data kelas/angkatan ada di session
         if not all([nim_mhs, id_kelas_mhs, id_angkatan_mhs]):
-             conn_check = create_connection()
-             cursor_check = conn_check.cursor(dictionary=True)
-             sql_get_ids = "SELECT m.NIM, m.id_kelas, m.id_angkatan FROM akun a JOIN mahasiswa m ON a.nim_mahasiswa = m.NIM WHERE a.Username = %s"
-             cursor_check.execute(sql_get_ids, (username,))
-             mahasiswa_ids = cursor_check.fetchone()
-             cursor_check.close()
-             conn_check.close()
-             if mahasiswa_ids:
-                 nim_mhs, id_kelas_mhs, id_angkatan_mhs = mahasiswa_ids['NIM'], mahasiswa_ids['id_kelas'], mahasiswa_ids['id_angkatan']
-                 session['nim_mahasiswa'], session['id_kelas'], session['id_angkatan'] = nim_mhs, id_kelas_mhs, id_angkatan_mhs
-             else:
-                 flash("Data mahasiswa tidak ditemukan.", 'error')
-                 return redirect(url_for('login'))
+            conn_check = create_connection()
+            cursor_check = conn_check.cursor(dictionary=True)
+            sql_get_ids = "SELECT m.NIM, m.id_kelas, m.id_angkatan FROM akun a JOIN mahasiswa m ON a.nim_mahasiswa = m.NIM WHERE a.Username = %s"
+            cursor_check.execute(sql_get_ids, (username,))
+            mahasiswa_ids = cursor_check.fetchone()
+            cursor_check.close()
+            conn_check.close()
+            if mahasiswa_ids:
+                nim_mhs, id_kelas_mhs, id_angkatan_mhs = mahasiswa_ids['NIM'], mahasiswa_ids['id_kelas'], mahasiswa_ids['id_angkatan']
+                session['nim_mahasiswa'], session['id_kelas'], session['id_angkatan'] = nim_mhs, id_kelas_mhs, id_angkatan_mhs
+            else:
+                flash("Data mahasiswa tidak ditemukan.", 'error')
+                return redirect(url_for('login'))
 
         
         conn = create_connection()
         cursor = conn.cursor(dictionary=True)
         
-
         today_date = date.today()
 
-
+        # 1. Query untuk Jadwal Reguler (Tampilan Utama)
         sql_get_jadwal = """
             SELECT 
                 j.id_jadwal, j.hari, 
@@ -157,25 +170,29 @@ def jadwal_mahasiswa():
         cursor.execute(sql_get_jadwal, (id_kelas_mhs, id_angkatan_mhs))
         daftar_jadwal = cursor.fetchall()
         
-
+        # 2. Query untuk Pertemuan yang Absensinya DIBUKA HARI INI (Reguler atau Pengganti)
         sql_get_pertemuan_hari_ini = """
             SELECT 
                 p.id_jadwal, p.id_pertemuan, p.materi, p.pertemuan_ke,
-                am.status_kehadiran AS status_kehadiran_saya
+                am.status_kehadiran AS status_kehadiran_saya,
+                TIME_FORMAT(p.jam_mulai, '%H:%i') AS jam_mulai_p, 
+                TIME_FORMAT(p.jam_selesai, '%H:%i') AS jam_selesai_p,
+                p.ruangan AS ruangan_p
             FROM pertemuan p
             JOIN jadwal j ON p.id_jadwal = j.id_jadwal
             LEFT JOIN absensi_mahasiswa am ON p.id_pertemuan = am.id_pertemuan
-                                           AND am.nim_mahasiswa = %s
+                                             AND am.nim_mahasiswa = %s
             WHERE j.id_kelas = %s AND j.id_angkatan = %s
               AND p.status_absensi = 'dibuka'
               AND p.tanggal = %s 
               AND p.status_pertemuan IN ('Reguler', 'Disetujui')
+            ORDER BY p.pertemuan_ke ASC
         """
     
         cursor.execute(sql_get_pertemuan_hari_ini, (nim_mhs, id_kelas_mhs, id_angkatan_mhs, today_date))
         pertemuan_hari_ini_list = cursor.fetchall()
         
-  
+        # Mapping semua pertemuan yang dibuka hari ini ke jadwal regulernya
         pertemuan_map = {}
         for j in daftar_jadwal:
             pertemuan_map[j['id_jadwal']] = [] 
@@ -185,6 +202,8 @@ def jadwal_mahasiswa():
             if jadwal_id in pertemuan_map:
                 pertemuan_map[jadwal_id].append(p)
         
+        # 3. Query untuk Perubahan Jadwal Mendatang (Pertemuan Pengganti yang Disetujui)
+        # *** PERBAIKAN PADA WHERE CLAUSE ***
         sql_query_perubahan = """
             SELECT
                 p.tanggal_asli,
@@ -204,21 +223,22 @@ def jadwal_mahasiswa():
             JOIN dosen d ON j.nip_dosen = d.NIP
             WHERE j.id_kelas = %s AND j.id_angkatan = %s
               AND p.status_pertemuan = 'Disetujui' 
-              AND p.tanggal_asli >= %s 
-            ORDER BY p.tanggal_asli ASC
+              AND p.tanggal >= %s  
+            ORDER BY p.tanggal ASC
         """
         cursor.execute(sql_query_perubahan, (id_kelas_mhs, id_angkatan_mhs, today_date))
         perubahan_list = cursor.fetchall()
         
+        # Penentuan hari ini untuk tampilan (Frontend)
         days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu']
         day_index = today_date.weekday() 
         hari_ini = days[day_index]
 
         return render_template('mahasiswa/jadwal_mhs.html', 
                                user=username, 
-                               daftar_jadwal=daftar_jadwal,    
-                               perubahan_list=perubahan_list,  
-                               pertemuan_map=pertemuan_map,    
+                               daftar_jadwal=daftar_jadwal,      
+                               perubahan_list=perubahan_list,    
+                               pertemuan_map=pertemuan_map,      
                                hari_ini=hari_ini)
 
     except Exception as e:
@@ -994,6 +1014,376 @@ def update_absensi_dosen():
         if conn:
             conn.close()
 
+# ======================== PENELITIAN SECTION =============================
+# Gunakan variabel yang didefinisikan di awal
+UPLOAD_FOLDER_PATH = 'static/dokumen_penelitian' # Sesuaikan jika path berbeda
+
+# Sesuaikan ekstensi ini dengan kebutuhan upload Anda
+ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg', 'zip', 'doc', 'docx'} 
+
+# Pastikan folder upload ada (menggunakan path yang sama)
+if not os.path.exists(UPLOAD_FOLDER_PATH):
+    os.makedirs(UPLOAD_FOLDER_PATH)
+
+def allowed_file(filename):
+    # ... (fungsi allowed_file)
+    return filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/dashboard/dosen/penelitian')
+def penelitian_dosen():
+    """
+    Halaman utama penelitian dosen: menampilkan daftar penelitian
+    dan link/tombol untuk input penelitian baru.
+    """
+    if session.get('role') != 'dosen' or 'nip_dosen' not in session:
+        flash("Silakan login kembali.", 'error')
+        return redirect(url_for('login'))
+        
+    conn = None
+    cursor = None
+    nip_dosen = session['nip_dosen']
+    
+    try:
+        conn = create_connection()
+        if not conn:
+             flash("Koneksi ke database gagal.", "error")
+             return redirect(url_for('dashboard_dosen'))
+        cursor = conn.cursor(dictionary=True)
+
+        # Ambil daftar penelitian di mana dosen ini adalah Ketua atau Anggota
+        sql_query = """
+            SELECT DISTINCT
+                p.id_penelitian,
+                p.judul_penelitian,
+                p.tahun_pelaksanaan,
+                p.status_penelitian
+            FROM penelitian p
+            LEFT JOIN penelitian_anggota_dosen pad ON p.id_penelitian = pad.id_penelitian
+            WHERE p.nip_ketua = %s OR pad.nip_anggota = %s
+            ORDER BY p.tahun_pelaksanaan DESC, p.id_penelitian DESC
+        """
+        cursor.execute(sql_query, (nip_dosen, nip_dosen))
+        penelitian_list = cursor.fetchall()
+
+        # Ambil daftar NIP dosen lain untuk input anggota (kecuali dosen yang sedang login)
+        cursor.execute("SELECT NIP, Nama FROM dosen WHERE NIP != %s ORDER BY Nama", (nip_dosen,))
+        dosen_list = cursor.fetchall()
+
+        # Ambil daftar NIM mahasiswa
+        cursor.execute("SELECT NIM, Nama FROM mahasiswa ORDER BY Nama")
+        mahasiswa_list = cursor.fetchall()
+
+        return render_template('dosen/penelitian_dosen.html', 
+                               penelitian_list=penelitian_list,
+                               dosen_list=dosen_list,
+                               mahasiswa_list=mahasiswa_list,
+                               current_nip=nip_dosen) 
+    
+    except Exception as e:
+        print(f"Error fetching penelitian dosen data: {e}")
+        flash(f"Terjadi error saat mengambil data penelitian: {e}", 'error')
+        return redirect(url_for('dashboard_dosen'))
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+@app.route('/dashboard/dosen/penelitian/input', methods=['POST'])
+def input_penelitian():
+    """
+    Memproses input penelitian baru dari dosen, melibatkan 4 tabel (transaksi).
+    """
+    if session.get('role') != 'dosen' or 'nip_dosen' not in session:
+        return jsonify({'success': False, 'message': 'Akses ditolak'}), 403
+
+    conn = None
+    cursor = None
+    nip_ketua = session['nip_dosen']
+    
+    try:
+        conn = create_connection()
+        if not conn:
+             return jsonify({'success': False, 'message': 'Koneksi database gagal'}), 500
+        
+        conn.autocommit = False # Mulai transaksi
+        cursor = conn.cursor()
+        
+        # 1. Ambil Data dari Form
+        # Identitas Penelitian (Tabel: penelitian)
+        judul_penelitian = request.form['judul_penelitian']
+        bidang_ilmu = request.form['bidang_ilmu']
+        tahun_pelaksanaan = request.form['tahun_pelaksanaan']
+        sumber_pendanaan = request.form['sumber_pendanaan']
+        jumlah_dana = request.form['jumlah_dana']
+        lama_penelitian = request.form['lama_penelitian']
+        status_penelitian = request.form['status_penelitian']
+
+        # Tim Peneliti
+        anggota_dosen_nips = request.form.getlist('anggota_dosen[]')
+        mahasiswa_nims = request.form.getlist('anggota_mahasiswa[]')
+
+        # Output Penelitian
+        jenis_output = request.form.getlist('jenis_output[]')
+        keterangan_output = request.form.getlist('keterangan_output[]')
+
+        # Dokumen (Upload Files)
+        file_laporan = request.files.get('file_laporan')
+        file_artikel = request.files.get('file_artikel')
+        file_sertifikat = request.files.get('file_sertifikat')
+        file_foto = request.files.get('file_foto')
+
+        # 2. Proses File Upload
+        # Untuk kasus produksi, harus ada logika pengecekan ALLOWED_EXTENSIONS dan penamaan unik (e.g., menggunakan UUID)
+        
+        file_laporan_akhir_path = None
+        if file_laporan and allowed_file(file_laporan.filename):
+            filename = secure_filename(f"{nip_ketua}_LA_{judul_penelitian[:10]}_{datetime.now().strftime('%Y%m%d%H%M%S')}_{file_laporan.filename}")
+            file_laporan.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            file_laporan_akhir_path = filename
+
+        artikel_pdf_path = None
+        if file_artikel and allowed_file(file_artikel.filename):
+            filename = secure_filename(f"{nip_ketua}_ART_{judul_penelitian[:10]}_{datetime.now().strftime('%Y%m%d%H%M%S')}_{file_artikel.filename}")
+            file_artikel.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            artikel_pdf_path = filename
+            
+        sertifikat_path = None
+        if file_sertifikat and allowed_file(file_sertifikat.filename):
+            filename = secure_filename(f"{nip_ketua}_SERT_{judul_penelitian[:10]}_{datetime.now().strftime('%Y%m%d%H%M%S')}_{file_sertifikat.filename}")
+            file_sertifikat.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            sertifikat_path = filename
+
+        foto_kegiatan_path = None
+        if file_foto and allowed_file(file_foto.filename):
+            filename = secure_filename(f"{nip_ketua}_FOTO_{judul_penelitian[:10]}_{datetime.now().strftime('%Y%m%d%H%M%S')}_{file_foto.filename}")
+            file_foto.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            foto_kegiatan_path = filename
+
+
+        # 3. INSERT ke tabel 'penelitian'
+        sql_penelitian = """
+            INSERT INTO penelitian (
+                nip_ketua, judul_penelitian, bidang_ilmu, tahun_pelaksanaan, 
+                sumber_pendanaan, jumlah_dana, lama_penelitian_bulan, status_penelitian, 
+                tanggal_pengajuan, file_laporan_akhir, artikel_pdf, 
+                sertifikat_penerimaan, foto_kegiatan, created_at, updated_at
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        now = datetime.now()
+        cursor.execute(sql_penelitian, (
+            nip_ketua, judul_penelitian, bidang_ilmu, tahun_pelaksanaan, 
+            sumber_pendanaan, jumlah_dana, lama_penelitian, status_penelitian, 
+            now.date(), file_laporan_akhir_path, artikel_pdf_path, 
+            sertifikat_path, foto_kegiatan_path, now, now
+        ))
+        id_penelitian_baru = cursor.lastrowid # Ambil ID yang baru dibuat
+
+
+        # 4. INSERT ke tabel 'penelitian_anggota_dosen'
+        if anggota_dosen_nips:
+            data_anggota_dosen = [(id_penelitian_baru, nip) for nip in anggota_dosen_nips if nip]
+            sql_anggota_dosen = "INSERT INTO penelitian_anggota_dosen (id_penelitian, nip_anggota) VALUES (%s, %s)"
+            cursor.executemany(sql_anggota_dosen, data_anggota_dosen)
+
+
+        # 5. INSERT ke tabel 'penelitian_anggota_mahasiswa'
+        if mahasiswa_nims:
+            data_anggota_mhs = [(id_penelitian_baru, nim) for nim in mahasiswa_nims if nim]
+            sql_anggota_mhs = "INSERT INTO penelitian_anggota_mahasiswa (id_penelitian, nim_mahasiswa) VALUES (%s, %s)"
+            cursor.executemany(sql_anggota_mhs, data_anggota_mhs)
+
+
+        # 6. INSERT ke tabel 'penelitian_output'
+        if jenis_output and len(jenis_output) == len(keterangan_output):
+            data_output = [(id_penelitian_baru, jenis, ket) 
+                           for jenis, ket in zip(jenis_output, keterangan_output) if jenis]
+            if data_output:
+                sql_output = "INSERT INTO penelitian_output (id_penelitian, jenis_output, keterangan) VALUES (%s, %s, %s)"
+                cursor.executemany(sql_output, data_output)
+
+        
+        conn.commit() # Commit/simpan semua perubahan
+        flash('Data penelitian baru berhasil diinput!', 'success')
+        return jsonify({'success': True, 'message': 'Data penelitian berhasil disimpan'})
+
+    except Exception as e:
+        if conn:
+            conn.rollback() # Rollback/batalkan semua perubahan jika terjadi error
+        print(f"Error saat input penelitian (transaksi dibatalkan): {e}")
+        # Hapus file yang mungkin sudah terupload sebelum error terjadi
+        if file_laporan_akhir_path and os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], file_laporan_akhir_path)):
+             os.remove(os.path.join(app.config['UPLOAD_FOLDER'], file_laporan_akhir_path))
+        if artikel_pdf_path and os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], artikel_pdf_path)):
+             os.remove(os.path.join(app.config['UPLOAD_FOLDER'], artikel_pdf_path))
+        # ... (tambahan untuk file lainnya)
+
+        flash(f'Gagal input penelitian, terjadi error: {e}', 'error')
+        return jsonify({'success': False, 'message': f'Gagal menyimpan data: {e}'}), 500
+    
+    finally:
+        if conn:
+            conn.autocommit = True
+            if cursor:
+                cursor.close()
+            conn.close()
+
+@app.route('/dashboard/dosen/penelitian/<int:id_penelitian>')
+def detail_penelitian(id_penelitian):
+    """
+    Menampilkan detail lengkap satu penelitian.
+    Hanya Ketua/Anggota penelitian yang memiliki akses.
+    """
+    if session.get('role') != 'dosen' or 'nip_dosen' not in session:
+        flash("Silakan login kembali.", 'error')
+        return redirect(url_for('login'))
+        
+    conn = None
+    cursor = None
+    nip_dosen = session['nip_dosen']
+    
+    try:
+        conn = create_connection()
+        if not conn:
+             flash("Koneksi ke database gagal.", "error")
+             return redirect(url_for('penelitian_dosen'))
+        cursor = conn.cursor(dictionary=True)
+
+        # 1. Ambil Detail Utama Penelitian dan cek hak akses (Ketua atau Anggota)
+        sql_detail = """
+            SELECT 
+                p.*,
+                d_ketua.Nama AS nama_ketua,
+                (p.nip_ketua = %s OR EXISTS(SELECT 1 FROM penelitian_anggota_dosen pad 
+                                           WHERE pad.id_penelitian = p.id_penelitian AND pad.nip_anggota = %s)) AS has_access
+            FROM penelitian p
+            JOIN dosen d_ketua ON p.nip_ketua = d_ketua.NIP
+            WHERE p.id_penelitian = %s
+        """
+        cursor.execute(sql_detail, (nip_dosen, nip_dosen, id_penelitian))
+        detail = cursor.fetchone()
+
+        if not detail or detail['has_access'] == 0:
+            flash("Penelitian tidak ditemukan atau Anda tidak memiliki akses.", 'error')
+            return redirect(url_for('penelitian_dosen'))
+        
+        # Tentukan apakah dosen yang login adalah ketua
+        is_ketua = (detail['nip_ketua'] == nip_dosen)
+
+        # 2. Ambil Anggota Dosen
+        sql_anggota_dosen = """
+            SELECT d.NIP, d.Nama
+            FROM penelitian_anggota_dosen pad
+            JOIN dosen d ON pad.nip_anggota = d.NIP
+            WHERE pad.id_penelitian = %s
+        """
+        cursor.execute(sql_anggota_dosen, (id_penelitian,))
+        anggota_dosen_list = cursor.fetchall()
+        
+        # 3. Ambil Anggota Mahasiswa
+        sql_anggota_mhs = """
+            SELECT m.NIM, m.Nama, k.nama_kelas
+            FROM penelitian_anggota_mahasiswa pam
+            JOIN mahasiswa m ON pam.nim_mahasiswa = m.NIM
+            LEFT JOIN kelas k ON m.id_kelas = k.id_kelas
+            WHERE pam.id_penelitian = %s
+        """
+        cursor.execute(sql_anggota_mhs, (id_penelitian,))
+        anggota_mhs_list = cursor.fetchall()
+
+        # 4. Ambil Output Penelitian
+        sql_output = """
+            SELECT *
+            FROM penelitian_output
+            WHERE id_penelitian = %s
+        """
+        cursor.execute(sql_output, (id_penelitian,))
+        output_list = cursor.fetchall()
+        
+        return render_template('dosen/detail_penelitian.html', 
+                               detail=detail,
+                               anggota_dosen_list=anggota_dosen_list,
+                               anggota_mhs_list=anggota_mhs_list,
+                               output_list=output_list,
+                               is_ketua=is_ketua) 
+    
+    except Exception as e:
+        print(f"Error fetching detail penelitian: {e}")
+        flash(f"Terjadi error saat mengambil detail penelitian: {e}", 'error')
+        return redirect(url_for('penelitian_dosen'))
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+# -----------------------------------------------------------------------
+
+# ==================== UPDATE STATUS PENELITIAN ===========================
+
+@app.route('/dashboard/dosen/penelitian/<int:id_penelitian>/update_status', methods=['POST'])
+def update_status_penelitian(id_penelitian):
+    """
+    Endpoint untuk Dosen Ketua memperbarui status penelitian (Selesai/Sedang berjalan).
+    """
+    if session.get('role') != 'dosen' or 'nip_dosen' not in session:
+        return jsonify({'success': False, 'message': 'Akses ditolak'}), 403
+
+    conn = None
+    cursor = None
+    nip_dosen = session['nip_dosen']
+    status_baru = request.form.get('status_baru')
+    
+    # Validasi Status ENUM
+    allowed_statuses = ['Proposal diajukan', 'Diterima', 'Sedang berjalan', 'Selesai']
+    if status_baru not in allowed_statuses:
+        flash("Status tidak valid.", 'error')
+        return redirect(url_for('detail_penelitian', id_penelitian=id_penelitian))
+
+    try:
+        conn = create_connection()
+        if not conn:
+             flash("Koneksi ke database gagal.", "error")
+             return redirect(url_for('detail_penelitian', id_penelitian=id_penelitian))
+        cursor = conn.cursor()
+
+        # Cek apakah dosen adalah ketua penelitian ini
+        cursor.execute("SELECT nip_ketua FROM penelitian WHERE id_penelitian = %s", (id_penelitian,))
+        penelitian = cursor.fetchone()
+        
+        if not penelitian or penelitian[0] != nip_dosen:
+            flash("Anda tidak memiliki izin untuk mengubah status penelitian ini.", 'error')
+            return redirect(url_for('detail_penelitian', id_penelitian=id_penelitian))
+
+        # Lakukan update status
+        sql_update = """
+            UPDATE penelitian SET status_penelitian = %s, updated_at = %s
+            WHERE id_penelitian = %s
+        """
+        cursor.execute(sql_update, (status_baru, datetime.now(), id_penelitian))
+        
+        conn.commit()
+        flash(f'Status penelitian berhasil diperbarui menjadi "{status_baru}".', 'success')
+        
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        print(f"Error update status penelitian: {e}")
+        flash(f'Gagal memperbarui status: {e}', 'error')
+        
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+            
+    return redirect(url_for('detail_penelitian', id_penelitian=id_penelitian))
+
+# =========================================================================
+
 
 #================================= KAPRODI SECTION ================================
 #==================================================================================
@@ -1166,6 +1556,137 @@ def reject_request(id_perubahan):
             conn.close()
             
     return redirect(url_for('request_kaprodi'))
+
+# ======================== MONITORING PENELITIAN KAPRODI ========================
+
+@app.route('/dashboard/kaprodi/penelitian')
+def monitoring_penelitian_kaprodi():
+    """
+    Halaman untuk Kaprodi melihat daftar seluruh penelitian yang diinput dosen.
+    """
+    if session.get('role') != 'kaprodi':
+        return redirect(url_for('login'))
+
+    conn = None
+    cursor = None
+    try:
+        conn = create_connection()
+        if not conn:
+             flash("Koneksi ke database gagal.", "error")
+             return redirect(url_for('dashboard_kaprodi'))
+        cursor = conn.cursor(dictionary=True)
+
+        # Query untuk mengambil semua penelitian
+        sql_query = """
+            SELECT 
+                p.id_penelitian,
+                p.judul_penelitian,
+                p.tahun_pelaksanaan,
+                p.status_penelitian,
+                d.Nama AS nama_ketua,
+                d.NIP AS nip_ketua
+            FROM penelitian p
+            JOIN dosen d ON p.nip_ketua = d.NIP
+            ORDER BY p.tanggal_pengajuan DESC, p.tahun_pelaksanaan DESC
+        """
+        cursor.execute(sql_query)
+        penelitian_list = cursor.fetchall()
+
+        return render_template('kaprodi/monitoring_penelitian.html', 
+                               penelitian_list=penelitian_list)
+
+    except Exception as e:
+        print(f"Error fetching all research data for Kaprodi: {e}")
+        flash(f"Terjadi error saat mengambil data penelitian: {e}", 'error')
+        return redirect(url_for('dashboard_kaprodi'))
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+@app.route('/dashboard/kaprodi/penelitian/<int:id_penelitian>')
+def detail_monitoring_penelitian_kaprodi(id_penelitian):
+    """
+    Menampilkan detail lengkap satu penelitian (sama seperti detail dosen,
+    tapi tanpa perlu cek hak akses ketua).
+    """
+    if session.get('role') != 'kaprodi':
+        return redirect(url_for('login'))
+        
+    conn = None
+    cursor = None
+    try:
+        conn = create_connection()
+        if not conn:
+             flash("Koneksi ke database gagal.", "error")
+             return redirect(url_for('monitoring_penelitian_kaprodi'))
+        cursor = conn.cursor(dictionary=True)
+
+        # 1. Ambil Detail Utama Penelitian
+        sql_detail = """
+            SELECT 
+                p.*,
+                d_ketua.Nama AS nama_ketua
+            FROM penelitian p
+            JOIN dosen d_ketua ON p.nip_ketua = d_ketua.NIP
+            WHERE p.id_penelitian = %s
+        """
+        cursor.execute(sql_detail, (id_penelitian,))
+        detail = cursor.fetchone()
+
+        if not detail:
+            flash("Penelitian tidak ditemukan.", 'error')
+            return redirect(url_for('monitoring_penelitian_kaprodi'))
+
+        # 2. Ambil Anggota Dosen
+        sql_anggota_dosen = """
+            SELECT d.NIP, d.Nama
+            FROM penelitian_anggota_dosen pad
+            JOIN dosen d ON pad.nip_anggota = d.NIP
+            WHERE pad.id_penelitian = %s
+        """
+        cursor.execute(sql_anggota_dosen, (id_penelitian,))
+        anggota_dosen_list = cursor.fetchall()
+        
+        # 3. Ambil Anggota Mahasiswa
+        sql_anggota_mhs = """
+            SELECT m.NIM, m.Nama, k.nama_kelas
+            FROM penelitian_anggota_mahasiswa pam
+            JOIN mahasiswa m ON pam.nim_mahasiswa = m.NIM
+            LEFT JOIN kelas k ON m.id_kelas = k.id_kelas
+            WHERE pam.id_penelitian = %s
+        """
+        cursor.execute(sql_anggota_mhs, (id_penelitian,))
+        anggota_mhs_list = cursor.fetchall()
+
+        # 4. Ambil Output Penelitian
+        sql_output = """
+            SELECT *
+            FROM penelitian_output
+            WHERE id_penelitian = %s
+        """
+        cursor.execute(sql_output, (id_penelitian,))
+        output_list = cursor.fetchall()
+        
+        return render_template('kaprodi/detail_monitoring_penelitian.html', 
+                               detail=detail,
+                               anggota_dosen_list=anggota_dosen_list,
+                               anggota_mhs_list=anggota_mhs_list,
+                               output_list=output_list) 
+    
+    except Exception as e:
+        print(f"Error fetching research detail for Kaprodi: {e}")
+        flash(f"Terjadi error saat mengambil detail penelitian: {e}", 'error')
+        return redirect(url_for('monitoring_penelitian_kaprodi'))
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 #================================== ADMIN SECTION ==================================
 #===================================================================================
 @app.route('/dashboard/admin')

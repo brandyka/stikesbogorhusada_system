@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Monitoring Penelitian Dosen</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        body {
+            background-color: #f8f9fc;
+            font-family: "Inter", sans-serif;
+        }
+        .card {
+            border-radius: 15px;
+        }
+        .table th, .table td {
+            vertical-align: middle;
+        }
+        h2 {
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                
+                <!-- Header -->
+                <div class="card-header pb-0">
+                    <h2 class="mb-0">📊 Monitoring Penelitian Dosen</h2>
+                    <p class="text-sm text-secondary">Daftar semua penelitian yang telah diinput oleh dosen.</p>
+                </div>
+
+                <!-- Body -->
+                <div class="card-body px-0 pt-0 pb-2">
+                    <div class="table-responsive p-0">
+
+                        <!-- JIKA ADA DATA -->
+                        {% if penelitian_list %}
+                        <table class="table align-items-center mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-3">
+                                        Ketua Penelitian
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Judul Penelitian
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                        Tahun
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                        Status
+                                    </th>
+                                    <th class="text-secondary opacity-7">Aksi</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for p in penelitian_list %}
+                                <tr>
+
+                                    <!-- Ketua -->
+                                    <td>
+                                        <div class="d-flex px-2 py-1">
+                                            <div>
+                                                <i class="fas fa-user-tie fa-lg me-2 text-primary"></i>
+                                            </div>
+                                            <div class="d-flex flex-column justify-content-center">
+                                                <h6 class="mb-0 text-sm">{{ p.nama_ketua }}</h6>
+                                                <p class="text-xs text-secondary mb-0">{{ p.nip_ketua }}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- Judul -->
+                                    <td>
+                                        <p class="text-xs font-weight-bold mb-0">{{ p.judul_penelitian }}</p>
+                                    </td>
+
+                                    <!-- Tahun -->
+                                    <td>
+                                        <p class="text-xs text-secondary mb-0">{{ p.tahun_pelaksanaan }}</p>
+                                    </td>
+
+                                    <!-- Status -->
+                                    <td>
+                                        {% set status_class = {
+                                            'Proposal diajukan': 'badge bg-warning',
+                                            'Diterima': 'badge bg-info',
+                                            'Sedang berjalan': 'badge bg-primary',
+                                            'Selesai': 'badge bg-success'
+                                        } %}
+                                        <span class="{{ status_class.get(p.status_penelitian, 'badge bg-secondary') }}">
+                                            {{ p.status_penelitian }}
+                                        </span>
+                                    </td>
+
+                                    <!-- Tombol Detail -->
+                                    <td class="align-middle">
+                                        <a href="{{ url_for('detail_monitoring_penelitian_kaprodi', id_penelitian=p.id_penelitian) }}"
+                                           class="btn btn-sm btn-info text-xs">
+                                            Detail
+                                        </a>
+                                    </td>
+
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+
+                        <!-- JIKA DATA KOSONG -->
+                        {% else %}
+                        <div class="p-3">
+                            <p class="text-center text-secondary mb-0">
+                                Belum ada data penelitian yang diinput oleh dosen.
+                            </p>
+                        </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
