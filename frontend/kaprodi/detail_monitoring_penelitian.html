@@ -1,218 +1,305 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Detail Penelitian Kaprodi</title>
+    <title>Detail Penelitian | STIKes Bogor Husada</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
     <style>
-        body {
-            background-color: #f8f9fc;
-            font-family: "Inter", sans-serif;
-        }
-        .card {
-            border-radius: 15px;
-        }
-        h3 {
-            font-weight: 700;
-        }
-        .section-title {
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
+      body {
+        font-family: "Inter", "Segoe UI", sans-serif;
+        background-color: #f8fafc;
+      }
+      [x-cloak] {
+        display: none !important;
+      }
+      /* Gradasi Sidebar Lilac-Pink */
+      .sidebar-gradient {
+        background: linear-gradient(180deg, #f3e8ff 0%, #ffe4e6 100%);
+        border-right: 1px solid #e9d5ff;
+      }
     </style>
-</head>
+  </head>
+  <body class="bg-gray-50">
+    <div x-data="{ sidebarOpen: window.innerWidth >= 1024 }" @resize.window="sidebarOpen = window.innerWidth >= 1024" class="relative flex min-h-screen">
+      <!-- Mobile Overlay -->
+      <div x-show="sidebarOpen && window.innerWidth < 1024" @click="sidebarOpen = false" class="fixed inset-0 z-30 bg-gray-900/40 transition-opacity duration-300 lg:hidden" x-cloak></div>
 
-<body>
-
-<div class="container-fluid py-4">
-
-    <div class="card shadow-lg mb-4">
-
-        <div class="card-header bg-white py-4 px-4 border-0">
-            <h3 class="mb-1">
-                <i class="fa-solid fa-microscope text-primary me-2"></i>
-                Detail Penelitian
-            </h3>
-            <p class="text-muted mb-0">
-                Informasi lengkap penelitian yang dilakukan oleh dosen.
-            </p>
-        </div>
-
-        <div class="card-body px-4 pb-4">
-
-            <div class="mb-4">
-                <h5 class="section-title mb-3">🧾 Informasi Penelitian</h5>
-                <div class="row g-3">
-
-                    <div class="col-md-6">
-                        <label class="text-muted small">Ketua Penelitian</label>
-                        <p class="fw-semibold mb-0">{{ detail.nama_ketua }}</p>
-                        <p class="text-secondary small">{{ detail.nip_ketua }}</p>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="text-muted small">Tahun Pelaksanaan</label>
-                        <p class="fw-semibold mb-0">{{ detail.tahun_pelaksanaan }}</p>
-                    </div>
-
-                    <div class="col-12">
-                        <label class="text-muted small">Judul Penelitian</label>
-                        <p class="fw-semibold">{{ detail.judul_penelitian }}</p>
-                    </div>
-
-                    <div class="col-12">
-                        <label class="text-muted small">Bidang Ilmu</label>
-                        <p class="text-secondary">
-                            {{ detail.bidang_ilmu or 'Tidak ada bidang ilmu.' }}
-                        </p>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="text-muted small">Status Penelitian</label><br>
-
-                        {% set status_class = {
-                            'Proposal diajukan': 'badge bg-warning text-dark',
-                            'Diterima': 'badge bg-info',
-                            'Sedang berjalan': 'badge bg-primary',
-                            'Selesai': 'badge bg-success'
-                        } %}
-
-                        <span class="px-3 py-2 rounded-pill {{ status_class.get(detail.status_penelitian, 'badge bg-secondary') }}">
-                            {{ detail.status_penelitian }}
-                        </span>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="text-muted small">Pendanaan</label><br>
-                        <p class="mb-0">
-                            {{ detail.sumber_pendanaan }} (Rp {{ "{:,.0f}".format(detail.jumlah_dana | float) }})
-                        </p>
-                        <p class="text-secondary small">Durasi: {{ detail.lama_penelitian_bulan }} Bulan</p>
-                    </div>
-
-                </div>
-            </div>
-
-            <hr>
-
-            <div class="mb-4">
-                <h5 class="section-title mb-3">👨‍🏫 Anggota Dosen</h5>
-
-                {% if anggota_dosen_list %}
-                <ul class="list-group">
-                    {% for d in anggota_dosen_list %}
-                    <li class="list-group-item d-flex justify-content-between">
-                        <div>
-                            <i class="fa-solid fa-user-tie text-primary me-2"></i>
-                            <strong>{{ d.Nama }}</strong>
-                        </div>
-                        <span class="text-secondary">{{ d.NIP }}</span>
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <p class="text-muted">Tidak ada anggota dosen.</p>
-                {% endif %}
-            </div>
-
-            <hr>
-
-            <div class="mb-4">
-                <h5 class="section-title mb-3">🎓 Anggota Mahasiswa</h5>
-
-                {% if anggota_mhs_list %}
-                <ul class="list-group">
-                    {% for m in anggota_mhs_list %}
-                    <li class="list-group-item d-flex justify-content-between">
-                        <div>
-                            <i class="fa-solid fa-user-graduate text-success me-2"></i>
-                            <strong>{{ m.Nama }}</strong>
-                            <span class="text-muted small">({{ m.nama_kelas or 'Kelas tidak tersedia' }})</span>
-                        </div>
-                        <span class="text-secondary">{{ m.NIM }}</span>
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <p class="text-muted">Tidak ada anggota mahasiswa.</p>
-                {% endif %}
-            </div>
-
-            <hr>
-
+      <!-- SIDEBAR -->
+      <aside
+        @keydown.escape.window="sidebarOpen = false"
+        class="fixed inset-y-0 left-0 z-40 w-64 p-4 flex flex-col overflow-y-auto transform transition-transform duration-300 ease-in-out lg:static lg:h-auto lg:shadow-none sidebar-gradient"
+        :class="sidebarOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'"
+        x-cloak
+      >
+        <div class="flex justify-between items-center mb-10 mt-2">
+          <div class="flex items-center space-x-2">
+            <img src="https://assets.nsd.co.id/images/kampus/logo/8ofZnuE1_400x400.jpg" alt="Logo" class="w-8 h-8 rounded-full" />
             <div>
-                <h5 class="section-title mb-3">📤 Output Penelitian</h5>
-
-                {% if output_list %}
-                <div class="table-responsive">
-                    <table class="table table-bordered align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Jenis Output</th>
-                                <th>Keterangan</th>
-                                </tr>
-                        </thead>
-                        <tbody>
-                            {% for o in output_list %}
-                            <tr>
-                                <td>{{ o.jenis_output }}</td>
-                                <td>{{ o.keterangan or '-' }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-
-                {% else %}
-                <p class="text-muted">Belum ada output penelitian.</p>
-                {% endif %}
+              <h1 class="text-xl font-extrabold text-gray-800 tracking-wider">SBH KAPRODI</h1>
+              <p class="text-xs text-gray-500 mt-0.5">Sistem Akademik</p>
             </div>
-
-            <hr>
-            
-            <div class="mb-4">
-                <h5 class="section-title mb-3">📁 Bukti & Dokumen</h5>
-
-                {% macro display_file(label, filename_path) %}
-                <div class="col-md-3 mb-3">
-                    <div class="card p-3 h-100">
-                        <label class="text-muted small mb-2">{{ label }}</label>
-                        {% if filename_path %}
-                            <a href="{{ url_for('static', filename='dokumen_penelitian/' ~ filename_path) }}" target="_blank"
-                               class="btn btn-sm btn-success">
-                                <i class="fa-solid fa-file-arrow-down me-1"></i> Unduh/Lihat
-                            </a>
-                        {% else %}
-                            <span class="text-danger small">Tidak Tersedia</span>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endmacro %}
-
-                <div class="row">
-                    {{ display_file('Laporan Akhir', detail.file_laporan_akhir) }}
-                    {{ display_file('Artikel PDF', detail.artikel_pdf) }}
-                    {{ display_file('Sertifikat Penerimaan', detail.sertifikat_penerimaan) }}
-                    {{ display_file('Foto Kegiatan', detail.foto_kegiatan) }}
-                </div>
-            </div>
-
-            <div class="mt-4">
-                <a href="{{ url_for('monitoring_penelitian_kaprodi') }}" class="btn btn-secondary">
-                    <i class="fa-solid fa-arrow-left me-1"></i> Kembali
-                </a>
-            </div>
-
+          </div>
+          <button @click="sidebarOpen = false" class="lg:hidden text-gray-600 p-1 hover:text-amber-500 rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
         </div>
+
+        <nav class="flex-1 space-y-2">
+          <a href="{{ url_for('dashboard_kaprodi') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-amber-500/10 hover:text-amber-600 transition duration-150">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            </svg>
+            <span>Beranda</span>
+          </a>
+
+          <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-amber-500/10 hover:text-amber-600 transition duration-150">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            <span>Jadwal</span>
+          </a>
+
+          <!-- Monitoring Dosen (Aktif - Amber Solid) -->
+          <a href="{{ url_for('monitoring_penelitian_kaprodi') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500 text-white font-semibold shadow-lg shadow-amber-200/50 transition duration-150">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              ></path>
+            </svg>
+            <span>Monitoring Dosen</span>
+          </a>
+
+          <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-amber-500/10 hover:text-amber-600 transition duration-150">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <span>Penelitian</span>
+          </a>
+
+          <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-amber-500/10 hover:text-amber-600 transition duration-150">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              ></path>
+            </svg>
+            <span>Kelola Admin</span>
+          </a>
+
+          <a href="{{ url_for('request_kaprodi') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-amber-500/10 hover:text-amber-600 transition duration-150">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            </svg>
+            <span>Requests</span>
+          </a>
+        </nav>
+
+        <div class="mt-8 border-t pt-4 border-gray-200">
+          <a href="{{ url_for('logout') }}" class="flex items-center justify-center w-full space-x-2 text-red-500 hover:bg-red-100 hover:shadow-sm rounded-xl py-2 transition duration-150">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+            </svg>
+            <span class="font-medium">Logout</span>
+          </a>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <div class="flex-1 flex flex-col">
+        <header class="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 sm:px-8 py-4 flex justify-between items-center shadow-sm">
+          <button @click.stop="sidebarOpen = !sidebarOpen" class="lg:hidden text-gray-600 p-2 hover:text-amber-500 rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+          </button>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-gray-800 hidden lg:block">Monitoring Penelitian</h2>
+          <a href="{{ url_for('logout') }}" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold">
+            <span class="hidden sm:inline">Logout</span>
+          </a>
+        </header>
+
+        <main class="flex-1 p-4 sm:p-8 bg-gray-100 flex justify-center">
+          <div class="w-full max-w-4xl">
+            <!-- Header Form & Back Link -->
+            <div class="flex justify-between items-center mb-6">
+              <div>
+                <h3 class="text-3xl font-extrabold text-gray-900 mb-1">Detail Penelitian Dosen</h3>
+                <a href="{{ url_for('monitoring_penelitian_kaprodi') }}" class="text-sm text-gray-500 hover:text-amber-600 hover:underline inline-flex items-center mt-1 transition">
+                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                  Kembali ke Daftar Monitoring
+                </a>
+              </div>
+            </div>
+
+            <!-- KARTU DETAIL UTAMA -->
+            <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              <!-- 1. INFORMASI PENELITIAN -->
+              <div class="p-6 sm:p-8 border-b border-gray-100">
+                <div class="flex items-center mb-4">
+                  <i class="fa-solid fa-microscope text-amber-500 text-2xl mr-3"></i>
+                  <h2 class="text-2xl font-bold text-gray-800">Informasi Penelitian</h2>
+                </div>
+
+                <h1 class="text-xl sm:text-2xl font-extrabold text-gray-900 mb-4">{{ detail.judul_penelitian }}</h1>
+
+                <div class="grid md:grid-cols-2 gap-6 text-sm">
+                  <div class="space-y-3">
+                    <div>
+                      <span class="block text-gray-400 font-bold text-xs uppercase tracking-wider">Ketua Penelitian</span>
+                      <span class="font-semibold text-gray-800 text-base">{{ detail.nama_ketua }}</span>
+                      <span class="block text-gray-500 text-xs">{{ detail.nip_ketua }}</span>
+                    </div>
+                    <div>
+                      <span class="block text-gray-400 font-bold text-xs uppercase tracking-wider">Bidang Ilmu</span>
+                      <span class="font-semibold text-gray-800">{{ detail.bidang_ilmu or '-' }}</span>
+                    </div>
+                  </div>
+
+                  <div class="space-y-3">
+                    <div class="flex justify-between">
+                      <div>
+                        <span class="block text-gray-400 font-bold text-xs uppercase tracking-wider">Tahun</span>
+                        <span class="font-semibold text-gray-800">{{ detail.tahun_pelaksanaan }}</span>
+                      </div>
+                      <div>
+                        <span class="block text-gray-400 font-bold text-xs uppercase tracking-wider">Durasi</span>
+                        <span class="font-semibold text-gray-800">{{ detail.lama_penelitian_bulan }} Bulan</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <span class="block text-gray-400 font-bold text-xs uppercase tracking-wider mb-1">Status</span>
+                      {% set status_class = { 'Proposal diajukan': 'bg-yellow-100 text-yellow-800 border-yellow-200', 'Diterima': 'bg-blue-100 text-blue-800 border-blue-200', 'Sedang berjalan': 'bg-indigo-100 text-indigo-800
+                      border-indigo-200', 'Selesai': 'bg-green-100 text-green-800 border-green-200' } %}
+                      <span class="px-3 py-1 rounded-full text-xs font-bold border {{ status_class.get(detail.status_penelitian, 'bg-gray-100 text-gray-800') }}"> {{ detail.status_penelitian }} </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-6 pt-6 border-t border-gray-100 grid md:grid-cols-2 gap-6 text-sm">
+                  <div>
+                    <span class="block text-gray-400 font-bold text-xs uppercase tracking-wider">Sumber Pendanaan</span>
+                    <span class="font-semibold text-gray-800">{{ detail.sumber_pendanaan }}</span>
+                  </div>
+                  <div>
+                    <span class="block text-gray-400 font-bold text-xs uppercase tracking-wider">Jumlah Dana</span>
+                    <span class="font-bold text-green-600 text-lg">Rp {{ "{:,.0f}".format(detail.jumlah_dana | float) }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. TIM PENELITI -->
+              <div class="p-6 sm:p-8 bg-gray-50 border-b border-gray-100">
+                <h4 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                  <span class="w-1 h-6 bg-blue-500 rounded-full mr-3"></span>
+                  Tim Peneliti
+                </h4>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                  <!-- Anggota Dosen -->
+                  <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                    <h5 class="text-xs font-bold text-gray-400 uppercase mb-3 flex items-center"><i class="fas fa-user-tie mr-2"></i> Anggota Dosen</h5>
+                    {% if anggota_dosen_list %}
+                    <ul class="space-y-2">
+                      {% for d in anggota_dosen_list %}
+                      <li class="text-sm font-medium text-gray-700 border-b border-gray-50 pb-1 last:border-0">{{ d.Nama }} <span class="text-gray-400 text-xs">({{ d.NIP }})</span></li>
+                      {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-xs text-gray-400 italic">Tidak ada anggota dosen.</p>
+                    {% endif %}
+                  </div>
+
+                  <!-- Anggota Mahasiswa -->
+                  <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                    <h5 class="text-xs font-bold text-gray-400 uppercase mb-3 flex items-center"><i class="fas fa-user-graduate mr-2"></i> Anggota Mahasiswa</h5>
+                    {% if anggota_mhs_list %}
+                    <ul class="space-y-2">
+                      {% for m in anggota_mhs_list %}
+                      <li class="text-sm font-medium text-gray-700 border-b border-gray-50 pb-1 last:border-0">
+                        {{ m.Nama }} <span class="text-gray-400 text-xs">({{ m.NIM }})</span>
+                        <span class="block text-xs text-gray-400">{{ m.nama_kelas or 'Kelas -' }}</span>
+                      </li>
+                      {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-xs text-gray-400 italic">Tidak ada mahasiswa terlibat.</p>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3. OUTPUT & DOKUMEN -->
+              <div class="p-6 sm:p-8">
+                <h4 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                  <span class="w-1 h-6 bg-purple-500 rounded-full mr-3"></span>
+                  Output & Dokumen
+                </h4>
+
+                <!-- Tabel Output -->
+                {% if output_list %}
+                <div class="overflow-hidden rounded-xl border border-gray-200 mb-6">
+                  <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                      <tr>
+                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">Jenis Output</th>
+                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">Keterangan</th>
+                      </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                      {% for output in output_list %}
+                      <tr class="hover:bg-gray-50 transition">
+                        <td class="px-4 py-3 text-sm font-semibold text-gray-800">{{ output.jenis_output }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600">{{ output.keterangan or '-' }}</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+                {% else %}
+                <p class="text-sm text-gray-400 italic mb-6">Belum ada output penelitian.</p>
+                {% endif %}
+
+                <!-- Dokumen Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {% macro doc_card(label, filename, icon_bg, icon_color) %}
+                  <div class="border border-gray-200 rounded-xl p-4 flex flex-col items-center text-center hover:shadow-md transition bg-gray-50 group">
+                    <div class="w-10 h-10 rounded-full {{ icon_bg }} flex items-center justify-center shadow-sm mb-2 {{ icon_color }} group-hover:scale-110 transition-transform">
+                      <i class="fas fa-file-alt text-lg"></i>
+                    </div>
+                    <p class="text-xs font-bold text-gray-700 mb-2">{{ label }}</p>
+                    {% if filename %}
+                    <a
+                      href="{{ url_for('static', filename='dokumen_penelitian/' + filename) }}"
+                      target="_blank"
+                      class="text-xs bg-white border border-gray-300 hover:border-blue-400 hover:text-blue-600 text-gray-600 px-3 py-1 rounded-full transition font-medium flex items-center"
+                    >
+                      <i class="fas fa-download mr-1"></i> Unduh
+                    </a>
+                    {% else %}
+                    <span class="text-xs text-red-400 italic bg-red-50 px-2 py-0.5 rounded">Kosong</span>
+                    {% endif %}
+                  </div>
+                  {% endmacro %} {{ doc_card('Laporan Akhir', detail.file_laporan_akhir, 'bg-red-100', 'text-red-600') }} {{ doc_card('Artikel Ilmiah', detail.artikel_pdf, 'bg-blue-100', 'text-blue-600') }} {{ doc_card('Sertifikat',
+                  detail.sertifikat_penerimaan, 'bg-yellow-100', 'text-yellow-600') }} {{ doc_card('Dokumentasi', detail.foto_kegiatan, 'bg-green-100', 'text-green-600') }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-</body>
+  </body>
 </html>
