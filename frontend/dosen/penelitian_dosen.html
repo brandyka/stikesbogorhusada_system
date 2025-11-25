@@ -1,216 +1,340 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Penelitian Dosen | Input & Monitoring</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        /* Gaya tambahan untuk modal agar tetap di tengah dan bisa di-scroll */
-        .max-h-90vh { max-height: 90vh; }
-    </style>
-</head>
-
-<body class="bg-gray-100 min-h-screen">
     
-    <div class="bg-white shadow p-4 flex justify-between items-center sticky top-0 z-10">
-        <h1 class="text-2xl font-bold text-blue-700">🔬 Penelitian Dosen</h1>
-        <button onclick="openModal()" 
-                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white font-semibold transition duration-150">
-            <i class="fas fa-plus mr-1"></i> Tambah Penelitian Baru
-        </button>
-    </div>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+      body {
+        font-family: "Inter", "Segoe UI", sans-serif;
+        background-color: #f8fafc;
+      }
+      [x-cloak] { display: none !important; }
+      
+      /* Sidebar Gradient (Lilac -> Pink) */
+      .sidebar-gradient {
+        background: linear-gradient(180deg, #f3e8ff 0%, #ffe4e6 100%);
+        border-right: 1px solid #e9d5ff;
+      }
+      
+      /* Modal Scroll Fix */
+      .max-h-90vh { max-height: 90vh; }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <div x-data="{ sidebarOpen: window.innerWidth >= 1024 ? true : false }" 
+         @resize.window="sidebarOpen = window.innerWidth >= 1024 ? true : false"
+         class="relative flex min-h-screen">
+      
+      <!-- Mobile Overlay -->
+      <div x-show="sidebarOpen && window.innerWidth < 1024" @click="sidebarOpen = false" 
+           class="fixed inset-0 z-30 bg-gray-900/40 transition-opacity duration-300 lg:hidden" x-cloak>
+      </div>
 
-    <div class="p-6">
-
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                <div class="p-3 mb-4 rounded text-white text-sm 
-                    {% if category == 'success' %} bg-green-500
-                    {% elif category == 'error' %} bg-red-500
-                    {% else %} bg-blue-500 {% endif %}">
-                    {{ message }}
-                </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
-        <div class="bg-white p-4 rounded shadow">
-            <h2 class="text-xl font-semibold mb-4 text-gray-700">Daftar Penelitian Anda</h2>
-
-            {% if penelitian_list %}
-            <div class="overflow-x-auto">
-                <table class="min-w-full border-collapse border border-gray-200">
-                    <thead>
-                        <tr class="bg-gray-100 text-left text-sm text-gray-600">
-                            <th class="p-3 border">Judul Penelitian</th>
-                            <th class="p-3 border w-24">Tahun</th>
-                            <th class="p-3 border w-32">Status</th>
-                            <th class="p-3 border w-20">Aksi</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {% for p in penelitian_list %}
-                        <tr class="hover:bg-gray-50 text-sm">
-                            <td class="p-3 border">{{ p.judul_penelitian }}</td>
-                            <td class="p-3 border">{{ p.tahun_pelaksanaan }}</td>
-                            <td class="p-3 border">
-                                <span class="px-2 py-1 rounded text-white text-xs font-medium 
-                                        {% if p.status_penelitian == 'Selesai' %} bg-green-600
-                                        {% elif p.status_penelitian == 'Diterima' or p.status_penelitian == 'Sedang berjalan' %} bg-blue-600
-                                        {% else %} bg-yellow-600 {% endif %}">
-                                    {{ p.status_penelitian }}
-                                </span>
-                            </td>
-                            <td class="p-3 border">
-                                <a href="{{ url_for('detail_penelitian', id_penelitian=p.id_penelitian) }}" 
-                                   class="text-blue-600 hover:text-blue-800 font-medium text-xs">
-                                    Detail
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+      <!-- SIDEBAR -->
+      <aside 
+        @keydown.escape.window="sidebarOpen = false"
+        class="fixed inset-y-0 left-0 z-40 w-64 p-4 flex flex-col overflow-y-auto
+               transform transition-transform duration-300 ease-in-out
+               lg:static lg:h-auto lg:shadow-none sidebar-gradient"
+        :class="sidebarOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'"
+        x-cloak
+      >
+        <div class="flex justify-between items-center mb-10 mt-2">
+          <div class="flex items-center space-x-2">
+             <img src="https://assets.nsd.co.id/images/kampus/logo/8ofZnuE1_400x400.jpg" alt="Logo" class="w-8 h-8 rounded-full">
+            <div>
+              <h1 class="text-xl font-extrabold text-gray-800 tracking-wider">SBH DOSEN</h1>
+              <p class="text-xs text-gray-500 mt-0.5">Sistem Akademik</p>
             </div>
-            {% else %}
-            <p class="text-gray-600 italic p-4 border rounded">Belum ada data penelitian yang Anda masukkan atau libatkan.</p>
-            {% endif %}
+          </div>
+          <button @click="sidebarOpen = false" class="lg:hidden text-gray-600 p-1 hover:text-amber-500 rounded-lg">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
         </div>
+
+        <nav class="flex-1 space-y-2">
+            <!-- Beranda -->
+            <a href="{{ url_for('dashboard_dosen') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                <span>Beranda</span>
+            </a>
+            
+            <a href="{{ url_for('jadwal_dosen') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <span>Jadwal Mengajar</span>
+            </a>
+            
+            <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                <span>Bimbingan</span>
+            </a>
+
+            <!-- Penelitian (Aktif) -->
+            <a href="{{ url_for('penelitian_dosen') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500 text-white font-semibold shadow-lg shadow-amber-200/50 transition duration-150">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                <span>Penelitian</span>
+            </a>
+        </nav>
+      </aside>
+
+      <!-- KONTEN UTAMA -->
+      <div class="flex-1 flex flex-col">
+        <header class="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 sm:px-8 py-4 flex justify-between items-center shadow-sm">
+            <button @click.stop="sidebarOpen = !sidebarOpen" class="lg:hidden text-gray-600 p-2 hover:text-amber-500 rounded-lg">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-gray-800 hidden lg:block">Penelitian & Publikasi</h2>
+            <a href="{{ url_for('logout') }}" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold">
+                <span class="hidden sm:inline">Logout</span>
+                <svg class="w-5 h-5 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+            </a>
+        </header>
+
+        <main class="flex-1 p-4 sm:p-8 bg-gray-100">
+            
+            <!-- Header Content & Tombol Tambah -->
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-800">Daftar Penelitian Anda</h3>
+                    <p class="text-sm text-gray-500 mt-1">Kelola data penelitian dan pengabdian masyarakat.</p>
+                </div>
+                <button onclick="openModal()" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md transition flex items-center space-x-2 transform hover:scale-[1.02]">
+                    <i class="fas fa-plus mr-1"></i>
+                    <span>Tambah Penelitian Baru</span>
+                </button>
+            </div>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <div class="mb-6 space-y-2">
+                  {% for category, message in messages %}
+                  <div class="p-4 rounded-xl border flex items-center text-sm font-medium
+                      {% if category == 'success' %} bg-green-50 border-green-200 text-green-800 
+                      {% elif category == 'error' %} bg-red-50 border-red-200 text-red-800 
+                      {% else %} bg-blue-50 border-blue-200 text-blue-800 {% endif %}">
+                      {{ message }}
+                  </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
+
+            <!-- Tabel Penelitian -->
+            <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                {% if penelitian_list %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50 border-b-2 border-gray-100">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Judul Penelitian</th>
+                                <th class="px-6 py-4 text-center text-xs font-extrabold text-gray-600 uppercase tracking-wider w-24">Tahun</th>
+                                <th class="px-6 py-4 text-center text-xs font-extrabold text-gray-600 uppercase tracking-wider w-32">Status</th>
+                                <th class="px-6 py-4 text-center text-xs font-extrabold text-gray-600 uppercase tracking-wider w-24">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-100">
+                            {% for p in penelitian_list %}
+                            <tr class="hover:bg-gray-50 transition duration-150">
+                                <td class="px-6 py-4 text-sm font-semibold text-gray-900">{{ p.judul_penelitian }}</td>
+                                <td class="px-6 py-4 text-center text-sm text-gray-600">{{ p.tahun_pelaksanaan }}</td>
+                                <td class="px-6 py-4 text-center whitespace-nowrap">
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-bold border
+                                        {% if p.status_penelitian == 'Selesai' %} bg-green-100 text-green-700 border-green-200
+                                        {% elif p.status_penelitian == 'Diterima' or p.status_penelitian == 'Sedang berjalan' %} bg-blue-100 text-blue-700 border-blue-200
+                                        {% else %} bg-yellow-100 text-yellow-700 border-yellow-200 {% endif %}">
+                                        {{ p.status_penelitian }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-center whitespace-nowrap text-sm font-medium">
+                                    <a href="{{ url_for('detail_penelitian', id_penelitian=p.id_penelitian) }}" class="text-blue-600 hover:text-blue-800 flex items-center justify-center space-x-1">
+                                        <span>Detail</span>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-10 text-center text-gray-500">
+                    <p class="italic">Belum ada data penelitian yang Anda masukkan atau libatkan.</p>
+                </div>
+                {% endif %}
+            </div>
+
+        </main>
+      </div>
     </div>
 
-    <div id="modal" class="fixed inset-0 bg-black/50 hidden justify-center items-center z-50">
-        <div class="bg-white w-11/12 max-w-3xl p-6 rounded shadow-lg overflow-y-auto max-h-90vh">
+    <!-- MODAL (Di luar wrapper utama agar Z-Index aman) -->
+    <div id="modal" class="fixed inset-0 bg-gray-900/60 hidden justify-center items-center z-50 backdrop-blur-sm transition-opacity">
+        <div class="bg-white w-full max-w-3xl mx-4 p-6 sm:p-8 rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh] relative animate-fade-in-up">
+            
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center mb-6 border-b pb-4 border-gray-100">
+                <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-600 p-2 rounded-lg"><i class="fas fa-flask"></i></span>
+                    Input Penelitian Baru
+                </h2>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
 
-            <h2 class="text-2xl font-bold mb-4 text-blue-700">Input Penelitian Baru</h2>
+            <!-- Modal Body (Form) -->
+            <form id="formPenelitian" enctype="multipart/form-data" class="space-y-6">
 
-            <form id="formPenelitian" enctype="multipart/form-data">
-
-                <h3 class="font-bold text-lg mt-4 mb-2 text-gray-700">1. Identitas Penelitian</h3>
-                
-                <label class="block mt-3 font-semibold text-sm">Judul Penelitian <span class="text-red-500">*</span></label>
-                <input type="text" name="judul_penelitian" required class="w-full p-2 border rounded text-sm">
-
-                <div class="grid grid-cols-3 gap-4 mt-3">
-                    <div>
-                        <label class="block font-semibold text-sm">Bidang Ilmu <span class="text-red-500">*</span></label>
-                        <input type="text" name="bidang_ilmu" required class="w-full p-2 border rounded text-sm">
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-sm">Tahun <span class="text-red-500">*</span></label>
-                        <input type="number" min="2000" max="2100" name="tahun_pelaksanaan" required class="w-full p-2 border rounded text-sm" value="{{ now().year if now is defined else 2025 }}">
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-sm">Lama Penelitian (bln) <span class="text-red-500">*</span></label>
-                        <input type="number" name="lama_penelitian" required class="w-full p-2 border rounded text-sm" min="1">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4 mt-3">
-                    <div>
-                        <label class="block font-semibold text-sm">Sumber Pendanaan <span class="text-red-500">*</span></label>
-                        <select name="sumber_pendanaan" class="w-full p-2 border rounded text-sm" required>
-                            <option value="">-- Pilih Sumber Pendanaan --</option>
-                            <option value="Internal Kampus">Internal Kampus</option>
-                            <option value="Hibah Kemenristekdikti">Hibah Kemenristekdikti</option>
-                            <option value="Industri">Mitra Industri/Industri</option> 
-                            <option value="Mandiri">Mandiri</option> 
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-sm">Jumlah Dana (Rp) <span class="text-red-500">*</span></label>
-                        <input type="number" name="jumlah_dana" required class="w-full p-2 border rounded text-sm" min="0">
-                    </div>
-                </div>
-
-                <label class="block mt-3 font-semibold text-sm">Status Penelitian <span class="text-red-500">*</span></label>
-                <select name="status_penelitian" class="w-full p-2 border rounded text-sm" required>
-                    <option value="Proposal diajukan">Proposal diajukan</option>
-                    <option value="Diterima">Diterima</option>
-                    <option value="Sedang berjalan">Sedang berjalan</option>
-                    <option value="Selesai">Selesai</option>
-                </select>
-
-
-                <h3 class="font-bold text-lg mt-5 mb-2 text-gray-700">2. Tim Peneliti</h3>
-                <p class="text-xs text-gray-500 mb-3">Ketua Peneliti: **Anda** (NIP: {{ session.get('nip_dosen', 'N/A') }})</p>
-
-                <label class="block font-semibold text-sm">Anggota Dosen</label>
-                <div id="dosenContainer">
-                    <div class="flex gap-2 mt-1 dosen-row-wrap">
-                        <select name="anggota_dosen[]" class="w-full p-2 border rounded text-sm">
-                            <option value="">-- Pilih dosen --</option>
-                            {% for d in dosen_list %}
-                            <option value="{{ d.NIP }}">{{ d.Nama }} ({{ d.NIP }})</option>
-                            {% endfor %}
-                        </select>
-                        <button type="button" onclick="addDosenRow(this)" class="px-3 bg-green-600 text-white rounded font-bold transition duration-150 transform hover:scale-105">&#43;</button>
-                    </div>
-                </div>
-
-                <label class="block mt-5 font-semibold text-sm">Anggota Mahasiswa</label>
-                <div id="mhsContainer">
-                    <div class="flex gap-2 mt-1 mhs-row-wrap">
-                        <select name="anggota_mahasiswa[]" class="w-full p-2 border rounded text-sm">
-                            <option value="">-- Pilih mahasiswa --</option>
-                            {% for m in mahasiswa_list %}
-                            <option value="{{ m.NIM }}">{{ m.Nama }} ({{ m.NIM }})</option>
-                            {% endfor %}
-                        </select>
-                        <button type="button" onclick="addMhsRow(this)" class="px-3 bg-green-600 text-white rounded font-bold transition duration-150 transform hover:scale-105">&#43;</button>
+                <!-- Section 1 -->
+                <div>
+                    <h3 class="font-bold text-lg text-gray-800 mb-3 border-l-4 border-amber-500 pl-3">1. Identitas Penelitian</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Judul Penelitian <span class="text-red-500">*</span></label>
+                            <input type="text" name="judul_penelitian" required class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Bidang Ilmu <span class="text-red-500">*</span></label>
+                                <input type="text" name="bidang_ilmu" required class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Tahun <span class="text-red-500">*</span></label>
+                                <input type="number" min="2000" max="2100" name="tahun_pelaksanaan" required class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:outline-none" value="{{ now().year if now is defined else 2025 }}">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Lama (Bulan) <span class="text-red-500">*</span></label>
+                                <input type="number" name="lama_penelitian" required class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:outline-none" min="1">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Sumber Pendanaan <span class="text-red-500">*</span></label>
+                                <select name="sumber_pendanaan" class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:outline-none bg-white" required>
+                                    <option value="">-- Pilih Sumber --</option>
+                                    <option value="Internal Kampus">Internal Kampus</option>
+                                    <option value="Hibah Kemenristekdikti">Hibah Kemenristekdikti</option>
+                                    <option value="Industri">Mitra Industri/Industri</option> 
+                                    <option value="Mandiri">Mandiri</option> 
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Jumlah Dana (Rp) <span class="text-red-500">*</span></label>
+                                <input type="number" name="jumlah_dana" required class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:outline-none" min="0">
+                            </div>
+                        </div>
+                        <div>
+                             <label class="block text-sm font-semibold text-gray-700 mb-1">Status Penelitian <span class="text-red-500">*</span></label>
+                             <select name="status_penelitian" class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:outline-none bg-white" required>
+                                <option value="Proposal diajukan">Proposal diajukan</option>
+                                <option value="Diterima">Diterima</option>
+                                <option value="Sedang berjalan">Sedang berjalan</option>
+                                <option value="Selesai">Selesai</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                
-                <h3 class="font-bold text-lg mt-5 mb-2 text-gray-700">3. Output Penelitian</h3>
+                <!-- Section 2 -->
+                <div>
+                    <h3 class="font-bold text-lg text-gray-800 mb-3 border-l-4 border-amber-500 pl-3">2. Tim Peneliti</h3>
+                    <p class="text-xs text-gray-500 mb-3 bg-gray-50 p-2 rounded border">Ketua Peneliti: <strong>Anda</strong> (NIP: {{ session.get('nip_dosen', 'N/A') }})</p>
 
-                <div id="outputContainer">
-                    <div class="flex gap-2 mt-1 output-row-wrap">
-                        <input type="text" name="jenis_output[]" placeholder="Jenis Output (Publikasi, HKI, dll.)" class="w-1/2 p-2 border rounded text-sm">
-                        <input type="text" name="keterangan_output[]" placeholder="Keterangan (Nama Jurnal, Status Indeks)" class="w-1/2 p-2 border rounded text-sm">
-                        <button type="button" onclick="addOutputRow(this)" class="px-3 bg-green-600 text-white rounded font-bold transition duration-150 transform hover:scale-105">&#43;</button>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Anggota Dosen</label>
+                            <div id="dosenContainer" class="space-y-2">
+                                <div class="flex gap-2 dosen-row-wrap">
+                                    <select name="anggota_dosen[]" class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:outline-none bg-white text-sm">
+                                        <option value="">-- Pilih dosen --</option>
+                                        {% for d in dosen_list %}
+                                        <option value="{{ d.NIP }}">{{ d.Nama }} ({{ d.NIP }})</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="button" onclick="addDosenRow(this)" class="px-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold transition shadow-sm text-lg">+</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Anggota Mahasiswa</label>
+                            <div id="mhsContainer" class="space-y-2">
+                                <div class="flex gap-2 mhs-row-wrap">
+                                    <select name="anggota_mahasiswa[]" class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:outline-none bg-white text-sm">
+                                        <option value="">-- Pilih mahasiswa --</option>
+                                        {% for m in mahasiswa_list %}
+                                        <option value="{{ m.NIM }}">{{ m.Nama }} ({{ m.NIM }})</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="button" onclick="addMhsRow(this)" class="px-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold transition shadow-sm text-lg">+</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <h3 class="font-bold text-lg mt-5 mb-2 text-gray-700">4. Bukti & Dokumen</h3>
-
-                <div class="grid grid-cols-2 gap-3 text-sm">
-                    <div class="p-2 border rounded bg-gray-50">
-                        <p class="font-medium">Laporan Akhir (PDF/Gambar)</p>
-                        <input type="file" name="file_laporan" accept=".pdf,.png,.jpg,.jpeg" class="mt-1 block w-full text-xs text-gray-500">
-                    </div>
-                    <div class="p-2 border rounded bg-gray-50">
-                        <p class="font-medium">Artikel Ilmiah (PDF/Gambar)</p>
-                        <input type="file" name="file_artikel" accept=".pdf,.png,.jpg,.jpeg" class="mt-1 block w-full text-xs text-gray-500">
-                    </div>
-                    <div class="p-2 border rounded bg-gray-50">
-                        <p class="font-medium">Sertifikat (PDF/JPG/PNG)</p>
-                        <input type="file" name="file_sertifikat" accept=".pdf,.png,.jpg,.jpeg" class="mt-1 block w-full text-xs text-gray-500">
-                    </div>
-                    <div class="p-2 border rounded bg-gray-50">
-                        <p class="font-medium">Foto Kegiatan (JPG/PNG)</p>
-                        <input type="file" name="file_foto" accept=".jpg,.jpeg,.png" class="mt-1 block w-full text-xs text-gray-500">
+                <!-- Section 3 -->
+                <div>
+                    <h3 class="font-bold text-lg text-gray-800 mb-3 border-l-4 border-amber-500 pl-3">3. Output Penelitian</h3>
+                    <div id="outputContainer" class="space-y-2">
+                        <div class="flex gap-2 output-row-wrap">
+                            <input type="text" name="jenis_output[]" placeholder="Jenis (Publikasi/HKI)" class="w-1/2 px-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <input type="text" name="keterangan_output[]" placeholder="Keterangan (Jurnal/Status)" class="w-1/2 px-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <button type="button" onclick="addOutputRow(this)" class="px-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold transition shadow-sm text-lg">+</button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" onclick="closeModal()" class="px-4 py-2 border rounded hover:bg-gray-100">Batal</button>
+                <!-- Section 4 -->
+                <div>
+                    <h3 class="font-bold text-lg text-gray-800 mb-3 border-l-4 border-amber-500 pl-3">4. Bukti & Dokumen</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="p-4 border border-dashed border-gray-300 rounded-xl bg-gray-50 hover:bg-gray-100 transition text-center">
+                            <p class="font-medium text-sm text-gray-600 mb-2">Laporan Akhir (PDF)</p>
+                            <input type="file" name="file_laporan" accept=".pdf" class="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 w-full">
+                        </div>
+                        <div class="p-4 border border-dashed border-gray-300 rounded-xl bg-gray-50 hover:bg-gray-100 transition text-center">
+                            <p class="font-medium text-sm text-gray-600 mb-2">Artikel Ilmiah (PDF)</p>
+                            <input type="file" name="file_artikel" accept=".pdf" class="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 w-full">
+                        </div>
+                        <div class="p-4 border border-dashed border-gray-300 rounded-xl bg-gray-50 hover:bg-gray-100 transition text-center">
+                            <p class="font-medium text-sm text-gray-600 mb-2">Sertifikat (PDF/IMG)</p>
+                            <input type="file" name="file_sertifikat" accept=".pdf,.jpg,.jpeg,.png" class="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 w-full">
+                        </div>
+                        <div class="p-4 border border-dashed border-gray-300 rounded-xl bg-gray-50 hover:bg-gray-100 transition text-center">
+                            <p class="font-medium text-sm text-gray-600 mb-2">Foto Kegiatan (IMG)</p>
+                            <input type="file" name="file_foto" accept=".jpg,.jpeg,.png" class="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 w-full">
+                        </div>
+                    </div>
+                </div>
 
-                    <button type="submit" id="submitButton" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                        <i class="fas fa-save mr-1"></i> Simpan
+                <!-- Footer Modal -->
+                <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                    <button type="button" onclick="closeModal()" class="px-5 py-2.5 rounded-xl border border-gray-300 text-gray-600 font-semibold hover:bg-gray-50 transition">Batal</button>
+                    <button type="submit" id="submitButton" class="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 shadow-lg shadow-blue-200 transition transform hover:scale-[1.02]">
+                        <i class="fas fa-save mr-1"></i> Simpan Data
                     </button>
                 </div>
+
             </form>
         </div>
     </div>
 
-</body>
-
 <script>
-// --- UTILITY FUNCTIONS ---
+// --- JAVASCRIPT LOGIC (TIDAK DIUBAH, HANYA CLASS STYLING PADA ELEMEN DINAMIS) ---
 
 function openModal() {
     document.getElementById("modal").classList.remove("hidden");
@@ -223,9 +347,6 @@ function closeModal() {
     document.getElementById("formPenelitian").reset(); 
 }
 
-// --- DYNAMIC ROW LOGIC ---
-
-// Replikasi konten select options (dibuat global agar bisa diakses JS)
 const dosenOptions = `
     <option value="">-- Pilih dosen --</option>
     {% for d in dosen_list %}
@@ -240,27 +361,26 @@ const mhsOptions = `
 `;
 
 function replaceButtonWithRemove(currentButton) {
-    // Ganti tombol '+' menjadi tombol '✕'
-    currentButton.innerHTML = '&#x2715;';
-    currentButton.classList.remove('bg-green-600', 'hover:scale-105');
-    currentButton.classList.add('bg-red-600');
+    currentButton.innerHTML = '✕'; // Icon Silang
+    currentButton.classList.remove('bg-green-500', 'hover:bg-green-600');
+    currentButton.classList.add('bg-red-500', 'hover:bg-red-600', 'px-3.5'); // Styling merah
     currentButton.setAttribute('onclick', 'this.parentElement.remove()');
 }
 
 function addDosenRow(currentButton) {
     const container = document.getElementById("dosenContainer");
-    
     replaceButtonWithRemove(currentButton);
 
     const newDiv = document.createElement('div');
     newDiv.className = 'flex gap-2 mt-2 dosen-row-wrap';
-    newDiv.innerHTML = `<select name="anggota_dosen[]" class="w-full p-2 border rounded text-sm">${dosenOptions}</select>`;
+    // Styling input dinamis disamakan dengan input statis
+    newDiv.innerHTML = `<select name="anggota_dosen[]" class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:outline-none bg-white text-sm">${dosenOptions}</select>`;
     
     const addButton = document.createElement('button');
     addButton.setAttribute('type', 'button');
     addButton.setAttribute('onclick', 'addDosenRow(this)');
-    addButton.className = 'px-3 bg-green-600 text-white rounded font-bold transition duration-150 transform hover:scale-105';
-    addButton.innerHTML = '&#43;';
+    addButton.className = 'px-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold transition shadow-sm text-lg';
+    addButton.innerHTML = '+';
     newDiv.appendChild(addButton);
 
     container.appendChild(newDiv);
@@ -273,13 +393,13 @@ function addMhsRow(currentButton) {
 
     const newDiv = document.createElement('div');
     newDiv.className = 'flex gap-2 mt-2 mhs-row-wrap';
-    newDiv.innerHTML = `<select name="anggota_mahasiswa[]" class="w-full p-2 border rounded text-sm">${mhsOptions}</select>`;
+    newDiv.innerHTML = `<select name="anggota_mahasiswa[]" class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:outline-none bg-white text-sm">${mhsOptions}</select>`;
     
     const addButton = document.createElement('button');
     addButton.setAttribute('type', 'button');
     addButton.setAttribute('onclick', 'addMhsRow(this)');
-    addButton.className = 'px-3 bg-green-600 text-white rounded font-bold transition duration-150 transform hover:scale-105';
-    addButton.innerHTML = '&#43;';
+    addButton.className = 'px-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold transition shadow-sm text-lg';
+    addButton.innerHTML = '+';
     newDiv.appendChild(addButton);
 
     container.appendChild(newDiv);
@@ -293,32 +413,31 @@ function addOutputRow(currentButton) {
     const newDiv = document.createElement('div');
     newDiv.className = 'flex gap-2 mt-2 output-row-wrap';
     newDiv.innerHTML = `
-        <input type="text" name="jenis_output[]" placeholder="Jenis Output (Publikasi, HKI, dll.)" class="w-1/2 p-2 border rounded text-sm">
-        <input type="text" name="keterangan_output[]" placeholder="Keterangan (Nama Jurnal, Status Indeks)" class="w-1/2 p-2 border rounded text-sm">
+        <input type="text" name="jenis_output[]" placeholder="Jenis (Publikasi/HKI)" class="w-1/2 px-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+        <input type="text" name="keterangan_output[]" placeholder="Keterangan (Jurnal/Status)" class="w-1/2 px-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
     `;
     
     const addButton = document.createElement('button');
     addButton.setAttribute('type', 'button');
     addButton.setAttribute('onclick', 'addOutputRow(this)');
-    addButton.className = 'px-3 bg-green-600 text-white rounded font-bold transition duration-150 transform hover:scale-105';
-    addButton.innerHTML = '&#43;';
+    addButton.className = 'px-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold transition shadow-sm text-lg';
+    addButton.innerHTML = '+';
     newDiv.appendChild(addButton);
 
     container.appendChild(newDiv);
 }
 
-
-// --- SUBMIT FORM (AJAX) ---
+// AJAX Submit Logic (Tidak Diubah)
 document.getElementById("formPenelitian").addEventListener("submit", function(e){
     e.preventDefault();
 
     let formData = new FormData(this);
     const submitButton = document.getElementById("submitButton");
+    const originalText = submitButton.innerHTML;
     
     submitButton.disabled = true;
-    submitButton.innerHTML = '<span class="animate-spin mr-1"><i class="fas fa-sync-alt"></i></span> Menyimpan...';
+    submitButton.innerHTML = '<span class="animate-spin mr-2"><i class="fas fa-sync-alt"></i></span> Menyimpan...';
 
-    // Menggunakan endpoint 'input_penelitian'
     fetch("{{ url_for('input_penelitian') }}", {
         method: "POST",
         body: formData
@@ -338,11 +457,10 @@ document.getElementById("formPenelitian").addEventListener("submit", function(e)
     .catch(err => alert("Terjadi error: " + err))
     .finally(() => {
         submitButton.disabled = false;
-        submitButton.innerHTML = '<i class="fas fa-save mr-1"></i> Simpan';
+        submitButton.innerHTML = originalText;
     });
 });
 
-// Helper untuk mendapatkan tahun saat ini (untuk input value default)
 function now() {
     return { year: new Date().getFullYear() };
 }
