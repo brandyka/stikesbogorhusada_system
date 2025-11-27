@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajukan Bimbingan Baru</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f8ff; }
+        .card { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06); }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-xl mx-auto bg-white p-6 md:p-10 rounded-xl card">
+        <h1 class="text-3xl font-bold text-gray-900 mb-6 border-b-2 border-indigo-500 pb-3">
+            <span class="text-indigo-600 mr-2">✍️</span> Ajukan Permintaan Bimbingan
+        </h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-4">
+                {% for category, message in messages %}
+                    <div class="p-3 rounded-lg text-sm {% if category == 'error' %}bg-red-100 text-red-700{% elif category == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('mahasiswa_input_bimbingan') }}" class="space-y-6">
+            
+            <div>
+                <label for="id_bimbingan" class="block text-sm font-medium text-gray-700 required">
+                    Pilih Jenis Bimbingan / Dosen Pembimbing
+                </label>
+                <p class="text-xs text-gray-500 mb-1">Pilih relasi bimbingan yang sesuai dengan kebutuhan Anda.</p>
+                <select id="id_bimbingan" name="id_bimbingan" required 
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md border">
+                    <option value="" disabled selected>-- Pilih Pembimbing --</option>
+                    {% for p in list_pembimbing %}
+                        <option value="{{ p.id_bimbingan }}">
+                            {{ p.jenis_bimbingan }} - Dosen: {{ p.nama_dosen }} (ID: {{ p.id_bimbingan }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label for="topik_bimbingan" class="block text-sm font-medium text-gray-700 required">
+                    Topik Singkat Bimbingan
+                </label>
+                <input type="text" id="topik_bimbingan" name="topik_bimbingan" required 
+                       class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
+                       placeholder="Cth: Konsultasi Revisi Bab I Skripsi" maxlength="255">
+            </div>
+
+            <div>
+                <label for="deskripsi_kebutuhan" class="block text-sm font-medium text-gray-700 required">
+                    Deskripsi Detail Kebutuhan
+                </label>
+                <textarea id="deskripsi_kebutuhan" name="deskripsi_kebutuhan" rows="4" required 
+                          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
+                          placeholder="Jelaskan secara rinci apa yang Anda perlukan dari dosen pembimbing (misalnya: 'Saya sudah menyelesaikan Bab I dan Bab II, mohon di review fokus pada metodologi penelitian')."></textarea>
+            </div>
+
+            <div class="flex justify-end space-x-3">
+                <a href="{{ url_for('mahasiswa_dosen_pembimbing') }}" 
+                   class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Batal
+                </a>
+                <button type="submit" 
+                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150">
+                    <span class="mr-1">📤</span> Ajukan Permintaan
+                </button>
+            </div>
+            <p class="text-xs text-gray-500 mt-4">Permintaan Anda akan berstatus **Menunggu Respon Dosen** setelah diajukan.</p>
+        </form>
+    </div>
+
+</body>
+</html>

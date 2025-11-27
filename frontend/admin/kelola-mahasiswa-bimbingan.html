@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detail Bimbingan {{ dosen.Nama }} | STIKes Bogor Husada</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; }
+        .sidebar { width: 260px; height: 100vh; background: #f4e7ff; padding: 20px; position: fixed; }
+        .sidebar a { display: block; padding: 10px; text-decoration: none; margin-bottom: 10px; border-radius: 6px; color: #333; font-weight: 500; }
+        .sidebar a.active { background: #ff914d; color: white; }
+        .content { margin-left: 260px; padding: 30px; }
+        .logout-btn { float: right; font-weight: bold; color: #ff914d; }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <h4 class="mb-4" style="color:#ff914d; font-weight:700;">sbh</h4>
+        <p>STIKes Bogor Husada</p>
+        <a href="/dashboard/admin">🏠 Utama</a>
+        <a href="/dashboard/admin/kelola-data">📚 Kelola Data</a>
+        <a href="/dashboard/admin/kelola-jadwal">🗓 Kelola Jadwal</a>
+        <a href="/dashboard/admin/kelola-akun">⚙ Kelola Akun</a>
+        <a href="/dashboard/admin/kelola-bimbingan" class="active">📄 Kelola Bimbingan</a>
+    </div>
+
+    <div class="content">
+        <a href="/logout" class="logout-btn">Logout 🔓</a>
+        <h2 class="fw-bold mb-2">Detail Bimbingan</h2>
+        <p class="mb-4">Dosen: 
+            <span class="badge bg-secondary">{{ dosen.NIP }}</span> 
+            <strong class="text-primary">{{ dosen.Nama }}</strong>
+        </p>
+        
+        <a href="{{ url_for('admin_kelola_bimbingan') }}" class="btn btn-sm btn-outline-secondary mb-4">
+            < Kembali ke Daftar Dosen
+        </a>
+
+        <div id="alertContainer"></div>
+
+        <div class="row">
+            <div class="col-md-7">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Daftar Mahasiswa Bimbingan ({{ mhs_bimbingan|length }})</h5>
+                    </div>
+                    <div class="card-body">
+                        
+                        <table class="table table-striped align-middle" id="table-bimbingan">
+                            <thead>
+                                <tr>
+                                    <th>NIM / Nama</th>
+                                    <th>Angkatan</th>
+                                    <th>Jenis Bimbingan</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if mhs_bimbingan|length == 0 %}
+                                <tr id="empty-bimbingan">
+                                    <td colspan="4" class="text-center text-muted">Belum ada mahasiswa yang dibimbing.</td>
+                                </tr>
+                                {% endif %}
+
+                                {% for m in mhs_bimbingan %}
+                                <tr data-id="{{ m.id_bimbingan }}">
+                                    <td>
+                                        <strong>{{ m.Nama }}</strong><br>
+                                        <small class="text-muted">{{ m.NIM }}</small>
+                                    </td>
+                                    <td>{{ m.Angkatan }}</td>
+                                    <td>
+                                        <span class="badge text-bg-info">{{ m.JenisBimbingan }}</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-danger btn-delete" 
+                                                data-id="{{ m.id_bimbingan }}">
+                                            Hapus
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Tambah Mahasiswa Bimbingan</h5>
+                    </div>
+                    <div class="card-body">
+                        
+                        <div class="mb-3">
+                            <label for="nim_tersedia" class="form-label">Pilih Mahasiswa</label>
+                            <select class="form-select" id="nim_tersedia">
+                                {% if mahasiswa_tersedia|length == 0 %}
+                                <option value="" disabled selected>Semua mahasiswa sudah dibimbing.</option>
+                                {% else %}
+                                <option value="" disabled selected>Pilih Mahasiswa...</option>
+                                {% for m in mahasiswa_tersedia %}
+                                <option value="{{ m.NIM }}" data-nama="{{ m.Nama }}" data-angkatan="{{ m.id_angkatan }}">{{ m.Nama }} ({{ m.NIM }} - A{{ m.id_angkatan }})</option>
+                                {% endfor %}
+                                {% endif %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="jenis_bimbingan" class="form-label">Jenis Bimbingan</label>
+                            <select class="form-select" id="jenis_bimbingan">
+                                <option value="Akademik">Akademik</option>
+                                <option value="Skripsi">Skripsi</option>
+                                <option value="KTI">KTI (Karya Tulis Ilmiah)</option>
+                                <option value="KP">Kerja Praktik</option>
+                            </select>
+                        </div>
+                        
+                        <button class="btn btn-success w-100" id="btnAddBimbingan">
+                            Tambahkan Bimbingan
+                        </button>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const DOSEN_NIP = "{{ dosen.NIP }}";
+        const ALERT_CONTAINER = document.getElementById('alertContainer');
+        const TABLE_BODY = document.getElementById('table-bimbingan').querySelector('tbody');
+        const SELECT_TERSENDIA = document.getElementById('nim_tersedia');
+        const BTN_ADD = document.getElementById('btnAddBimbingan');
+
+        // --- Fungsi Utility ---
+        function showAlert(message, type) {
+            const alertHtml = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            ALERT_CONTAINER.innerHTML = alertHtml;
+        }
+
+        function createRowHtml(id_bimbingan, nim, nama, angkatan, jenis) {
+            return `
+                <tr data-id="${id_bimbingan}">
+                    <td>
+                        <strong>${nama}</strong><br>
+                        <small class="text-muted">${nim}</small>
+                    </td>
+                    <td>${angkatan}</td>
+                    <td>
+                        <span class="badge text-bg-info">${jenis}</span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-danger btn-delete" data-id="${id_bimbingan}">
+                            Hapus
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }
+
+        // --- 1. Tambah Bimbingan (API: /api/bimbingan/add) ---
+        BTN_ADD.addEventListener('click', async () => {
+            const nim = SELECT_TERSENDIA.value;
+            const jenis = document.getElementById('jenis_bimbingan').value;
+            
+            if (!nim) {
+                showAlert('Pilih mahasiswa yang akan dibimbing.', 'warning');
+                return;
+            }
+
+            BTN_ADD.disabled = true;
+            BTN_ADD.textContent = 'Memproses...';
+
+            const data = {
+                nip: DOSEN_NIP,
+                nim: nim,
+                jenis: jenis
+            };
+
+            try {
+                const response = await fetch('/api/bimbingan/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    showAlert('Bimbingan berhasil ditambahkan!', 'success');
+                    
+                    // 1. Dapatkan data mahasiswa yang baru ditambahkan
+                    const selectedOption = SELECT_TERSENDIA.options[SELECT_TERSENDIA.selectedIndex];
+                    const nama = selectedOption.getAttribute('data-nama');
+                    const angkatan = selectedOption.getAttribute('data-angkatan');
+
+                    // 2. Tambahkan baris baru ke tabel 'Mahasiswa Bimbingan'
+                    const newRow = createRowHtml(result.id_bimbingan, nim, nama, angkatan, jenis);
+                    
+                    // Hapus pesan 'belum ada' jika ada
+                    const emptyRow = document.getElementById('empty-bimbingan');
+                    if (emptyRow) emptyRow.remove();
+
+                    TABLE_BODY.insertAdjacentHTML('beforeend', newRow);
+
+                    // 3. Hapus mahasiswa yang sudah ditambahkan dari dropdown 'Tersedia'
+                    selectedOption.remove();
+                    SELECT_TERSENDIA.selectedIndex = 0; // Reset pilihan
+                    
+                    // Re-attach listener untuk tombol hapus yang baru
+                    attachDeleteListeners();
+
+                } else {
+                    showAlert(`Gagal menambah bimbingan: ${result.message}`, 'danger');
+                }
+
+            } catch (error) {
+                showAlert('Terjadi kesalahan koneksi.', 'danger');
+                console.error('Error adding bimbingan:', error);
+            } finally {
+                BTN_ADD.disabled = false;
+                BTN_ADD.textContent = 'Tambahkan Bimbingan';
+            }
+        });
+
+        // --- 2. Hapus Bimbingan (API: /api/bimbingan/delete/<int:id_bimbingan>) ---
+        async function handleDelete(event) {
+            const btn = event.target;
+            const id_bimbingan = btn.getAttribute('data-id');
+            const row = btn.closest('tr');
+            
+            // PERBAIKAN KRITIS DI SINI: Mengambil data Nama, NIM, dan Angkatan dari kolom-kolom tabel (row.children)
+            const nama = row.querySelector('strong').textContent;
+            const nim = row.querySelector('small').textContent;
+            const angkatan = row.children[1].textContent; // Mengambil dari kolom kedua (Angkatan)
+            
+            if (!confirm(`Yakin ingin menghapus bimbingan mahasiswa ${nama} (${nim})?`)) {
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Menghapus...';
+
+            try {
+                const response = await fetch(`/api/bimbingan/delete/${id_bimbingan}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    showAlert('Bimbingan berhasil dihapus!', 'success');
+                    
+                    // 1. Hapus baris dari tabel
+                    row.remove();
+                    
+                    // 2. Tambahkan mahasiswa kembali ke dropdown 'Tersedia'
+                    // Menggunakan data nama, nim, dan angkatan yang baru diambil
+                    const newOption = new Option(`${nama} (${nim} - A${angkatan})`, nim);
+                    newOption.setAttribute('data-nama', nama);
+                    newOption.setAttribute('data-angkatan', angkatan);
+                    SELECT_TERSENDIA.appendChild(newOption);
+                    
+                    // Tampilkan pesan 'belum ada' jika tabel kosong
+                    if (TABLE_BODY.children.length === 0) {
+                        TABLE_BODY.insertAdjacentHTML('beforeend', '<tr id="empty-bimbingan"><td colspan="4" class="text-center text-muted">Belum ada mahasiswa yang dibimbing.</td></tr>');
+                    }
+
+                } else {
+                    showAlert(`Gagal menghapus bimbingan: ${result.message}`, 'danger');
+                }
+
+            } catch (error) {
+                showAlert('Terjadi kesalahan koneksi.', 'danger');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Hapus';
+            }
+        }
+
+        // Attach listener ke semua tombol hapus saat halaman dimuat
+        function attachDeleteListeners() {
+            document.querySelectorAll('.btn-delete').forEach(button => {
+                // Pastikan listener lama dihapus sebelum ditambahkan lagi
+                button.removeEventListener('click', handleDelete); 
+                button.addEventListener('click', handleDelete);
+            });
+        }
+
+        // Inisialisasi listener
+        document.addEventListener('DOMContentLoaded', attachDeleteListeners);
+
+    </script>
+</body>
+</html>

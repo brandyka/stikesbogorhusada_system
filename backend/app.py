@@ -443,6 +443,277 @@ def rekap_absen_matkul(id_jadwal):
             cursor.close()
         if conn:
             conn.close()
+
+# ======================================================
+# ---- ROUTE: DASHBOARD MAHASISWA - INFO PEMBIMBING
+# ======================================================
+@app.route('/dashboard/mahasiswa/dosen-pembimbing')
+def mahasiswa_dosen_pembimbing():
+    """
+    Menampilkan daftar dosen pembimbing untuk mahasiswa yang sedang login.
+    Menggunakan NIM yang sudah tersimpan di sesi ('nim_mahasiswa').
+    """
+    # 1. Autentikasi dan Otorisasi
+    if session.get('role') != 'mahasiswa':
+        return redirect(url_for('login'))
+    
+    # *** PERBAIKAN UTAMA: Ambil NIM dari 'nim_mahasiswa' yang sudah benar ***
+    nim_mahasiswa = session.get('nim_mahasiswa') 
+    
+    if not nim_mahasiswa:
+        # Jika NIM belum ada, arahkan kembali ke dashboard utama untuk memicu penyimpanan NIM
+        return redirect(url_for('dashboard_mahasiswa')) 
+
+    db = create_connection()
+    cursor = db.cursor(dictionary=True)
+
+    dosen_pembimbing = []
+    mhs_info = {'Nama': 'N/A'}
+
+    try:
+        # 2. Query Data Mahasiswa (untuk judul/info)
+        # Gunakan 'nim_mahasiswa' yang sudah pasti ada
+        cursor.execute("SELECT Nama FROM mahasiswa WHERE NIM = %s", (nim_mahasiswa,))
+        mhs_info = cursor.fetchone()
+        
+        # 3. Query Data Dosen Pembimbing
+        query = """
+        SELECT
+            d.NIP,
+            d.Nama AS NamaDosen,
+            d.ProgramStudi,
+            b.jenis_bimbingan AS JenisBimbingan,
+            b.id_bimbingan
+        FROM bimbingan b
+        INNER JOIN dosen d ON b.NIP = d.NIP
+        WHERE b.NIM = %s
+        ORDER BY d.Nama ASC;
+        """
+        cursor.execute(query, (nim_mahasiswa,))
+        dosen_pembimbing = cursor.fetchall()
+
+    except Exception as e:
+        print(f"Error Mahasiswa Dosen Pembimbing: {e}")
+    finally:
+        if cursor:
+            cursor.close()
+        if db:
+            db.close()
+
+    return render_template(
+        'mahasiswa/info-pembimbing.html',
+        mahasiswa=mhs_info if mhs_info else {'Nama': 'N/A'},
+        dosen_pembimbing=dosen_pembimbing,
+        user_nim=nim_mahasiswa
+    )
+
+
+# ======================================================
+# ---- ROUTE: INPUT PERMINTAAN BIMBINGAN (MAHASISWA)
+# ======================================================
+
+@app.route('/dashboard/mahasiswa/bimbingan/input', methods=['GET', 'POST'])
+def mahasiswa_input_bimbingan():
+    """
+    Menampilkan formulir input dan memproses pengajuan permintaan bimbingan.
+    """
+    if session.get('role') != 'mahasiswa' or 'nim_mahasiswa' not in session:
+        flash("Silakan login kembali.", 'error')
+        return redirect(url_for('login'))
+    
+    nim_mahasiswa = session.get('nim_mahasiswa')
+    conn = None
+    cursor = None
+    
+    try:
+        conn = create_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # 1. Ambil data Dosen Pembimbing untuk pilihan di formulir
+        # Hanya mahasiswa yang punya dosen pembimbing yang boleh mengajukan
+        sql_get_pembimbing = """
+            SELECT
+                b.id_bimbingan,
+                b.jenis_bimbingan,
+                d.Nama AS nama_dosen
+            FROM bimbingan b
+            JOIN dosen d ON b.NIP = d.NIP
+            WHERE b.NIM = %s
+            ORDER BY b.jenis_bimbingan ASC
+        """
+        cursor.execute(sql_get_pembimbing, (nim_mahasiswa,))
+        list_pembimbing = cursor.fetchall()
+        
+        if not list_pembimbing:
+            flash("Anda belum memiliki dosen pembimbing yang terdaftar. Tidak bisa mengajukan bimbingan.", 'warning')
+            return redirect(url_for('mahasiswa_dosen_pembimbing'))
+
+        if request.method == 'POST':
+            # ==================================
+            # PROSES PENGAJUAN (METODE POST)
+            # ==================================
+            
+            # Ambil data dari formulir
+            id_bimbingan = request.form.get('id_bimbingan') # ID yang menghubungkan Mahasiswa-Dosen
+            topik_bimbingan = request.form.get('topik_bimbingan').strip()
+            deskripsi_kebutuhan = request.form.get('deskripsi_kebutuhan').strip()
+            
+            # Validasi Input
+            if not all([id_bimbingan, topik_bimbingan, deskripsi_kebutuhan]):
+                flash("Semua kolom harus diisi.", 'error')
+                return render_template('mahasiswa/input_bimbingan_mhs.html', list_pembimbing=list_pembimbing)
+            
+            # Cek apakah id_bimbingan valid dan milik mahasiswa ini
+            is_valid_bimbingan = any(str(p['id_bimbingan']) == id_bimbingan for p in list_pembimbing)
+            if not is_valid_bimbingan:
+                flash("ID Bimbingan tidak valid. Harap pilih dari daftar yang tersedia.", 'error')
+                return render_template('mahasiswa/input_bimbingan_mhs.html', list_pembimbing=list_pembimbing)
+            
+            
+            # Query INSERT ke tabel permintaan_bimbingan
+            sql_insert = """
+                INSERT INTO permintaan_bimbingan 
+                (id_bimbingan, topik_bimbingan, deskripsi_kebutuhan, status_permintaan, tanggal_pengajuan)
+                VALUES (%s, %s, %s, 'Menunggu Respon Dosen', %s)
+            """
+            
+            cursor.execute(sql_insert, (
+                id_bimbingan, 
+                topik_bimbingan, 
+                deskripsi_kebutuhan, 
+                datetime.now() # Menggunakan waktu saat ini
+            ))
+            
+            conn.commit()
+            
+            flash("Permintaan bimbingan berhasil diajukan! Menunggu respon dari dosen.", 'success')
+            return redirect(url_for('mahasiswa_riwayat_bimbingan'))
+            
+
+        # ==================================
+        # TAMPILKAN FORMULIR (METODE GET)
+        # ==================================
+        return render_template('mahasiswa/input_bimbingan_mhs.html', 
+                               list_pembimbing=list_pembimbing)
+        
+    except Exception as e:
+        print(f"Error Mahasiswa Input Bimbingan: {e}")
+        if conn: conn.rollback()
+        flash("Terjadi error saat memproses permintaan bimbingan.", 'error')
+        # Jika terjadi error saat POST, kembalikan ke GET dengan data yang mungkin masih ada
+        return render_template('mahasiswa/input_bimbingan_mhs.html', list_pembimbing=list_pembimbing) 
+        
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+# ======================================================
+# ---- ROUTE: RIWAYAT PERMINTAAN BIMBINGAN (MAHASISWA)
+# ======================================================
+
+@app.route('/dashboard/mahasiswa/bimbingan/riwayat')
+def mahasiswa_riwayat_bimbingan():
+    """
+    Menampilkan daftar riwayat permintaan bimbingan yang pernah diajukan.
+    (PERBAIKAN: Menggunakan TIME_FORMAT untuk menghindari timedelta error)
+    """
+    if session.get('role') != 'mahasiswa' or 'nim_mahasiswa' not in session:
+        return redirect(url_for('login'))
+        
+    nim_mahasiswa = session.get('nim_mahasiswa')
+    conn = None
+    cursor = None
+    riwayat_bimbingan = []
+
+    try:
+        conn = create_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Query untuk mengambil semua riwayat permintaan bimbingan
+        sql_query = """
+            SELECT 
+                pb.id_permintaan,
+                pb.topik_bimbingan,
+                pb.status_permintaan,
+                pb.tanggal_pengajuan,
+                pb.tanggal_bimbingan,
+                -- PERBAIKAN: Konversi waktu menjadi string HH:MM
+                TIME_FORMAT(pb.waktu_mulai, '%H:%i') AS waktu_mulai,
+                TIME_FORMAT(pb.waktu_selesai, '%H:%i') AS waktu_selesai,
+                d.Nama AS nama_dosen,
+                b.jenis_bimbingan
+            FROM permintaan_bimbingan pb
+            JOIN bimbingan b ON pb.id_bimbingan = b.id_bimbingan
+            JOIN dosen d ON b.NIP = d.NIP
+            WHERE b.NIM = %s
+            ORDER BY pb.tanggal_pengajuan DESC
+        """
+        cursor.execute(sql_query, (nim_mahasiswa,))
+        riwayat_bimbingan = cursor.fetchall()
+        
+        return render_template('mahasiswa/riwayat_bimbingan_mhs.html', 
+                               riwayat=riwayat_bimbingan,
+                               user=session.get('username')) 
+
+    except Exception as e:
+        print(f"Error Mahasiswa Riwayat Bimbingan: {e}")
+        flash("Terjadi error saat mengambil data riwayat bimbingan.", 'error')
+        return redirect(url_for('dashboard_mahasiswa')) 
+        
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+# ======================================================
+# ---- ROUTE: DETAIL PERMINTAAN BIMBINGAN (MAHASISWA)
+# ======================================================
+
+@app.route('/dashboard/mahasiswa/bimbingan/detail/<int:id_permintaan>')
+def mahasiswa_detail_bimbingan(id_permintaan):
+    """
+    Menampilkan detail spesifik dari permintaan bimbingan, termasuk jadwal/alasan dari dosen.
+    """
+    if session.get('role') != 'mahasiswa' or 'nim_mahasiswa' not in session:
+        return redirect(url_for('login'))
+        
+    nim_mahasiswa = session.get('nim_mahasiswa')
+    conn = None
+    cursor = None
+    detail = None
+
+    try:
+        conn = create_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Query detail permintaan dan memastikan permintaan itu milik mahasiswa yang login
+        sql_query = """
+            SELECT 
+                pb.*,
+                d.Nama AS nama_dosen,
+                b.jenis_bimbingan
+            FROM permintaan_bimbingan pb
+            JOIN bimbingan b ON pb.id_bimbingan = b.id_bimbingan
+            JOIN dosen d ON b.NIP = d.NIP
+            WHERE pb.id_permintaan = %s AND b.NIM = %s
+        """
+        cursor.execute(sql_query, (id_permintaan, nim_mahasiswa))
+        detail = cursor.fetchone()
+        
+        if not detail:
+            flash("Detail permintaan bimbingan tidak ditemukan atau bukan milik Anda.", 'error')
+            return redirect(url_for('mahasiswa_riwayat_bimbingan'))
+
+        return render_template('mahasiswa/detail_bimbingan_mhs.html', 
+                               detail=detail) 
+
+    except Exception as e:
+        print(f"Error Mahasiswa Detail Bimbingan: {e}")
+        flash("Terjadi error saat mengambil detail bimbingan.", 'error')
+        return redirect(url_for('mahasiswa_riwayat_bimbingan'))
+        
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
 #========================== DOSEN SECTION ==============================
 #=======================================================================
 @app.route('/dashboard/dosen')
@@ -1052,16 +1323,17 @@ def penelitian_dosen():
 
         # Ambil daftar penelitian di mana dosen ini adalah Ketua atau Anggota
         sql_query = """
-            SELECT DISTINCT
-                p.id_penelitian,
-                p.judul_penelitian,
-                p.tahun_pelaksanaan,
-                p.status_penelitian
-            FROM penelitian p
-            LEFT JOIN penelitian_anggota_dosen pad ON p.id_penelitian = pad.id_penelitian
-            WHERE p.nip_ketua = %s OR pad.nip_anggota = %s
-            ORDER BY p.tahun_pelaksanaan DESC, p.id_penelitian DESC
-        """
+                    SELECT DISTINCT
+                        p.id_penelitian,
+                        p.judul_penelitian,
+                        p.tahun_pelaksanaan,
+                        p.status_penelitian,
+                        p.nip_ketua  -- !!! KOLOM INI HARUS DIAMBIL !!!
+                    FROM penelitian p
+                    LEFT JOIN penelitian_anggota_dosen pad ON p.id_penelitian = pad.id_penelitian
+                    WHERE p.nip_ketua = %s OR pad.nip_anggota = %s
+                    ORDER BY p.tahun_pelaksanaan DESC, p.id_penelitian DESC
+                """
         cursor.execute(sql_query, (nip_dosen, nip_dosen))
         penelitian_list = cursor.fetchall()
 
@@ -1382,9 +1654,426 @@ def update_status_penelitian(id_penelitian):
             
     return redirect(url_for('detail_penelitian', id_penelitian=id_penelitian))
 
+@app.route('/dashboard/dosen/penelitian/<int:id_penelitian>/hapus', methods=['POST'])
+def hapus_penelitian(id_penelitian):
+    """
+    Endpoint untuk Dosen Ketua menghapus data penelitian secara permanen.
+    Proses ini melibatkan penghapusan data dari 4 tabel dan menghapus file terunggah.
+    """
+    if session.get('role') != 'dosen' or 'nip_dosen' not in session:
+        return jsonify({'success': False, 'message': 'Akses ditolak'}), 403
+
+    conn = None
+    cursor = None
+    nip_dosen = session['nip_dosen']
+    
+    try:
+        conn = create_connection()
+        if not conn:
+            flash("Koneksi ke database gagal.", "error")
+            return redirect(url_for('penelitian_dosen'))
+        
+        conn.autocommit = False # Mulai transaksi
+        cursor = conn.cursor()
+
+        # 1. Cek apakah dosen adalah ketua penelitian ini
+        cursor.execute("SELECT nip_ketua, file_laporan_akhir, artikel_pdf, sertifikat_penerimaan, foto_kegiatan FROM penelitian WHERE id_penelitian = %s", (id_penelitian,))
+        penelitian_data = cursor.fetchone() # Menggunakan cursor non-dictionary
+        
+        if not penelitian_data:
+            flash("Penelitian tidak ditemukan.", 'error')
+            return redirect(url_for('penelitian_dosen'))
+            
+        nip_ketua = penelitian_data[0]
+        files_to_delete = {
+            'file_laporan_akhir': penelitian_data[1],
+            'artikel_pdf': penelitian_data[2],
+            'sertifikat_penerimaan': penelitian_data[3],
+            'foto_kegiatan': penelitian_data[4]
+        }
+
+        if nip_ketua != nip_dosen:
+            flash("Anda tidak memiliki izin untuk menghapus penelitian ini (Hanya Ketua yang dapat menghapus).", 'error')
+            return redirect(url_for('detail_penelitian', id_penelitian=id_penelitian))
+
+        # 2. Hapus data dari tabel anak (anggota & output)
+        # Hapus Anggota Dosen
+        cursor.execute("DELETE FROM penelitian_anggota_dosen WHERE id_penelitian = %s", (id_penelitian,))
+        # Hapus Anggota Mahasiswa
+        cursor.execute("DELETE FROM penelitian_anggota_mahasiswa WHERE id_penelitian = %s", (id_penelitian,))
+        # Hapus Output
+        cursor.execute("DELETE FROM penelitian_output WHERE id_penelitian = %s", (id_penelitian,))
+
+        # 3. Hapus data dari tabel utama (penelitian)
+        cursor.execute("DELETE FROM penelitian WHERE id_penelitian = %s", (id_penelitian,))
+        
+        conn.commit() # Commit/simpan semua perubahan database
+        
+        # 4. Hapus file-file yang terunggah (setelah commit database berhasil)
+        deleted_files_count = 0
+        upload_folder = app.config.get('UPLOAD_FOLDER', UPLOAD_FOLDER_PATH) # Gunakan UPLOAD_FOLDER jika ada, jika tidak gunakan path default
+        for key, filename in files_to_delete.items():
+            if filename:
+                file_path = os.path.join(upload_folder, filename)
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    deleted_files_count += 1
+                    # print(f"File dihapus: {file_path}") # Untuk debugging
+
+        flash(f'Penelitian "{id_penelitian}" berhasil dihapus, termasuk data terkait dan {deleted_files_count} file terunggah.', 'success')
+        return redirect(url_for('penelitian_dosen')) # Redirect kembali ke daftar penelitian
+        
+    except Exception as e:
+        if conn:
+            conn.rollback() # Rollback/batalkan semua perubahan database jika terjadi error
+        print(f"Error saat menghapus penelitian (transaksi dibatalkan): {e}")
+        flash(f'Gagal menghapus penelitian: {e}', 'error')
+        return redirect(url_for('detail_penelitian', id_penelitian=id_penelitian)) # Kembali ke halaman detail jika gagal
+        
+    finally:
+        if conn:
+            conn.autocommit = True
+            if cursor:
+                cursor.close()
+            conn.close()
 # =========================================================================
+@app.route('/dashboard/dosen/penelitian/<int:id_penelitian>/edit', methods=['GET', 'POST'])
+def edit_penelitian(id_penelitian):
+    """
+    Menangani tampilan form edit (GET) dan pembaruan data (POST) untuk penelitian.
+    Ini harus diletakkan sebelum atau di dekat route penelitian lainnya.
+    """
+    if session.get('role') != 'dosen' or 'nip_dosen' not in session:
+        flash("Silakan login kembali.", 'error')
+        return redirect(url_for('login'))
+        
+    # Sementara ini, kita redirect saja kembali ke halaman detail atau daftar
+    # Tujuannya hanya agar endpoint 'edit_penelitian' terdaftar di Flask
+    
+    # KODE LENGKAP UNTUK EDIT AKAN DIBUAT NANTI
+    
+    if request.method == 'GET':
+        # TODO: Logika mengambil detail penelitian yang sudah ada
+        # TODO: Logika memverifikasi bahwa dosen yang login adalah ketua
+        # return render_template('dosen/edit_penelitian.html', ...) 
+        
+        # Untuk sementara, redirect ke detail penelitian
+        flash("Fitur Edit masih dalam pengembangan.", 'info')
+        return redirect(url_for('detail_penelitian', id_penelitian=id_penelitian))
+
+    elif request.method == 'POST':
+        # TODO: Logika memproses update data
+        # flash('Data penelitian berhasil diperbarui!', 'success')
+        # return redirect(url_for('detail_penelitian', id_penelitian=id_penelitian))
+        
+        # Untuk sementara, redirect ke detail penelitian
+        flash("Fitur Edit belum dapat memproses perubahan data.", 'error')
+        return redirect(url_for('detail_penelitian', id_penelitian=id_penelitian))
+        
+    return redirect(url_for('penelitian_dosen'))
+
+@app.route('/dashboard/dosen/bimbingan')
+def dosen_daftar_bimbingan():
+    """
+    Menampilkan daftar mahasiswa bimbingan untuk dosen yang sedang login.
+    Menggunakan NIP yang sudah tersimpan di sesi ('nip_dosen').
+    """
+    # 1. Autentikasi dan Otorisasi
+    if session.get('role') != 'dosen':
+        return redirect(url_for('login'))
+    
+    # *** PERBAIKAN: Ambil NIP dari 'nip_dosen' yang sudah benar ***
+    nip_dosen = session.get('nip_dosen') 
+    
+    if not nip_dosen:
+        # Jika nip_dosen belum ada, arahkan kembali ke dashboard utama untuk memicu penyimpanan NIP
+        return redirect(url_for('dashboard_dosen')) 
+
+    db = create_connection()
+    cursor = db.cursor(dictionary=True)
+
+    mhs_bimbingan = []
+    dosen_info = {'Nama': 'N/A'}
+
+    try:
+        # 2. Query Data Mahasiswa Bimbingan
+        query = """
+        SELECT
+            b.id_bimbingan,
+            m.NIM,
+            m.Nama,
+            m.id_angkatan AS Angkatan,
+            b.jenis_bimbingan AS JenisBimbingan
+        FROM bimbingan b
+        INNER JOIN mahasiswa m ON b.NIM = m.NIM
+        WHERE b.NIP = %s -- NIP yang benar (misalnya 'N02') akan digunakan di sini
+        ORDER BY m.Nama ASC;
+        """
+        cursor.execute(query, (nip_dosen,))
+        mhs_bimbingan = cursor.fetchall()
+
+        # 3. Query Data Dosen (untuk judul/info)
+        cursor.execute("SELECT Nama FROM dosen WHERE NIP = %s", (nip_dosen,))
+        dosen_info = cursor.fetchone()
+        
+    except Exception as e:
+        print(f"Error Dosen Bimbingan: {e}")
+    finally:
+        if cursor:
+            cursor.close()
+        if db:
+            db.close()
+
+    return render_template(
+        'dosen/daftar-bimbingan.html',
+        dosen=dosen_info,
+        mhs_bimbingan=mhs_bimbingan,
+        user_nip=nip_dosen # Menggunakan user_nip untuk ditampilkan di template
+    )
+
+@app.route('/dashboard/dosen/permintaan-bimbingan')
+def dosen_permintaan_bimbingan():
+    """
+    Menampilkan daftar permintaan bimbingan baru/aktif yang harus direspon dosen.
+    Ini adalah pusat notifikasi bimbingan.
+    """
+    if session.get('role') != 'dosen' or 'nip_dosen' not in session:
+        return redirect(url_for('login'))
+        
+    nip_dosen = session.get('nip_dosen')
+    conn = None
+    cursor = None
+    daftar_permintaan = []
+
+    try:
+        conn = create_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Query untuk mengambil daftar permintaan bimbingan yang ditujukan ke dosen ini
+        # (Hanya menggunakan b.NIP = %s, BUKAN pb.id_permintaan = %s)
+        sql_query = """
+            SELECT 
+                pb.id_permintaan,
+                pb.topik_bimbingan,
+                pb.status_permintaan,
+                pb.tanggal_pengajuan,
+                pb.tanggal_bimbingan,
+                pb.waktu_mulai, -- Ambil ini sebagai timedelta/date
+                pb.waktu_selesai, -- Ambil ini sebagai timedelta/date
+                m.NIM,
+                m.Nama AS nama_mahasiswa,
+                b.jenis_bimbingan
+            FROM permintaan_bimbingan pb
+            JOIN bimbingan b ON pb.id_bimbingan = b.id_bimbingan
+            JOIN mahasiswa m ON b.NIM = m.NIM
+            WHERE b.NIP = %s
+            AND pb.status_permintaan IN ('Menunggu Respon Dosen', 'Jadwal Ditetapkan', 'Membutuhkan Revisi')
+            ORDER BY FIELD(pb.status_permintaan, 'Menunggu Respon Dosen', 'Membutuhkan Revisi', 'Jadwal Ditetapkan'), pb.tanggal_pengajuan ASC
+        """
+        
+        # Eksekusi Query: HANYA DENGAN 1 PARAMETER (nip_dosen)
+        cursor.execute(sql_query, (nip_dosen,)) 
+        daftar_permintaan = cursor.fetchall()
+        
+        # Catatan: Kita tidak perlu memformat waktu di sini karena 
+        # di halaman daftar (permintaan_bimbingan_dosen.html) kita tidak menampilkannya
+        # atau jika ditampilkan, error .strftime() dapat dihindari dengan aman di template.
+        
+        return render_template('dosen/permintaan_bimbingan_dosen.html', 
+                               daftar_permintaan=daftar_permintaan) 
+        
+    except Exception as e:
+        # PENTING: Jika terjadi error pada query, pastikan Anda mendapatkan log yang bersih.
+        print(f"Error Dosen Permintaan Bimbingan: {e}")
+        flash("Terjadi error saat mengambil data permintaan bimbingan.", 'error')
+        return redirect(url_for('dashboard_dosen')) 
+        
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+# ======================================================
+# ---- ROUTE: DETAIL PERMINTAAN & FORM RESPON (DOSEN)
+# ======================================================
+
+@app.route('/dashboard/dosen/permintaan-bimbingan/detail/<int:id_permintaan>', methods=['GET', 'POST'])
+def dosen_detail_dan_respon_bimbingan(id_permintaan):
+    """
+    Menampilkan detail permintaan dan memproses respon (Terima/Tolak/Revisi).
+    """
+    if session.get('role') != 'dosen' or 'nip_dosen' not in session:
+        return redirect(url_for('login'))
+        
+    nip_dosen = session.get('nip_dosen')
+    conn = None
+    cursor = None
+    
+    try:
+        conn = create_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # 1. Query Detail Permintaan dan Cek Kepemilikan (Penting!)
+        sql_detail = """
+            SELECT 
+                pb.*,
+                m.NIM,
+                m.Nama AS nama_mahasiswa,
+                b.jenis_bimbingan
+            FROM permintaan_bimbingan pb
+            JOIN bimbingan b ON pb.id_bimbingan = b.id_bimbingan
+            JOIN mahasiswa m ON b.NIM = m.NIM
+            WHERE pb.id_permintaan = %s AND b.NIP = %s
+        """
+        cursor.execute(sql_detail, (id_permintaan, nip_dosen))
+        detail = cursor.fetchone()
+        
+        if not detail:
+            flash("Permintaan bimbingan tidak ditemukan atau bukan bimbingan Anda.", 'error')
+            return redirect(url_for('dosen_permintaan_bimbingan'))
+
+        if request.method == 'POST':
+            # ==================================
+            # PROSES RESPON DOSEN (METODE POST)
+            # ==================================
+            action = request.form.get('action') # 'terima', 'tolak', atau 'revisi'
+            catatan_dosen = request.form.get('catatan_dosen', '').strip()
+            
+            # Persiapkan data update
+            new_status = None
+            update_data = {}
+            
+            if action == 'terima':
+                new_status = 'Jadwal Ditetapkan'
+                tanggal = request.form.get('tanggal_bimbingan')
+                waktu_mulai = request.form.get('waktu_mulai')
+                waktu_selesai = request.form.get('waktu_selesai')
+                tempat = request.form.get('tempat_bimbingan')
+                
+                if not all([tanggal, waktu_mulai, waktu_selesai, tempat]):
+                    flash("Semua field Jadwal wajib diisi untuk Penerimaan.", 'error')
+                    # Tetap tampilkan detail (GET) dengan error
+                    return render_template('dosen/detail_bimbingan_dosen.html', detail=detail) 
+                
+                # Validasi Jam
+                if waktu_mulai >= waktu_selesai:
+                     flash("Waktu selesai harus setelah waktu mulai.", 'error')
+                     return render_template('dosen/detail_bimbingan_dosen.html', detail=detail) 
+
+                update_data = {
+                    'tanggal_bimbingan': tanggal,
+                    'waktu_mulai': waktu_mulai,
+                    'waktu_selesai': waktu_selesai,
+                    'tempat_bimbingan': tempat,
+                    'catatan_dosen': catatan_dosen,
+                }
+            
+            elif action == 'tolak':
+                new_status = 'Ditolak'
+                if not catatan_dosen:
+                    flash("Alasan penolakan wajib diisi.", 'error')
+                    return render_template('dosen/detail_bimbingan_dosen.html', detail=detail)
+                update_data = {'catatan_dosen': catatan_dosen}
+            
+            elif action == 'revisi':
+                new_status = 'Membutuhkan Revisi'
+                if not catatan_dosen:
+                    flash("Instruksi revisi wajib diisi.", 'error')
+                    return render_template('dosen/detail_bimbingan_dosen.html', detail=detail)
+                update_data = {'catatan_dosen': catatan_dosen}
+            
+            else:
+                flash("Aksi tidak valid.", 'error')
+                return redirect(url_for('dosen_permintaan_bimbingan'))
+
+            # Lakukan Update Database (Transaksi)
+            update_data['status_permintaan'] = new_status
+            update_data['tanggal_update_status'] = datetime.now()
+            
+            # Buat query update secara dinamis
+            set_clauses = [f"{col} = %s" for col in update_data.keys()]
+            set_values = list(update_data.values())
+            
+            sql_update = f"""
+                UPDATE permintaan_bimbingan SET {', '.join(set_clauses)}
+                WHERE id_permintaan = %s
+            """
+            set_values.append(id_permintaan)
+            
+            cursor.execute(sql_update, set_values)
+            conn.commit()
+            
+            flash(f"Permintaan bimbingan berhasil direspon. Status: {new_status}.", 'success')
+            return redirect(url_for('dosen_permintaan_bimbingan'))
 
 
+        # ==================================
+        # TAMPILKAN DETAIL (METODE GET)
+        # ==================================
+        return render_template('dosen/detail_bimbingan_dosen.html', 
+                               detail=detail) 
+        
+    except Exception as e:
+        print(f"Error Dosen Respon Bimbingan: {e}")
+        if conn: conn.rollback()
+        flash("Terjadi error saat memproses respon bimbingan.", 'error')
+        return redirect(url_for('dosen_permintaan_bimbingan'))
+        
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+# ======================================================
+# ---- ROUTE: RIWAYAT SEMUA BIMBINGAN (DOSEN)
+# ======================================================
+
+@app.route('/dashboard/dosen/riwayat-bimbingan')
+def dosen_riwayat_bimbingan():
+    """
+    Menampilkan semua riwayat permintaan bimbingan, termasuk yang Ditolak/Selesai.
+    """
+    if session.get('role') != 'dosen' or 'nip_dosen' not in session:
+        return redirect(url_for('login'))
+        
+    nip_dosen = session.get('nip_dosen')
+    conn = None
+    cursor = None
+    riwayat_bimbingan = []
+
+    try:
+        conn = create_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Query semua riwayat permintaan bimbingan
+        sql_query = """
+            SELECT 
+                pb.id_permintaan,
+                pb.topik_bimbingan,
+                pb.status_permintaan,
+                pb.tanggal_pengajuan,
+                pb.tanggal_bimbingan,
+                m.NIM,
+                m.Nama AS nama_mahasiswa,
+                b.jenis_bimbingan
+            FROM permintaan_bimbingan pb
+            JOIN bimbingan b ON pb.id_bimbingan = b.id_bimbingan
+            JOIN mahasiswa m ON b.NIM = m.NIM
+            WHERE b.NIP = %s
+            ORDER BY pb.tanggal_pengajuan DESC
+        """
+        cursor.execute(sql_query, (nip_dosen,))
+        riwayat_bimbingan = cursor.fetchall()
+        
+        return render_template('dosen/riwayat_bimbingan_dosen.html', 
+                               riwayat=riwayat_bimbingan) 
+
+    except Exception as e:
+        print(f"Error Dosen Riwayat Bimbingan: {e}")
+        flash("Terjadi error saat mengambil data riwayat bimbingan.", 'error')
+        return redirect(url_for('dashboard_dosen')) 
+        
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
 #================================= KAPRODI SECTION ================================
 #==================================================================================
 @app.route('/dashboard/kaprodi')
@@ -2777,11 +3466,182 @@ def edit_akun_kaprodi(username):
                            daftar_kaprodi=daftar_kaprodi)
 
 #============================ PAGE BIMBINGAN ==================================
+
 @app.route('/dashboard/admin/kelola-bimbingan')
 def admin_kelola_bimbingan():
-    if session.get('role') == 'admin':
-        return render_template('admin/kelola-bimbingan.html', user=session['username'])
-    return redirect(url_for('login'))
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+
+    db = create_connection()
+    cursor = db.cursor(dictionary=True)
+
+    try:
+        # Query paling aman & kompatibel
+        query = """
+        SELECT 
+            d.NIP,
+            d.Nama,
+            d.ProgramStudi,
+            COALESCE(COUNT(b.id_bimbingan), 0) AS TotalMhsBimbingan
+        FROM dosen d
+        LEFT JOIN bimbingan b ON d.NIP = b.NIP
+        GROUP BY d.NIP, d.Nama, d.ProgramStudi
+        ORDER BY d.Nama ASC;
+        """
+        cursor.execute(query)
+        dosen_data = cursor.fetchall()
+
+    except Exception as e:
+        print("Error:", e)
+        dosen_data = []
+    finally:
+        cursor.close()
+        db.close()
+
+    return render_template(
+        'admin/kelola-bimbingan.html',
+        user=session.get('username'),
+        dosens=dosen_data
+    )
+
+# ======================================================
+# ---- ROUTE 2: Detail mahasiswa bimbingan per dosen
+# ======================================================
+@app.route('/dashboard/admin/kelola-bimbingan/<nip>')
+def admin_kelola_mahasiswa_bimbingan(nip):
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+
+    db = create_connection()
+    cursor = db.cursor(dictionary=True)
+
+    try:
+        # Data dosen
+        cursor.execute("SELECT NIP, Nama FROM dosen WHERE NIP = %s", (nip,))
+        dosen = cursor.fetchone()
+        if not dosen:
+            return "Dosen tidak ditemukan", 404
+
+        # Mahasiswa yang dibimbing dosen ini
+        cursor.execute("""
+            SELECT 
+                b.id_bimbingan,
+                m.NIM,
+                m.Nama,
+                m.id_angkatan AS Angkatan,
+                b.jenis_bimbingan AS JenisBimbingan
+            FROM bimbingan b
+            INNER JOIN mahasiswa m ON b.NIM = m.NIM
+            WHERE b.NIP = %s
+            ORDER BY m.Nama;
+        """, (nip,))
+        mhs_bimbingan = cursor.fetchall()
+
+        # Mahasiswa yang BELUM dibimbing dosen ini
+        cursor.execute("""
+            SELECT 
+                NIM, 
+                Nama, 
+                id_angkatan
+            FROM mahasiswa
+            WHERE NIM NOT IN (
+                SELECT NIM FROM bimbingan WHERE NIP = %s
+            )
+            ORDER BY Nama;
+        """, (nip,))
+        mahasiswa_tersedia = cursor.fetchall()
+
+    except Exception as e:
+        print("DB Error:", e)
+        return "Kesalahan database", 500
+    finally:
+        cursor.close()
+        db.close()
+
+    return render_template(
+        'admin/kelola-mahasiswa-bimbingan.html',
+        dosen=dosen,
+        mhs_bimbingan=mhs_bimbingan,
+        mahasiswa_tersedia=mahasiswa_tersedia
+    )
+
+
+# ======================================================
+# ---- API CREATE BIMBINGAN
+# ======================================================
+@app.route('/api/bimbingan/add', methods=['POST'])
+def add_bimbingan():
+    if session.get('role') != 'admin':
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+
+    data = request.json
+    nip = data.get('nip')
+    nim = data.get('nim')
+    jenis = data.get('jenis')
+
+    if not all([nip, nim, jenis]):
+        return jsonify({'success': False, 'message': 'Data tidak lengkap'}), 400
+
+    db = create_connection()
+    cursor = db.cursor()
+
+    try:
+        # Cek duplikasi
+        cursor.execute("""
+            SELECT COUNT(*) 
+            FROM bimbingan 
+            WHERE NIP = %s AND NIM = %s
+        """, (nip, nim))
+        
+        if cursor.fetchone()[0] > 0:
+            return jsonify({'success': False, 'message': 'Mahasiswa sudah dibimbing'}), 409
+
+        # Insert
+        cursor.execute("""
+            INSERT INTO bimbingan (NIP, NIM, jenis_bimbingan)
+            VALUES (%s, %s, %s)
+        """, (nip, nim, jenis))
+        
+        db.commit()
+
+        return jsonify({'success': True, 'id_bimbingan': cursor.lastrowid}), 200
+
+    except Exception as e:
+        print("Insert Error:", e)
+        db.rollback()
+        return jsonify({'success': False, 'message': 'Database error'}), 500
+    finally:
+        cursor.close()
+        db.close()
+
+
+# ======================================================
+# ---- API DELETE BIMBINGAN
+# ======================================================
+@app.route('/api/bimbingan/delete/<int:id_bimbingan>', methods=['DELETE'])
+def delete_bimbingan(id_bimbingan):
+    if session.get('role') != 'admin':
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+
+    db = create_connection()
+    cursor = db.cursor()
+
+    try:
+        cursor.execute("DELETE FROM bimbingan WHERE id_bimbingan = %s", (id_bimbingan,))
+        db.commit()
+
+        if cursor.rowcount > 0:
+            return jsonify({'success': True, 'message': 'Berhasil dihapus'}), 200
+        else:
+            return jsonify({'success': False, 'message': 'ID tidak ditemukan'}), 404
+
+    except Exception as e:
+        print("Delete Error:", e)
+        db.rollback()
+        return jsonify({'success': False, 'message': 'Database error'}), 500
+    finally:
+        cursor.close()
+        db.close()
 
 
 #========================== PAGE KELOLA JADWAL ==========================================
