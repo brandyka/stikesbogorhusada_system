@@ -1,112 +1,237 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Permintaan Bimbingan - Dosen</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Permintaan Bimbingan | STIKes Bogor Husada</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .card { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06); }
+      body {
+        font-family: "Inter", "Segoe UI", sans-serif;
+        background-color: #f8fafc;
+      }
+      [x-cloak] {
+        display: none !important;
+      }
+      /* Gradasi Sidebar Lilac-Pink */
+      .sidebar-gradient {
+        background: linear-gradient(180deg, #f3e8ff 0%, #ffe4e6 100%);
+        border-right: 1px solid #e9d5ff;
+      }
+      /* Animasi Alert */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .alert-animate {
+        animation: fadeIn 0.3s ease-out forwards;
+      }
     </style>
-</head>
-<body class="p-4 md:p-8">
+  </head>
+  <body class="bg-gray-50">
+    <div x-data="{ sidebarOpen: window.innerWidth >= 1024 }" @resize.window="sidebarOpen = window.innerWidth >= 1024" class="relative flex min-h-screen">
+      <!-- Mobile Overlay -->
+      <div x-show="sidebarOpen && window.innerWidth < 1024" @click="sidebarOpen = false" class="fixed inset-0 z-30 bg-gray-900/40 transition-opacity duration-300 lg:hidden" x-cloak></div>
 
-    <div class="max-w-6xl mx-auto bg-white p-6 md:p-10 rounded-xl card">
-        <h1 class="text-3xl font-bold text-gray-900 mb-6 border-b-2 border-green-600 pb-3">
-            <span class="text-green-600 mr-2">🔔</span> Permintaan Bimbingan Mahasiswa
-        </h1>
-
-        <!-- Flash Messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="mb-4">
-                {% for category, message in messages %}
-                    <div class="p-3 rounded-lg text-sm {% if category == 'error' %}bg-red-100 text-red-700{% elif category == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-        
-        <div class="mb-4 flex justify-between items-center">
-            <p class="text-sm text-gray-600">Daftar permintaan yang **aktif** dan **membutuhkan respon** Anda.</p>
-            <a href="{{ url_for('dosen_riwayat_bimbingan') }}" class="text-sm text-indigo-600 hover:text-indigo-800 hover:underline">
-                Lihat Semua Riwayat (Ditolak/Selesai) &rarr;
-            </a>
+      <!-- SIDEBAR -->
+      <aside
+        @keydown.escape.window="sidebarOpen = false"
+        class="fixed inset-y-0 left-0 z-40 w-64 p-4 flex flex-col overflow-y-auto transform transition-transform duration-300 ease-in-out lg:static lg:h-auto lg:shadow-none sidebar-gradient"
+        :class="sidebarOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'"
+        x-cloak
+      >
+        <div class="flex justify-between items-center mb-10 mt-2">
+          <div class="flex items-center space-x-2">
+            <img src="https://assets.nsd.co.id/images/kampus/logo/8ofZnuE1_400x400.jpg" alt="Logo" class="w-8 h-8 rounded-full" />
+            <div>
+              <h1 class="text-xl font-extrabold text-gray-800 tracking-wider">SBH DOSEN</h1>
+              <p class="text-xs text-gray-500 mt-0.5">Sistem Akademik</p>
+            </div>
+          </div>
+          <button @click="sidebarOpen = false" class="lg:hidden text-gray-600 p-1 hover:text-amber-500 rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
         </div>
 
+        <nav class="flex-1 space-y-2">
+          <a href="{{ url_for('dashboard_dosen') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            </svg>
+            <span>Beranda</span>
+          </a>
 
-        {% if daftar_permintaan %}
-            <div class="overflow-x-auto rounded-lg border border-gray-200">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tgl. Pengajuan</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mahasiswa (NIM)</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Topik & Jenis Bimbingan</th>
-                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jadwal Ditetapkan</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        {% for item in daftar_permintaan %}
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ item.tanggal_pengajuan.strftime('%d %b %Y %H:%M') }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <p class="text-sm font-semibold text-gray-900">{{ item.nama_mahasiswa }}</p>
-                                <p class="text-xs text-gray-500">NIM: {{ item.NIM }}</p>
-                            </td>
-                            <td class="px-6 py-4 text-sm text-gray-800">
-                                <p class="font-medium">{{ item.topik_bimbingan }}</p>
-                                <span class="text-xs text-green-600">({{ item.jenis_bimbingan }})</span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
-                                {% if item.status_permintaan == 'Jadwal Ditetapkan' %}
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Jadwal Ditetapkan</span>
-                                {% elif item.status_permintaan == 'Menunggu Respon Dosen' %}
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">PERLU RESPON</span>
-                                {% elif item.status_permintaan == 'Membutuhkan Revisi' %}
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Minta Revisi Mhs</span>
-                                {% else %}
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">{{ item.status_permintaan }}</span>
-                                {% endif %}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                {% if item.tanggal_bimbingan %}
-                                    {{ item.tanggal_bimbingan.strftime('%d %b %Y') }} Pk. 
-                                    <!-- PERBAIKAN: Menggunakan filter string 'truncate(5)' untuk menampilkan HH:MM
-                                         Jika item.waktu_mulai adalah objek timedelta (misal: 01:00:00), ini akan menampilkan '01:00'
-                                         Ini adalah trik aman di Jinja untuk timedelta.
-                                    -->
-                                    {{ item.waktu_mulai|string|truncate(5, True, '') }}
-                                {% else %}
-                                    **Belum Ada**
-                                {% endif %}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="{{ url_for('dosen_detail_dan_respon_bimbingan', id_permintaan=item.id_permintaan) }}" 
-                                   class="text-green-600 hover:text-green-900 transition duration-150 ease-in-out hover:underline font-bold">
-                                    {{ 'Lihat / Atur Jadwal' if item.status_permintaan != 'Menunggu Respon Dosen' else 'Respon Sekarang' }}
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+          <a href="{{ url_for('jadwal_dosen') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            <span>Jadwal Mengajar</span>
+          </a>
+
+          <a href="{{ url_for('dosen_daftar_bimbingan') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500 text-white font-semibold shadow-lg shadow-amber-200/50 hover:bg-amber-600 transition duration-150">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              ></path>
+            </svg>
+            <span>Bimbingan</span>
+          </a>
+
+          <a href="{{ url_for('penelitian_dosen') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              ></path>
+            </svg>
+            <span>Penelitian</span>
+          </a>
+        </nav>
+
+        <div class="mt-8 border-t pt-4 border-gray-200">
+          <a href="{{ url_for('logout') }}" class="flex items-center justify-center w-full space-x-2 text-red-500 hover:bg-red-100 hover:shadow-sm rounded-xl py-2 transition duration-150">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+            </svg>
+            <span class="font-medium">Logout</span>
+          </a>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <div class="flex-1 flex flex-col">
+        <header class="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 sm:px-8 py-4 flex justify-between items-center shadow-sm">
+          <button @click.stop="sidebarOpen = !sidebarOpen" class="lg:hidden text-gray-600 p-2 hover:text-amber-500 rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+          </button>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-gray-800 hidden lg:block">Bimbingan Akademik</h2>
+          <a href="{{ url_for('logout') }}" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold">
+            <span class="hidden sm:inline">Logout</span>
+          </a>
+        </header>
+
+        <main class="flex-1 p-4 sm:p-8 bg-gray-100">
+          <!-- Flash Messages -->
+          {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %}
+          <div class="mb-6 space-y-2">
+            {% for category, message in messages %}
+            <div
+              class="p-4 rounded-xl border flex items-center text-sm font-medium alert-animate {% if category == 'success' %} bg-green-50 border-green-200 text-green-800 {% elif category == 'error' %} bg-red-50 border-red-200 text-red-800 {% else %} bg-blue-50 border-blue-200 text-blue-800 {% endif %}"
+            >
+              {{ message }}
             </div>
-        {% else %}
-            <div class="p-6 bg-green-100 border-l-4 border-green-500 text-green-700 rounded-lg" role="alert">
-                <p class="font-bold">Informasi</p>
-                <p>Tidak ada permintaan bimbingan baru yang membutuhkan respon Anda saat ini.</p>
+            {% endfor %}
+          </div>
+          {% endif %} {% endwith %}
+
+          <!-- Header Section -->
+          <div class="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h3 class="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+                Permintaan Bimbingan
+                <span class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full shadow-sm animate-pulse">{{ daftar_permintaan|length }}</span>
+              </h3>
+              <p class="text-gray-500 text-sm mt-1">Daftar permintaan yang membutuhkan respon Anda.</p>
             </div>
-        {% endif %}
+            <a href="{{ url_for('dosen_riwayat_bimbingan') }}" class="text-sm text-amber-600 hover:text-amber-700 hover:underline font-semibold transition inline-flex items-center">
+              Lihat Riwayat (Selesai/Ditolak)
+              <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            </a>
+          </div>
+
+          <!-- Tabel Permintaan -->
+          <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            {% if daftar_permintaan %}
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Tgl. Pengajuan</th>
+                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Mahasiswa</th>
+                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Topik & Jenis</th>
+                    <th class="px-6 py-4 text-center text-xs font-extrabold text-gray-600 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Jadwal</th>
+                    <th class="px-6 py-4 text-right text-xs font-extrabold text-gray-600 uppercase tracking-wider">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                  {% for item in daftar_permintaan %}
+                  <tr class="hover:bg-amber-50/30 transition duration-150">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
+                      {{ item.tanggal_pengajuan.strftime('%d %b %Y') }} <br />
+                      <span class="text-xs text-gray-400">{{ item.tanggal_pengajuan.strftime('%H:%M') }}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="text-sm font-bold text-gray-900">{{ item.nama_mahasiswa }}</div>
+                      <div class="text-xs text-gray-500 font-mono">{{ item.NIM }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="text-sm font-semibold text-gray-800 line-clamp-2 max-w-xs">{{ item.topik_bimbingan }}</div>
+                      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100 mt-1"> {{ item.jenis_bimbingan }} </span>
+                    </td>
+                    <td class="px-6 py-4 text-center whitespace-nowrap">
+                      {% if item.status_permintaan == 'Jadwal Ditetapkan' %}
+                      <span class="px-2 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-green-100 text-green-800 border border-green-200">Terjadwal</span>
+                      {% elif item.status_permintaan == 'Menunggu Respon Dosen' %}
+                      <span class="px-2 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-red-100 text-red-800 border border-red-200 animate-pulse">Perlu Respon</span>
+                      {% elif item.status_permintaan == 'Membutuhkan Revisi' %}
+                      <span class="px-2 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200">Revisi Mhs</span>
+                      {% else %}
+                      <span class="px-2 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-gray-100 text-gray-800 border border-gray-200">{{ item.status_permintaan }}</span>
+                      {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                      {% if item.tanggal_bimbingan %}
+                      <div class="font-medium">{{ item.tanggal_bimbingan.strftime('%d %b %Y') }}</div>
+                      <div class="text-xs text-gray-500">Pukul {{ item.waktu_mulai|string|truncate(5, True, '') }}</div>
+                      {% else %}
+                      <span class="text-xs text-gray-400 italic">Belum ditentukan</span>
+                      {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <a
+                        href="{{ url_for('dosen_detail_dan_respon_bimbingan', id_permintaan=item.id_permintaan) }}"
+                        class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-bold rounded-lg transition shadow-sm
+                           {{ 'bg-green-600 hover:bg-green-700 shadow-green-200' if item.status_permintaan == 'Menunggu Respon Dosen' else 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100' }}"
+                      >
+                        {% if item.status_permintaan == 'Menunggu Respon Dosen' %} Respon Sekarang {% else %} Lihat Detail {% endif %}
+                      </a>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+            <div class="p-10 text-center bg-white">
+              <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-50 text-green-500 mb-4">
+                <i class="fas fa-check-circle text-3xl"></i>
+              </div>
+              <h3 class="text-lg font-medium text-gray-900">Tidak ada permintaan baru</h3>
+              <p class="text-gray-500 mt-1 text-sm">Semua permintaan bimbingan telah Anda respon.</p>
+            </div>
+            {% endif %}
+          </div>
+        </main>
+      </div>
     </div>
-
-</body>
+  </body>
 </html>

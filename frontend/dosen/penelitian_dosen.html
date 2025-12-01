@@ -20,14 +20,12 @@
       }
       [x-cloak] { display: none !important; }
       
-      /* Sidebar Gradient (Lilac -> Pink) */
       .sidebar-gradient {
         background: linear-gradient(180deg, #f3e8ff 0%, #ffe4e6 100%);
         border-right: 1px solid #e9d5ff;
       }
       
-      /* Modal Scroll Fix */
-      .max-h-90vh { max-height: 90vh; }
+\      .max-h-90vh { max-height: 90vh; }
     </style>
   </head>
   <body class="bg-gray-50">
@@ -71,7 +69,7 @@
                 <span>Jadwal Mengajar</span>
             </a>
             
-            <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+            <a href="{{ url_for('dosen_daftar_bimbingan') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                 <span>Bimbingan</span>
             </a>
@@ -162,7 +160,7 @@
                                         </a>
 
                                         <button 
-                                            onclick="confirmDelete('{{ p.judul_penelitian }}', {{ p.id_penelitian }})"
+                                            onclick="confirmDelete('{{ p.judul_penelitian }}', '{{ p.id_penelitian }}')"
                                             class="text-red-600 hover:text-red-800 transition"
                                             title="Hapus Penelitian">
                                             <i class="fas fa-trash-alt"></i>

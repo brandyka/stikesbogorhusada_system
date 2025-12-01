@@ -1,112 +1,200 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kelola Bimbingan | STIKes Bogor Husada</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
     <style>
-        body {
-            background: #f8f9fa;
+      body {
+        font-family: "Inter", "Segoe UI", sans-serif;
+        background-color: #f8fafc;
+      }
+      [x-cloak] {
+        display: none !important;
+      }
+      /* Gradasi Sidebar Lilac-Pink */
+      .sidebar-gradient {
+        background: linear-gradient(180deg, #f3e8ff 0%, #ffe4e6 100%);
+        border-right: 1px solid #e9d5ff;
+      }
+
+      @media screen and (max-width: 768px) {
+        .actions-cell {
+          position: sticky;
+          right: 0;
+          background-color: #fff;
+          z-index: 10;
+          box-shadow: -2px 0 3px rgba(0, 0, 0, 0.05);
         }
-        .sidebar {
-            width: 260px;
-            height: 100vh;
-            background: #f4e7ff;
-            padding: 20px;
-            position: fixed;
-        }
-        .sidebar a {
-            display: block;
-            padding: 10px;
-            text-decoration: none;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            color: #333;
-            font-weight: 500;
-        }
-        .sidebar a.active {
-            background: #ff914d;
-            color: white;
-        }
-        .content {
-            margin-left: 260px;
-            padding: 30px;
-        }
-        .logout-btn {
-            float: right;
-            font-weight: bold;
-            color: #ff914d;
-        }
+      }
     </style>
-</head>
+  </head>
+  <body class="bg-gray-50">
+    <div x-data="{ sidebarOpen: window.innerWidth >= 1024 }" @resize.window="sidebarOpen = window.innerWidth >= 1024" class="relative flex min-h-screen">
+      <!-- Mobile Overlay -->
+      <div x-show="sidebarOpen && window.innerWidth < 1024" @click="sidebarOpen = false" class="fixed inset-0 z-30 bg-gray-900/40 transition-opacity duration-300 lg:hidden" x-cloak></div>
 
-<body>
-
-    <div class="sidebar">
-        <h4 class="mb-4" style="color:#ff914d; font-weight:700;">sbh</h4>
-        <p>STIKes Bogor Husada</p>
-
-        <a href="/dashboard/admin">🏠 Utama</a>
-        <a href="/dashboard/admin/kelola-data">📚 Kelola Data</a>
-        <a href="/dashboard/admin/kelola-jadwal">🗓 Kelola Jadwal</a>
-        <a href="/dashboard/admin/kelola-akun">⚙ Kelola Akun</a>
-        <a href="/dashboard/admin/kelola-bimbingan" class="active">📄 Kelola Bimbingan</a>
-    </div>
-
-    <div class="content">
-
-        <a href="/logout" class="logout-btn">Logout 🔓</a>
-        <h2 class="fw-bold mb-4">Kelola Bimbingan</h2>
-
-        <h4 class="mb-3">Daftar Dosen & Bimbingan</h4>
-
-        <div class="card shadow-sm">
-            <div class="card-body">
-
-                <table class="table table-bordered align-middle">
-                    <thead>
-                        <tr>
-                            <th>Dosen (NIP)</th>
-                            <th>Program Studi</th>
-                            <th>Total Mahasiswa Bimbingan</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-
-                        {% if dosens|length == 0 %}
-                        <tr>
-                            <td colspan="4" class="text-center text-muted py-4">
-                                Belum ada data dosen 😪
-                            </td>
-                        </tr>
-                        {% endif %}
-
-                        {% for d in dosens %}
-                        <tr>
-                            <td>
-                                <strong>{{ d.Nama }}</strong><br>
-                                <small class="text-muted">{{ d.NIP }}</small>
-                            </td>
-                            <td>{{ d.ProgramStudi }}</td>
-                            <td>{{ d.TotalMhsBimbingan }}</td>
-                            <td>
-                                <a href="{{ url_for('admin_kelola_mahasiswa_bimbingan', nip=d.NIP) }}" class="btn btn-sm btn-primary">
-                                    Lihat Detail Bimbingan
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-
-                    </tbody>
-                </table>
-
+      <!-- SIDEBAR -->
+      <aside
+        @keydown.escape.window="sidebarOpen = false"
+        class="fixed inset-y-0 left-0 z-40 w-64 p-4 flex flex-col overflow-y-auto transform transition-transform duration-300 ease-in-out lg:static lg:h-auto lg:shadow-none sidebar-gradient"
+        :class="sidebarOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'"
+        x-cloak
+      >
+        <div class="flex justify-between items-center mb-10 mt-2">
+          <div class="flex items-center space-x-2">
+            <img src="https://assets.nsd.co.id/images/kampus/logo/8ofZnuE1_400x400.jpg" alt="Logo" class="w-8 h-8 rounded-full" />
+            <div>
+              <h1 class="text-xl font-extrabold text-gray-800 tracking-wider">SBH ADMIN</h1>
+              <p class="text-xs text-gray-500 mt-0.5">Sistem Akademik</p>
             </div>
+          </div>
+          <button @click="sidebarOpen = false" class="lg:hidden text-gray-600 p-1 hover:text-amber-500 rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
         </div>
+
+        <nav class="flex-1 space-y-2">
+          <a href="{{ url_for('dashboard_admin') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            </svg>
+            <span>Utama</span>
+          </a>
+
+          <a href="{{ url_for('admin_kelola_data') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              ></path>
+            </svg>
+            <span>Kelola Data</span>
+          </a>
+
+          <a href="{{ url_for('admin_kelola_jadwal') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            <span>Kelola Jadwal</span>
+          </a>
+
+          <a href="{{ url_for('admin_kelola_akun') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 00-1.066 2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z"
+              ></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            <span>Kelola Akun</span>
+          </a>
+
+          <!-- Menu Kelola Bimbingan (Aktif - Amber Solid) -->
+          <a href="{{ url_for('admin_kelola_bimbingan') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500 text-white font-semibold shadow-lg shadow-amber-200/50 transition duration-150">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <span>Kelola Bimbingan</span>
+          </a>
+        </nav>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <div class="flex-1 flex flex-col">
+        <header class="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 sm:px-8 py-4 flex justify-between items-center shadow-sm">
+          <button @click.stop="sidebarOpen = !sidebarOpen" class="lg:hidden text-gray-600 p-2 hover:text-amber-500 rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+          </button>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-gray-800 hidden lg:block">Kelola Bimbingan</h2>
+          <a href="{{ url_for('logout') }}" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold">
+            <span class="hidden sm:inline">Logout</span>
+          </a>
+        </header>
+
+        <main class="flex-1 p-4 sm:p-8 bg-gray-100">
+          <div class="mb-6">
+            <h3 class="text-2xl font-extrabold text-gray-900">Daftar Dosen & Bimbingan</h3>
+            <p class="text-sm text-gray-500 mt-1">Lihat dan kelola data bimbingan akademik.</p>
+          </div>
+
+          <!-- Tabel Dosen -->
+          <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50 border-b-2 border-gray-100">
+                  <tr>
+                    <th scope="col" class="px-6 py-4 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Dosen (NIP)</th>
+                    <th scope="col" class="px-6 py-4 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Program Studi</th>
+                    <th scope="col" class="px-6 py-4 text-center text-xs font-extrabold text-gray-600 uppercase tracking-wider">Total Mahasiswa</th>
+                    <th scope="col" class="px-6 py-4 text-center text-xs font-extrabold text-gray-600 uppercase tracking-wider actions-cell">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100">
+                  {% if dosens|length == 0 %}
+                  <tr>
+                    <td colspan="4" class="px-6 py-10 text-center text-sm text-gray-500 italic">Belum ada data dosen.</td>
+                  </tr>
+                  {% else %} {% for d in dosens %}
+                  <tr class="hover:bg-amber-50/40 transition duration-150">
+                    <!-- Nama Dosen & NIP -->
+                    <td class="px-6 py-4">
+                      <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 mr-3">
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                          </svg>
+                        </div>
+                        <div>
+                          <div class="text-sm font-bold text-gray-900">{{ d.Nama }}</div>
+                          <div class="text-xs text-gray-500">{{ d.NIP }}</div>
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- Program Studi -->
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                      <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200"> {{ d.ProgramStudi }} </span>
+                    </td>
+
+                    <!-- Total Mahasiswa -->
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                      <span class="px-3 py-1 rounded-lg bg-blue-50 text-blue-700 text-sm font-bold border border-blue-100"> {{ d.TotalMhsBimbingan }} </span>
+                    </td>
+
+                    <!-- Aksi -->
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium actions-cell">
+                      <a
+                        href="{{ url_for('admin_kelola_mahasiswa_bimbingan', nip=d.NIP) }}"
+                        class="inline-flex items-center px-4 py-2 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-xl transition text-xs font-bold shadow-sm hover:shadow-md"
+                      >
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        Lihat Detail
+                      </a>
+                    </td>
+                  </tr>
+                  {% endfor %} {% endif %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+  </body>
 </html>

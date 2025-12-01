@@ -1,308 +1,406 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Detail Bimbingan {{ dosen.Nama }} | STIKes Bogor Husada</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
     <style>
-        body { background: #f8f9fa; }
-        .sidebar { width: 260px; height: 100vh; background: #f4e7ff; padding: 20px; position: fixed; }
-        .sidebar a { display: block; padding: 10px; text-decoration: none; margin-bottom: 10px; border-radius: 6px; color: #333; font-weight: 500; }
-        .sidebar a.active { background: #ff914d; color: white; }
-        .content { margin-left: 260px; padding: 30px; }
-        .logout-btn { float: right; font-weight: bold; color: #ff914d; }
+      body {
+        font-family: "Inter", "Segoe UI", sans-serif;
+        background-color: #f8fafc;
+      }
+      [x-cloak] {
+        display: none !important;
+      }
+      .sidebar-gradient {
+        background: linear-gradient(180deg, #f3e8ff 0%, #ffe4e6 100%);
+        border-right: 1px solid #e9d5ff;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .alert-animate {
+        animation: fadeIn 0.3s ease-out forwards;
+      }
     </style>
-</head>
+  </head>
+  <body class="bg-gray-50">
+    <div x-data="{ sidebarOpen: window.innerWidth >= 1024 }" @resize.window="sidebarOpen = window.innerWidth >= 1024" class="relative flex min-h-screen">
+      <div x-show="sidebarOpen && window.innerWidth < 1024" @click="sidebarOpen = false" class="fixed inset-0 z-30 bg-gray-900/40 transition-opacity duration-300 lg:hidden" x-cloak></div>
 
-<body>
-
-    <div class="sidebar">
-        <h4 class="mb-4" style="color:#ff914d; font-weight:700;">sbh</h4>
-        <p>STIKes Bogor Husada</p>
-        <a href="/dashboard/admin">🏠 Utama</a>
-        <a href="/dashboard/admin/kelola-data">📚 Kelola Data</a>
-        <a href="/dashboard/admin/kelola-jadwal">🗓 Kelola Jadwal</a>
-        <a href="/dashboard/admin/kelola-akun">⚙ Kelola Akun</a>
-        <a href="/dashboard/admin/kelola-bimbingan" class="active">📄 Kelola Bimbingan</a>
-    </div>
-
-    <div class="content">
-        <a href="/logout" class="logout-btn">Logout 🔓</a>
-        <h2 class="fw-bold mb-2">Detail Bimbingan</h2>
-        <p class="mb-4">Dosen: 
-            <span class="badge bg-secondary">{{ dosen.NIP }}</span> 
-            <strong class="text-primary">{{ dosen.Nama }}</strong>
-        </p>
-        
-        <a href="{{ url_for('admin_kelola_bimbingan') }}" class="btn btn-sm btn-outline-secondary mb-4">
-            < Kembali ke Daftar Dosen
-        </a>
-
-        <div id="alertContainer"></div>
-
-        <div class="row">
-            <div class="col-md-7">
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Daftar Mahasiswa Bimbingan ({{ mhs_bimbingan|length }})</h5>
-                    </div>
-                    <div class="card-body">
-                        
-                        <table class="table table-striped align-middle" id="table-bimbingan">
-                            <thead>
-                                <tr>
-                                    <th>NIM / Nama</th>
-                                    <th>Angkatan</th>
-                                    <th>Jenis Bimbingan</th>
-                                    <th>Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% if mhs_bimbingan|length == 0 %}
-                                <tr id="empty-bimbingan">
-                                    <td colspan="4" class="text-center text-muted">Belum ada mahasiswa yang dibimbing.</td>
-                                </tr>
-                                {% endif %}
-
-                                {% for m in mhs_bimbingan %}
-                                <tr data-id="{{ m.id_bimbingan }}">
-                                    <td>
-                                        <strong>{{ m.Nama }}</strong><br>
-                                        <small class="text-muted">{{ m.NIM }}</small>
-                                    </td>
-                                    <td>{{ m.Angkatan }}</td>
-                                    <td>
-                                        <span class="badge text-bg-info">{{ m.JenisBimbingan }}</span>
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-sm btn-danger btn-delete" 
-                                                data-id="{{ m.id_bimbingan }}">
-                                            Hapus
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-
-                    </div>
-                </div>
+      <aside
+        @keydown.escape.window="sidebarOpen = false"
+        class="fixed inset-y-0 left-0 z-40 w-64 p-4 flex flex-col overflow-y-auto transform transition-transform duration-300 ease-in-out lg:static lg:h-auto lg:shadow-none sidebar-gradient"
+        :class="sidebarOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'"
+        x-cloak
+      >
+        <div class="flex justify-between items-center mb-10 mt-2">
+          <div class="flex items-center space-x-2">
+            <img src="https://assets.nsd.co.id/images/kampus/logo/8ofZnuE1_400x400.jpg" alt="Logo" class="w-8 h-8 rounded-full" />
+            <div>
+              <h1 class="text-xl font-extrabold text-gray-800 tracking-wider">SBH ADMIN</h1>
+              <p class="text-xs text-gray-500 mt-0.5">Sistem Akademik</p>
             </div>
-
-            <div class="col-md-5">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">Tambah Mahasiswa Bimbingan</h5>
-                    </div>
-                    <div class="card-body">
-                        
-                        <div class="mb-3">
-                            <label for="nim_tersedia" class="form-label">Pilih Mahasiswa</label>
-                            <select class="form-select" id="nim_tersedia">
-                                {% if mahasiswa_tersedia|length == 0 %}
-                                <option value="" disabled selected>Semua mahasiswa sudah dibimbing.</option>
-                                {% else %}
-                                <option value="" disabled selected>Pilih Mahasiswa...</option>
-                                {% for m in mahasiswa_tersedia %}
-                                <option value="{{ m.NIM }}" data-nama="{{ m.Nama }}" data-angkatan="{{ m.id_angkatan }}">{{ m.Nama }} ({{ m.NIM }} - A{{ m.id_angkatan }})</option>
-                                {% endfor %}
-                                {% endif %}
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="jenis_bimbingan" class="form-label">Jenis Bimbingan</label>
-                            <select class="form-select" id="jenis_bimbingan">
-                                <option value="Akademik">Akademik</option>
-                                <option value="Skripsi">Skripsi</option>
-                                <option value="KTI">KTI (Karya Tulis Ilmiah)</option>
-                                <option value="KP">Kerja Praktik</option>
-                            </select>
-                        </div>
-                        
-                        <button class="btn btn-success w-100" id="btnAddBimbingan">
-                            Tambahkan Bimbingan
-                        </button>
-
-                    </div>
-                </div>
-            </div>
+          </div>
+          <button @click="sidebarOpen = false" class="lg:hidden text-gray-600 p-1 hover:text-amber-500 rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
         </div>
+
+        <nav class="flex-1 space-y-2">
+          <a href="{{ url_for('dashboard_admin') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            </svg>
+            <span>Utama</span>
+          </a>
+
+          <a href="{{ url_for('admin_kelola_data') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              ></path>
+            </svg>
+            <span>Kelola Data</span>
+          </a>
+
+          <a href="{{ url_for('admin_kelola_jadwal') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            <span>Kelola Jadwal</span>
+          </a>
+
+          <a href="{{ url_for('admin_kelola_akun') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z"
+              ></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            <span>Kelola Akun</span>
+          </a>
+
+          <a href="{{ url_for('admin_kelola_bimbingan') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500 text-white font-semibold shadow-lg shadow-amber-200/50 transition duration-150">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <span>Kelola Bimbingan</span>
+          </a>
+        </nav>
+      </aside>
+
+      <div class="flex-1 flex flex-col">
+        <header class="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 sm:px-8 py-4 flex justify-between items-center shadow-sm">
+          <button @click.stop="sidebarOpen = !sidebarOpen" class="lg:hidden text-gray-600 p-2 hover:text-amber-500 rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+          </button>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-gray-800 hidden lg:block">Kelola Bimbingan</h2>
+          <a href="{{ url_for('logout') }}" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold">
+            <span class="hidden sm:inline">Logout</span>
+          </a>
+        </header>
+
+        <main class="flex-1 p-4 sm:p-8 bg-gray-100">
+          <div class="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h3 class="text-2xl font-extrabold text-gray-900">Detail Bimbingan</h3>
+              <div class="mt-1 text-sm text-gray-600 flex items-center gap-2">
+                <span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-mono text-xs">{{ dosen.NIP }}</span>
+                <span class="font-bold text-gray-800 text-base">{{ dosen.Nama }}</span>
+              </div>
+            </div>
+            <a href="{{ url_for('admin_kelola_bimbingan') }}" class="text-sm text-gray-500 hover:text-amber-600 hover:underline inline-flex items-center transition">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+              Kembali ke Daftar Dosen
+            </a>
+          </div>
+
+          <div id="alertContainer" class="mb-6"></div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2">
+              <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                <div class="bg-amber-500 px-6 py-4 border-b border-amber-400 flex justify-between items-center">
+                  <h5 class="text-white font-bold text-lg">Daftar Mahasiswa Bimbingan</h5>
+                  <span class="bg-white/20 text-white text-xs font-bold px-2 py-1 rounded-lg">{{ mhs_bimbingan|length }} Mahasiswa</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                  <table class="min-w-full divide-y divide-gray-200" id="table-bimbingan">
+                    <thead class="bg-gray-50">
+                      <tr>
+                        <th class="px-6 py-3 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">NIM / Nama</th>
+                        <th class="px-6 py-3 text-center text-xs font-extrabold text-gray-600 uppercase tracking-wider">Angkatan</th>
+                        <th class="px-6 py-3 text-center text-xs font-extrabold text-gray-600 uppercase tracking-wider">Jenis</th>
+                        <th class="px-6 py-3 text-right text-xs font-extrabold text-gray-600 uppercase tracking-wider">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-100">
+                      {% if mhs_bimbingan|length == 0 %}
+                      <tr id="empty-bimbingan">
+                        <td colspan="4" class="px-6 py-10 text-center text-gray-400 italic">Belum ada mahasiswa yang dibimbing.</td>
+                      </tr>
+                      {% endif %} {% for m in mhs_bimbingan %}
+                      <tr data-id="{{ m.id_bimbingan }}" class="hover:bg-gray-50 transition duration-150">
+                        <td class="px-6 py-4">
+                          <div class="text-sm font-bold text-gray-900">{{ m.Nama }}</div>
+                          <div class="text-xs text-gray-500 font-mono">{{ m.NIM }}</div>
+                        </td>
+                        <td class="px-6 py-4 text-center text-sm text-gray-700">
+                          <span class="bg-gray-100 px-2 py-1 rounded text-xs font-bold">{{ m.Angkatan }}</span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                          <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded-full border border-blue-200"> {{ m.JenisBimbingan }} </span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                          <button class="btn-delete text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg text-xs font-bold transition duration-200" data-id="{{ m.id_bimbingan }}">Hapus</button>
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="lg:col-span-1">
+              <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden sticky top-24">
+                <div class="bg-green-600 px-6 py-4 border-b border-green-500">
+                  <h5 class="text-white font-bold text-lg flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                    Tambah Mahasiswa
+                  </h5>
+                </div>
+
+                <div class="p-6 space-y-6">
+                  <div>
+                    <label for="nim_tersedia" class="block text-sm font-bold text-gray-700 mb-2">Pilih Mahasiswa</label>
+                    <select id="nim_tersedia" class="w-full px-4 py-2 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition text-sm">
+                      {% if mahasiswa_tersedia|length == 0 %}
+                      <option value="" disabled selected>Semua mahasiswa sudah dibimbing.</option>
+                      {% else %}
+                      <option value="" disabled selected>-- Pilih Mahasiswa --</option>
+                      {% for m in mahasiswa_tersedia %}
+                      <option value="{{ m.NIM }}" data-nama="{{ m.Nama }}" data-angkatan="{{ m.id_angkatan }}">{{ m.Nama }} ({{ m.NIM }} - A{{ m.id_angkatan }})</option>
+                      {% endfor %} {% endif %}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label for="jenis_bimbingan" class="block text-sm font-bold text-gray-700 mb-2">Jenis Bimbingan</label>
+                    <select id="jenis_bimbingan" class="w-full px-4 py-2 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition text-sm">
+                      <option value="Akademik">Akademik</option>
+                      <option value="Skripsi">Skripsi</option>
+                      <option value="KTI">KTI (Karya Tulis Ilmiah)</option>
+                      <option value="KP">Kerja Praktik</option>
+                    </select>
+                  </div>
+
+                  <button id="btnAddBimbingan" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl shadow-md hover:shadow-lg transition transform hover:scale-[1.02] flex justify-center items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Tambahkan Bimbingan
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const DOSEN_NIP = "{{ dosen.NIP }}";
-        const ALERT_CONTAINER = document.getElementById('alertContainer');
-        const TABLE_BODY = document.getElementById('table-bimbingan').querySelector('tbody');
-        const SELECT_TERSENDIA = document.getElementById('nim_tersedia');
-        const BTN_ADD = document.getElementById('btnAddBimbingan');
+      const DOSEN_NIP = "{{ dosen.NIP }}";
+      const ALERT_CONTAINER = document.getElementById("alertContainer");
+      const TABLE_BODY = document.getElementById("table-bimbingan").querySelector("tbody");
+      const SELECT_TERSENDIA = document.getElementById("nim_tersedia");
+      const BTN_ADD = document.getElementById("btnAddBimbingan");
 
-        // --- Fungsi Utility ---
-        function showAlert(message, type) {
-            const alertHtml = `
-                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            `;
-            ALERT_CONTAINER.innerHTML = alertHtml;
+      function showAlert(message, type) {
+        let bgColor, textColor, borderColor;
+        if (type === "success") {
+          bgColor = "bg-green-50";
+          textColor = "text-green-800";
+          borderColor = "border-green-200";
+        } else if (type === "warning") {
+          bgColor = "bg-yellow-50";
+          textColor = "text-yellow-800";
+          borderColor = "border-yellow-200";
+        } else {
+          bgColor = "bg-red-50";
+          textColor = "text-red-800";
+          borderColor = "border-red-200";
         }
 
-        function createRowHtml(id_bimbingan, nim, nama, angkatan, jenis) {
-            return `
-                <tr data-id="${id_bimbingan}">
-                    <td>
-                        <strong>${nama}</strong><br>
-                        <small class="text-muted">${nim}</small>
+        const alertHtml = `
+                <div class="${bgColor} ${borderColor} border rounded-xl p-4 flex justify-between items-start shadow-sm alert-animate mb-4">
+                    <p class="text-sm font-medium ${textColor}">${message}</p>
+                    <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            `;
+        ALERT_CONTAINER.innerHTML = alertHtml;
+      }
+
+      function createRowHtml(id_bimbingan, nim, nama, angkatan, jenis) {
+        return `
+                <tr data-id="${id_bimbingan}" class="hover:bg-gray-50 transition duration-150 alert-animate">
+                    <td class="px-6 py-4">
+                        <div class="text-sm font-bold text-gray-900">${nama}</div>
+                        <div class="text-xs text-gray-500 font-mono">${nim}</div>
                     </td>
-                    <td>${angkatan}</td>
-                    <td>
-                        <span class="badge text-bg-info">${jenis}</span>
+                    <td class="px-6 py-4 text-center text-sm text-gray-700">
+                        <span class="bg-gray-100 px-2 py-1 rounded text-xs font-bold">${angkatan}</span>
                     </td>
-                    <td>
-                        <button class="btn btn-sm btn-danger btn-delete" data-id="${id_bimbingan}">
+                    <td class="px-6 py-4 text-center">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded-full border border-blue-200">${jenis}</span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <button class="btn-delete text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg text-xs font-bold transition duration-200" 
+                                data-id="${id_bimbingan}">
                             Hapus
                         </button>
                     </td>
                 </tr>
             `;
+      }
+
+      BTN_ADD.addEventListener("click", async () => {
+        const nim = SELECT_TERSENDIA.value;
+        const jenis = document.getElementById("jenis_bimbingan").value;
+
+        if (!nim) {
+          showAlert("Pilih mahasiswa yang akan dibimbing.", "warning");
+          return;
         }
 
-        // --- 1. Tambah Bimbingan (API: /api/bimbingan/add) ---
-        BTN_ADD.addEventListener('click', async () => {
-            const nim = SELECT_TERSENDIA.value;
-            const jenis = document.getElementById('jenis_bimbingan').value;
-            
-            if (!nim) {
-                showAlert('Pilih mahasiswa yang akan dibimbing.', 'warning');
-                return;
+        BTN_ADD.disabled = true;
+        BTN_ADD.innerHTML =
+          '<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memproses...';
+
+        const data = {
+          nip: DOSEN_NIP,
+          nim: nim,
+          jenis: jenis,
+        };
+
+        try {
+          const response = await fetch("/api/bimbingan/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          const result = await response.json();
+
+          if (response.ok && result.success) {
+            showAlert("Bimbingan berhasil ditambahkan!", "success");
+
+            const selectedOption = SELECT_TERSENDIA.options[SELECT_TERSENDIA.selectedIndex];
+            const nama = selectedOption.getAttribute("data-nama");
+            const angkatan = selectedOption.getAttribute("data-angkatan");
+
+            const newRow = createRowHtml(result.id_bimbingan, nim, nama, angkatan, jenis);
+
+            const emptyRow = document.getElementById("empty-bimbingan");
+            if (emptyRow) emptyRow.remove();
+
+            TABLE_BODY.insertAdjacentHTML("beforeend", newRow);
+
+            selectedOption.remove();
+            SELECT_TERSENDIA.selectedIndex = 0;
+
+            attachDeleteListeners();
+          } else {
+            showAlert(`Gagal menambah bimbingan: ${result.message}`, "danger");
+          }
+        } catch (error) {
+          showAlert("Terjadi kesalahan koneksi.", "danger");
+          console.error("Error adding bimbingan:", error);
+        } finally {
+          BTN_ADD.disabled = false;
+          BTN_ADD.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> Tambahkan Bimbingan';
+        }
+      });
+
+      async function handleDelete(event) {
+        const btn = event.target;
+        const id_bimbingan = btn.getAttribute("data-id");
+        const row = btn.closest("tr");
+
+        // Struktur HTML: <td> <div>Nama</div> <div>NIM</div> </td>
+        const nama = row.children[0].querySelector("div:first-child").textContent;
+        const nim = row.children[0].querySelector("div:last-child").textContent;
+        const angkatan = row.children[1].textContent.trim();
+
+        if (!confirm(`Yakin ingin menghapus bimbingan mahasiswa ${nama} (${nim})?`)) {
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = "...";
+
+        try {
+          const response = await fetch(`/api/bimbingan/delete/${id_bimbingan}`, {
+            method: "DELETE",
+          });
+
+          const result = await response.json();
+
+          if (response.ok && result.success) {
+            showAlert("Bimbingan berhasil dihapus!", "success");
+
+            row.remove();
+
+            const newOption = new Option(`${nama} (${nim} - A${angkatan})`, nim);
+            newOption.setAttribute("data-nama", nama);
+            newOption.setAttribute("data-angkatan", angkatan);
+            SELECT_TERSENDIA.appendChild(newOption);
+
+            if (TABLE_BODY.children.length === 0) {
+              TABLE_BODY.insertAdjacentHTML("beforeend", '<tr id="empty-bimbingan"><td colspan="4" class="px-6 py-10 text-center text-gray-400 italic">Belum ada mahasiswa yang dibimbing.</td></tr>');
             }
+          } else {
+            showAlert(`Gagal menghapus bimbingan: ${result.message}`, "danger");
+          }
+        } catch (error) {
+          showAlert("Terjadi kesalahan koneksi.", "danger");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Hapus";
+        }
+      }
 
-            BTN_ADD.disabled = true;
-            BTN_ADD.textContent = 'Memproses...';
-
-            const data = {
-                nip: DOSEN_NIP,
-                nim: nim,
-                jenis: jenis
-            };
-
-            try {
-                const response = await fetch('/api/bimbingan/add', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                
-                const result = await response.json();
-
-                if (response.ok && result.success) {
-                    showAlert('Bimbingan berhasil ditambahkan!', 'success');
-                    
-                    // 1. Dapatkan data mahasiswa yang baru ditambahkan
-                    const selectedOption = SELECT_TERSENDIA.options[SELECT_TERSENDIA.selectedIndex];
-                    const nama = selectedOption.getAttribute('data-nama');
-                    const angkatan = selectedOption.getAttribute('data-angkatan');
-
-                    // 2. Tambahkan baris baru ke tabel 'Mahasiswa Bimbingan'
-                    const newRow = createRowHtml(result.id_bimbingan, nim, nama, angkatan, jenis);
-                    
-                    // Hapus pesan 'belum ada' jika ada
-                    const emptyRow = document.getElementById('empty-bimbingan');
-                    if (emptyRow) emptyRow.remove();
-
-                    TABLE_BODY.insertAdjacentHTML('beforeend', newRow);
-
-                    // 3. Hapus mahasiswa yang sudah ditambahkan dari dropdown 'Tersedia'
-                    selectedOption.remove();
-                    SELECT_TERSENDIA.selectedIndex = 0; // Reset pilihan
-                    
-                    // Re-attach listener untuk tombol hapus yang baru
-                    attachDeleteListeners();
-
-                } else {
-                    showAlert(`Gagal menambah bimbingan: ${result.message}`, 'danger');
-                }
-
-            } catch (error) {
-                showAlert('Terjadi kesalahan koneksi.', 'danger');
-                console.error('Error adding bimbingan:', error);
-            } finally {
-                BTN_ADD.disabled = false;
-                BTN_ADD.textContent = 'Tambahkan Bimbingan';
-            }
+      function attachDeleteListeners() {
+        document.querySelectorAll(".btn-delete").forEach((button) => {
+          button.removeEventListener("click", handleDelete);
+          button.addEventListener("click", handleDelete);
         });
+      }
 
-        // --- 2. Hapus Bimbingan (API: /api/bimbingan/delete/<int:id_bimbingan>) ---
-        async function handleDelete(event) {
-            const btn = event.target;
-            const id_bimbingan = btn.getAttribute('data-id');
-            const row = btn.closest('tr');
-            
-            // PERBAIKAN KRITIS DI SINI: Mengambil data Nama, NIM, dan Angkatan dari kolom-kolom tabel (row.children)
-            const nama = row.querySelector('strong').textContent;
-            const nim = row.querySelector('small').textContent;
-            const angkatan = row.children[1].textContent; // Mengambil dari kolom kedua (Angkatan)
-            
-            if (!confirm(`Yakin ingin menghapus bimbingan mahasiswa ${nama} (${nim})?`)) {
-                return;
-            }
-
-            btn.disabled = true;
-            btn.textContent = 'Menghapus...';
-
-            try {
-                const response = await fetch(`/api/bimbingan/delete/${id_bimbingan}`, {
-                    method: 'DELETE'
-                });
-                
-                const result = await response.json();
-
-                if (response.ok && result.success) {
-                    showAlert('Bimbingan berhasil dihapus!', 'success');
-                    
-                    // 1. Hapus baris dari tabel
-                    row.remove();
-                    
-                    // 2. Tambahkan mahasiswa kembali ke dropdown 'Tersedia'
-                    // Menggunakan data nama, nim, dan angkatan yang baru diambil
-                    const newOption = new Option(`${nama} (${nim} - A${angkatan})`, nim);
-                    newOption.setAttribute('data-nama', nama);
-                    newOption.setAttribute('data-angkatan', angkatan);
-                    SELECT_TERSENDIA.appendChild(newOption);
-                    
-                    // Tampilkan pesan 'belum ada' jika tabel kosong
-                    if (TABLE_BODY.children.length === 0) {
-                        TABLE_BODY.insertAdjacentHTML('beforeend', '<tr id="empty-bimbingan"><td colspan="4" class="text-center text-muted">Belum ada mahasiswa yang dibimbing.</td></tr>');
-                    }
-
-                } else {
-                    showAlert(`Gagal menghapus bimbingan: ${result.message}`, 'danger');
-                }
-
-            } catch (error) {
-                showAlert('Terjadi kesalahan koneksi.', 'danger');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Hapus';
-            }
-        }
-
-        // Attach listener ke semua tombol hapus saat halaman dimuat
-        function attachDeleteListeners() {
-            document.querySelectorAll('.btn-delete').forEach(button => {
-                // Pastikan listener lama dihapus sebelum ditambahkan lagi
-                button.removeEventListener('click', handleDelete); 
-                button.addEventListener('click', handleDelete);
-            });
-        }
-
-        // Inisialisasi listener
-        document.addEventListener('DOMContentLoaded', attachDeleteListeners);
-
+      document.addEventListener("DOMContentLoaded", attachDeleteListeners);
     </script>
-</body>
+  </body>
 </html>

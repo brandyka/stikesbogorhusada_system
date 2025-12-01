@@ -1,113 +1,217 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Dosen - Daftar Mahasiswa Bimbingan</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f7ffec; }
-        /* Styling kustom untuk border pada tabel */
-        .table-custom th, .table-custom td {
-            border: 1px solid #e0eeef; /* light greenish-blue */
-        }
-        .card { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06); }
-        body { margin: 0; }
-    </style>
-</head>
-<body class="p-4 md:p-8">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mahasiswa Bimbingan | STIKes Bogor Husada</title>
 
-    <div class="max-w-5xl mx-auto bg-white p-6 md:p-10 rounded-xl card">
-        <h1 class="text-3xl font-bold text-gray-900 mb-6 border-b-2 border-indigo-500 pb-3">
-            <span class="text-indigo-600 mr-2">👨‍🏫</span> Daftar Mahasiswa Bimbingan
-        </h1>
-        
-        <div class="mb-8 p-4 bg-indigo-50 border-l-4 border-indigo-500 rounded-lg flex justify-between items-center">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <style>
+      body {
+        font-family: "Inter", "Segoe UI", sans-serif;
+        background-color: #f8fafc;
+      }
+      [x-cloak] {
+        display: none !important;
+      }
+      /* Gradasi Sidebar Lilac-Pink */
+      .sidebar-gradient {
+        background: linear-gradient(180deg, #f3e8ff 0%, #ffe4e6 100%);
+        border-right: 1px solid #e9d5ff;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <div x-data="{ sidebarOpen: window.innerWidth >= 1024 }" @resize.window="sidebarOpen = window.innerWidth >= 1024" class="relative flex min-h-screen">
+      <!-- Mobile Overlay -->
+      <div x-show="sidebarOpen && window.innerWidth < 1024" @click="sidebarOpen = false" class="fixed inset-0 z-30 bg-gray-900/40 transition-opacity duration-300 lg:hidden" x-cloak></div>
+
+      <!-- SIDEBAR DOSEN -->
+      <aside
+        @keydown.escape.window="sidebarOpen = false"
+        class="fixed inset-y-0 left-0 z-40 w-64 p-4 flex flex-col overflow-y-auto transform transition-transform duration-300 ease-in-out lg:static lg:h-auto lg:shadow-none sidebar-gradient"
+        :class="sidebarOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'"
+        x-cloak
+      >
+        <div class="flex justify-between items-center mb-10 mt-2">
+          <div class="flex items-center space-x-2">
+            <img src="https://assets.nsd.co.id/images/kampus/logo/8ofZnuE1_400x400.jpg" alt="Logo" class="w-8 h-8 rounded-full" />
             <div>
-                <h2 class="text-xl font-semibold text-indigo-800">
-                    Dosen: {{ dosen.Nama | default('N/A') }} 
-                    <span class="text-base font-normal text-indigo-600">
-                        (NIP: {{ user_nip | default('N/A') }})
-                    </span>
-                </h2>
+              <h1 class="text-xl font-extrabold text-gray-800 tracking-wider">SBH DOSEN</h1>
+              <p class="text-xs text-gray-500 mt-0.5">Sistem Akademik</p>
             </div>
-            
-            <a href="{{ url_for('dosen_permintaan_bimbingan') }}" 
-               class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
-                <span class="mr-1">💬</span> Lihat Permintaan Bimbingan Aktif
-            </a>
+          </div>
+          <button @click="sidebarOpen = false" class="lg:hidden text-gray-600 p-1 hover:text-amber-500 rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
         </div>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="mb-4">
-                {% for category, message in messages %}
-                    <div class="p-3 rounded-lg text-sm {% if category == 'error' %}bg-red-100 text-red-700{% elif category == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
+        <nav class="flex-1 space-y-2">
+          <a href="{{ url_for('dashboard_dosen') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            </svg>
+            <span>Beranda</span>
+          </a>
 
-        {% if mhs_bimbingan %}
-            <div class="overflow-x-auto rounded-lg border border-indigo-200">
-                <table class="min-w-full divide-y divide-indigo-200 table-custom">
-                    <thead class="bg-indigo-100">
+          <a href="{{ url_for('jadwal_dosen') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            <span>Jadwal Mengajar</span>
+          </a>
+
+          <a href="{{ url_for('dosen_daftar_bimbingan') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500 text-white font-semibold shadow-lg shadow-amber-200/50 transition duration-150">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              ></path>
+            </svg>
+            <span>Bimbingan</span>
+          </a>
+
+          <a href="{{ url_for('penelitian_dosen') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              ></path>
+            </svg>
+            <span>Penelitian</span>
+          </a>
+        </nav>
+
+        <div class="mt-8 border-t pt-4 border-gray-200">
+          <a href="{{ url_for('logout') }}" class="flex items-center justify-center w-full space-x-2 text-red-500 hover:bg-red-100 hover:shadow-sm rounded-xl py-2 transition duration-150">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+            </svg>
+            <span class="font-medium">Logout</span>
+          </a>
+        </div>
+      </aside>
+
+      <!-- KONTEN UTAMA -->
+      <div class="flex-1 flex flex-col">
+        <header class="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 sm:px-8 py-4 flex justify-between items-center shadow-sm">
+          <button @click.stop="sidebarOpen = !sidebarOpen" class="lg:hidden text-gray-600 p-2 hover:text-amber-500 rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+          </button>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-gray-800 hidden lg:block">Bimbingan Akademik</h2>
+          <a href="{{ url_for('logout') }}" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold">
+            <span class="hidden sm:inline">Logout</span>
+          </a>
+        </header>
+
+        <main class="flex-1 p-4 sm:p-8 bg-gray-100 flex justify-center">
+          <div class="w-full max-w-5xl">
+            <!-- Header Navigasi & Judul -->
+            <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h3 class="text-2xl font-extrabold text-gray-900">Daftar Mahasiswa Bimbingan</h3>
+                <p class="text-gray-500 text-sm mt-1">Kelola bimbingan akademik, skripsi, dan KTI.</p>
+              </div>
+            </div>
+
+            <!-- KARTU UTAMA (DETAIL BIMBINGAN DOSEN) -->
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden p-6 sm:p-8 space-y-8">
+              <!-- Info Dosen (Mirip Header Detail Penelitian) -->
+              <div class="border-b border-gray-100 pb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class="flex items-center gap-4">
+                  <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xl">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                  </div>
+                  <div>
+                    <h1 class="text-xl font-bold text-gray-900">{{ dosen.Nama | default('Nama Dosen') }}</h1>
+                    <p class="text-sm text-gray-500 font-mono">{{ user_nip | default('NIP') }}</p>
+                  </div>
+                </div>
+
+                <!-- Tombol Lihat Permintaan -->
+                <a href="{{ url_for('dosen_permintaan_bimbingan') }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-xl shadow-md transition transform hover:scale-105 flex items-center text-sm font-semibold">
+                  <i class="fas fa-comments mr-2"></i> Lihat Permintaan Bimbingan
+                </a>
+              </div>
+
+              <!-- Flash Messages -->
+              {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %}
+              <div class="space-y-2">
+                {% for category, message in messages %}
+                <div class="rounded-xl p-4 border flex items-start space-x-3 {{ 'bg-green-50 border-green-200 text-green-800' if category == 'success' else 'bg-red-50 border-red-200 text-red-800' }}">
+                  <p class="text-sm font-medium">{{ message }}</p>
+                </div>
+                {% endfor %}
+              </div>
+              {% endif %} {% endwith %}
+
+              <!-- TABEL MAHASISWA (Menggantikan Section "Tim Peneliti" di layout sebelumnya) -->
+              <div>
+                <h4 class="text-lg font-bold text-gray-800 mb-4 border-l-4 border-amber-500 pl-3 flex items-center">Mahasiswa Bimbingan Aktif</h4>
+
+                <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                  {% if mhs_bimbingan %}
+                  <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 table-custom">
+                      <thead class="bg-gray-50">
                         <tr>
-                            <th scope="col" class="px-6 py-3 text-xs font-bold text-indigo-800 uppercase tracking-wider rounded-tl-lg">
-                                NIM
-                            </th>
-                            <th scope="col" class="px-6 py-3 text-xs font-bold text-indigo-800 uppercase tracking-wider">
-                                Nama Mahasiswa
-                            </th>
-                            <th scope="col" class="px-6 py-3 text-xs font-bold text-indigo-800 uppercase tracking-wider">
-                                Angkatan
-                            </th>
-                            <th scope="col" class="px-6 py-3 text-xs font-bold text-indigo-800 uppercase tracking-wider">
-                                Jenis Bimbingan
-                            </th>
-                            <th scope="col" class="px-6 py-3 text-xs font-bold text-indigo-800 uppercase tracking-wider rounded-tr-lg">
-                                Aksi
-                            </th>
+                          <th class="px-6 py-3 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">NIM</th>
+                          <th class="px-6 py-3 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Nama Mahasiswa</th>
+                          <th class="px-6 py-3 text-center text-xs font-extrabold text-gray-600 uppercase tracking-wider">Angkatan</th>
+                          <th class="px-6 py-3 text-center text-xs font-extrabold text-gray-600 uppercase tracking-wider">Jenis Bimbingan</th>
+                          <th class="px-6 py-3 text-right text-xs font-extrabold text-gray-600 uppercase tracking-wider">Aksi</th>
                         </tr>
-                    </thead>
-                    <tbody class="divide-y divide-indigo-100">
+                      </thead>
+                      <tbody class="bg-white divide-y divide-gray-100">
                         {% for mhs in mhs_bimbingan %}
-                        <tr class="hover:bg-indigo-50 transition duration-150">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {{ mhs.NIM }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-semibold">
-                                {{ mhs.Nama }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {{ mhs.Angkatan }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                                {{ mhs.JenisBimbingan }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                <a href="{{ url_for('dosen_daftar_bimbingan') }}?nim_filter={{ mhs.NIM }}" 
-                                   class="text-blue-600 hover:text-blue-900 font-medium transition duration-150 ease-in-out hover:underline">
-                                    Lihat Riwayat Permintaan
-                                </a>
-                                </td>
+                        <tr class="hover:bg-amber-50/30 transition duration-150">
+                          <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500">{{ mhs.NIM }}</td>
+                          <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{{ mhs.Nama }}</td>
+                          <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
+                            <span class="bg-gray-100 px-2 py-1 rounded text-xs font-bold border border-gray-200">{{ mhs.Angkatan }}</span>
+                          </td>
+                          <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200"> {{ mhs.JenisBimbingan }} </span>
+                          </td>
+                          <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <a
+                              href="{{ url_for('dosen_daftar_bimbingan') }}?nim_filter={{ mhs.NIM }}"
+                              class="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition text-xs font-semibold inline-flex items-center"
+                            >
+                              Riwayat
+                              <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            </a>
+                          </td>
                         </tr>
                         {% endfor %}
-                    </tbody>
-                </table>
+                      </tbody>
+                    </table>
+                  </div>
+                  {% else %}
+                  <div class="p-10 text-center bg-gray-50">
+                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-200 text-gray-400 mb-3">
+                      <i class="fas fa-user-slash text-xl"></i>
+                    </div>
+                    <p class="text-gray-500 italic text-sm">Belum ada mahasiswa bimbingan yang terdaftar.</p>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
             </div>
-        {% else %}
-            <div class="p-6 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 rounded-lg" role="alert">
-                <p class="font-bold">Data Kosong</p>
-                <p>Anda belum memiliki mahasiswa bimbingan yang terdaftar untuk NIP {{ user_nip | default('N/A') }}.</p>
-                <p class="mt-2 text-sm text-yellow-600">Silakan hubungi Administrasi Program Studi Anda.</p>
-            </div>
-        {% endif %}
-        
+          </div>
+        </main>
+      </div>
     </div>
-
-</body>
+  </body>
 </html>
