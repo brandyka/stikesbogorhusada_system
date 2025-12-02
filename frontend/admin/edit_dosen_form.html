@@ -27,8 +27,8 @@
       }
     </style>
   </head>
-  <body class="bg-gray-50">
-    <div x-data="{ sidebarOpen: window.innerWidth >= 1024 ? true : false }" @resize.window="sidebarOpen = window.innerWidth >= 1024 ? true : false" class="relative flex min-h-screen">
+  <body class="bg-gray-50" data-cy="admin-layout">
+    <div x-data="{ sidebarOpen: window.innerWidth >= 1024 ? true : false }" @resize.window="sidebarOpen = window.innerWidth >= 1024 ? true : false" class="relative flex min-h-screen" data-cy="admin-dosen-edit-page">
       <div x-show="sidebarOpen && window.innerWidth < 1024" @click="sidebarOpen = false" class="fixed inset-0 z-30 bg-gray-900/40 transition-opacity duration-300 lg:hidden" x-cloak></div>
 
       <aside
@@ -36,6 +36,7 @@
         class="fixed inset-y-0 left-0 z-40 w-64 p-4 flex flex-col overflow-y-auto transform transition-transform duration-300 ease-in-out lg:static lg:h-auto lg:shadow-none sidebar-gradient"
         :class="sidebarOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'"
         x-cloak
+        data-cy="admin-sidebar"
       >
         <div class="flex justify-between items-center mb-10 mt-2">
           <div class="flex items-center space-x-2">
@@ -45,20 +46,28 @@
               <p class="text-xs text-gray-500 mt-0.5">Sistem Akademik</p>
             </div>
           </div>
-          <button @click="sidebarOpen = false" class="lg:hidden text-gray-600 p-1 hover:text-amber-500 rounded-lg">
+          <button @click="sidebarOpen = false" class="lg:hidden text-gray-600 p-1 hover:text-amber-500 rounded-lg" data-cy="admin-sidebar-close">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
           </button>
         </div>
 
-        <nav class="flex-1 space-y-2">
-          <a href="{{ url_for('dashboard_admin') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+        <nav class="flex-1 space-y-2" data-cy="admin-sidebar-menu">
+          <a
+            href="{{ url_for('dashboard_admin') }}"
+            class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50"
+            data-cy="admin-menu-dashboard"
+          >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
             </svg>
             <span>Utama</span>
           </a>
 
-          <a href="{{ url_for('admin_kelola_data') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500 text-white font-semibold shadow-lg shadow-amber-200/50 hover:bg-amber-600 transition duration-150">
+          <a
+            href="{{ url_for('admin_kelola_data') }}"
+            class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500 text-white font-semibold shadow-lg shadow-amber-200/50 hover:bg-amber-600 transition duration-150"
+            data-cy="admin-menu-kelola-data"
+          >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
@@ -70,14 +79,22 @@
             <span>Kelola Data</span>
           </a>
 
-          <a href="{{ url_for('admin_kelola_jadwal') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+          <a
+            href="{{ url_for('admin_kelola_jadwal') }}"
+            class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50"
+            data-cy="admin-menu-kelola-jadwal"
+          >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
             </svg>
             <span>Kelola Jadwal</span>
           </a>
 
-          <a href="{{ url_for('admin_kelola_akun') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+          <a
+            href="{{ url_for('admin_kelola_akun') }}"
+            class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50"
+            data-cy="admin-menu-kelola-akun"
+          >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
@@ -90,7 +107,11 @@
             <span>Kelola Akun</span>
           </a>
 
-          <a href="{{ url_for('admin_kelola_bimbingan') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+          <a
+            href="{{ url_for('admin_kelola_bimbingan') }}"
+            class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50"
+            data-cy="admin-menu-kelola-bimbingan"
+          >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
             </svg>
@@ -100,37 +121,37 @@
       </aside>
 
       <div class="flex-1 flex flex-col">
-        <header class="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 sm:px-8 py-4 flex justify-between items-center shadow-sm">
-          <button @click.stop="sidebarOpen = !sidebarOpen" class="lg:hidden text-gray-600 p-2 hover:text-orange-500 rounded-lg">
+        <header class="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 sm:px-8 py-4 flex justify-between items-center shadow-sm" data-cy="admin-header">
+          <button @click.stop="sidebarOpen = !sidebarOpen" class="lg:hidden text-gray-600 p-2 hover:text-orange-500 rounded-lg" data-cy="admin-sidebar-toggle">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
           </button>
-          <h2 class="text-xl sm:text-2xl font-extrabold text-gray-800 hidden lg:block">Edit Data Dosen</h2>
-          <a href="{{ url_for('logout') }}" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold">
+          <h2 class="text-xl sm:text-2xl font-extrabold text-gray-800 hidden lg:block" data-cy="admin-dosen-edit-title">Edit Data Dosen</h2>
+          <a href="{{ url_for('logout') }}" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold" data-cy="admin-logout">
             <span class="hidden sm:inline">Logout</span>
           </a>
         </header>
 
-        <main class="flex-1 p-4 sm:p-8 bg-gray-100 flex justify-center">
+        <main class="flex-1 p-4 sm:p-8 bg-gray-100 flex justify-center" data-cy="admin-dosen-edit-main">
           <div class="w-full max-w-xl">
             <div class="flex justify-between items-center mb-6">
               <div>
                 <h3 class="text-3xl font-extrabold text-gray-900 mb-1">Perbarui Data Dosen</h3>
-                <a href="{{ url_for('admin_kelola_dosen') }}" class="text-sm text-gray-500 hover:text-amber-500 hover:underline flex inline-flex mt-1 transition">
+                <a href="{{ url_for('admin_kelola_dosen') }}" class="text-sm text-gray-500 hover:text-amber-500 hover:underline flex inline-flex mt-1 transition" data-cy="admin-dosen-edit-link-back">
                   <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                   Kembali ke Daftar Dosen
                 </a>
               </div>
             </div>
 
-            <form method="POST" action="{{ url_for('edit_dosen', nip=dosen.NIP) }}" class="bg-white rounded-2xl shadow-xl p-6 sm:p-8">
+            <form method="POST" action="{{ url_for('edit_dosen', nip=dosen.NIP) }}" class="bg-white rounded-2xl shadow-xl p-6 sm:p-8" data-cy="admin-dosen-form-edit">
               {% if messages %}
-              <div class="mb-6 p-4 rounded-xl border border-{{ messages.type }}-200 bg-{{ messages.type }}-50 text-{{ messages.type }}-800">{{ messages.content }}</div>
+              <div class="mb-6 p-4 rounded-xl border border-{{ messages.type }}-200 bg-{{ messages.type }}-50 text-{{ messages.type }}-800" data-cy="admin-dosen-edit-alert">{{ messages.content }}</div>
               {% endif %}
 
               <div class="space-y-6">
                 <div>
                   <label for="nip" class="block text-sm font-bold text-gray-700 mb-2">NIP / NIDN</label>
-                  <input type="text" name="nip" id="nip" value="{{ dosen.NIP }}" readonly class="w-full px-4 py-3 border border-gray-200 bg-gray-100 rounded-xl cursor-not-allowed text-gray-600" />
+                  <input type="text" name="nip" id="nip" value="{{ dosen.NIP }}" readonly class="w-full px-4 py-3 border border-gray-200 bg-gray-100 rounded-xl cursor-not-allowed text-gray-600" data-cy="admin-dosen-input-nip" />
                   <p class="text-xs text-gray-500 mt-2">Nomor Induk tidak dapat diubah setelah data tersimpan.</p>
                 </div>
 
@@ -144,6 +165,7 @@
                     required
                     placeholder="Contoh: Dr. Budi Setiawan, M.Kes"
                     class="w-full px-4 py-3 border border-gray-300 rounded-xl transition duration-150 focus:outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-500"
+                    data-cy="admin-dosen-input-nama"
                   />
                 </div>
 
@@ -157,6 +179,7 @@
                     required
                     placeholder="Masukkan Program Studi (Contoh: Keperawatan)"
                     class="w-full px-4 py-3 border border-gray-300 rounded-xl transition duration-150 focus:outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-500"
+                    data-cy="admin-dosen-input-prodi"
                   />
                   <p class="text-xs text-gray-500 mt-2">Pastikan nama Program Studi sudah benar.</p>
                 </div>
@@ -165,6 +188,7 @@
                   <button
                     type="submit"
                     class="w-full bg-gradient-to-r from-orange-500 to-yellow-500 text-white font-bold text-lg px-5 py-3 rounded-xl shadow-lg hover:from-blue-600 hover:to-indigo-700 transition duration-300 transform hover:scale-[1.01] flex items-center justify-center space-x-2"
+                    data-cy="admin-dosen-button-submit"
                   >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 005.903 14L4 12H2m18 0h2m-2 0a8.001 8.001 0 01-15.356 2m15.356-2L21.418 9H21"></path>
