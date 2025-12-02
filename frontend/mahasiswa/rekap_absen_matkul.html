@@ -1,165 +1,228 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rekap Absensi - {{ info_matkul.nama_matkul }}</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rekap Absensi | {{ info_matkul.nama_matkul }}</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
     <style>
-        body { font-family: "Inter", "Segoe UI", sans-serif; }
-        .sidebar { background-color: #f0e8f5; }
-        
-        .status-hadir { color: #10b981; font-weight: 600; } /* Tailwind green-500 */
-        .status-izin { color: #06b6d4; font-weight: 600; }  /* Tailwind cyan-500 */
-        .status-sakit { color: #f59e0b; font-weight: 600; } /* Tailwind amber-500 */
-        .status-alpa { color: #ef4444; font-weight: 600; }  /* Tailwind red-500 */
-
-        .summary-card {
-            background-color: #fff;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 16px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            transition: transform 0.2s;
+      body {
+        font-family: "Inter", "Segoe UI", sans-serif;
+        background-color: #f8fafc;
+      }
+      [x-cloak] {
+        display: none !important;
+      }
+      /* Gradasi Sidebar Lilac-Pink */
+      .sidebar-gradient {
+        background: linear-gradient(180deg, #f3e8ff 0%, #ffe4e6 100%);
+        border-right: 1px solid #e9d5ff;
+      }
+      .alert-animate {
+        animation: fadeIn 0.3s ease-out forwards;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
         }
-        .summary-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 10px rgba(0,0,0,0.1);
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
-        .summary-card .value {
-            font-size: 1.875rem; /* text-3xl */
-            font-weight: 700;
-        }
-        .summary-card .label {
-            font-size: 0.875rem; /* text-sm */
-            color: #6b7280; /* text-gray-500 */
-            margin-top: 4px;
-        }
+      }
     </style>
-</head>
-<body class="bg-gray-50">
+  </head>
+  <body class="bg-gray-50">
+    <div x-data="{ sidebarOpen: window.innerWidth >= 1024 }" @resize.window="sidebarOpen = window.innerWidth >= 1024" class="relative flex min-h-screen">
+      <!-- Mobile Overlay -->
+      <div x-show="sidebarOpen && window.innerWidth < 1024" @click="sidebarOpen = false" class="fixed inset-0 z-30 bg-gray-900/40 transition-opacity duration-300 lg:hidden" x-cloak></div>
 
-    <div class="flex min-h-screen">
-        <!-- Sidebar (Menggunakan style dari jadwal_mhs.html) -->
-        <aside class="w-64 p-6" style="background: linear-gradient(180deg, #f0e8f5 0%, #f3ebf6 30%, #f5eef4 50%, #f3ebf6 70%, #f0e8f5 100%)">
-            <div class="mb-8">
-                <h1 class="text-2xl font-bold text-orange-500">sbh</h1>
-                <p class="text-sm text-gray-600 mt-1">STIKes Bogor Husada</p>
+      <!-- SIDEBAR MAHASISWA -->
+      <aside
+        @keydown.escape.window="sidebarOpen = false"
+        class="fixed inset-y-0 left-0 z-40 w-64 p-4 flex flex-col overflow-y-auto transform transition-transform duration-300 ease-in-out lg:static lg:h-auto lg:shadow-none sidebar-gradient"
+        :class="sidebarOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'"
+        x-cloak
+      >
+        <div class="flex justify-between items-center mb-10 mt-2">
+          <div class="flex items-center space-x-2">
+            <img src="https://assets.nsd.co.id/images/kampus/logo/8ofZnuE1_400x400.jpg" alt="Logo" class="w-8 h-8 rounded-full" />
+            <div>
+              <h1 class="text-xl font-extrabold text-gray-800 tracking-wider">MAHASISWA</h1>
+              <p class="text-xs text-gray-500 mt-0.5">Sistem Akademik</p>
             </div>
+          </div>
+          <button @click="sidebarOpen = false" class="lg:hidden text-gray-600 p-1 hover:text-amber-500 rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
 
-            <nav>
-                <ul class="space-y-2">
-                    <li>
-                        <a href="{{ url_for('dashboard_mahasiswa') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition">
-                            <span>Beranda</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('jadwal_mahasiswa') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-white text-orange-500 font-semibold shadow-sm">
-                            <span>Jadwal Kuliah</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </aside>
+        <nav class="flex-1 space-y-2">
+          <a
+            href="{{ url_for('dashboard_mahasiswa') }}"
+            class="flex items-center space-x-3 px-4 py-3 rounded-xl {% if page == 'jadwal' %}bg-amber-500 text-white font-semibold shadow-lg shadow-amber-200/50{% else %}text-gray-700 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50{% endif %} transition duration-150"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            </svg>
+            <span>Beranda</span>
+          </a>
 
-        <!-- Konten Utama -->
-        <main class="flex-1 p-8">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h3 class="text-3xl font-bold text-gray-800 mb-0">Rekap Absensi</h3>
-                    <h5 class="text-xl text-gray-600 font-normal mt-1">{{ info_matkul.nama_matkul }}</h5>
-                    <h6 class="text-sm text-gray-500 font-light">{{ info_matkul.nama_dosen }}</h6>
+          <!-- Jadwal Kuliah (Aktif - Amber Solid) -->
+          <a href="{{ url_for('jadwal_mahasiswa') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500 text-white font-semibold shadow-lg shadow-amber-200/50 hover:bg-amber-600 transition duration-150">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            <span>Jadwal Kuliah</span>
+          </a>
+
+          <a
+            href="{{ url_for('mahasiswa_dosen_pembimbing') }}"
+            class="flex items-center space-x-3 px-4 py-3 rounded-xl {% if page == 'jadwal' %}bg-amber-500 text-white font-semibold shadow-lg shadow-amber-200/50{% else %}text-gray-700 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50{% endif %} transition duration-150"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              ></path>
+            </svg>
+            <span>Bimbingan</span>
+          </a>
+        </nav>
+      </aside>
+
+      <!-- KONTEN UTAMA -->
+      <div class="flex-1 flex flex-col">
+        <header class="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 sm:px-8 py-4 flex justify-between items-center shadow-sm">
+          <button @click.stop="sidebarOpen = !sidebarOpen" class="lg:hidden text-gray-600 p-2 hover:text-amber-500 rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+          </button>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-gray-800 hidden lg:block">Rekap Absensi</h2>
+          <a href="{{ url_for('logout') }}" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold">
+            <span class="hidden sm:inline">Logout</span>
+          </a>
+        </header>
+
+        <main class="flex-1 p-4 sm:p-8 bg-gray-100 flex justify-center">
+          <div class="w-full max-w-6xl">
+            <!-- Header & Navigasi -->
+            <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h3 class="text-2xl font-extrabold text-gray-900 mb-1">Rekap Absensi</h3>
+                <div class="text-sm">
+                  <p class="font-bold text-gray-800 text-lg">{{ info_matkul.nama_matkul }}</p>
+                  <p class="text-gray-500">{{ info_matkul.nama_dosen }}</p>
                 </div>
-                <a href="{{ url_for('jadwal_mahasiswa') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition">
-                    &larr; Kembali ke Jadwal
-                </a>
+              </div>
+              <a href="{{ url_for('jadwal_mahasiswa') }}" class="text-sm text-gray-500 hover:text-amber-600 hover:underline inline-flex items-center transition">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Kembali ke Jadwal
+              </a>
             </div>
 
-            <!-- Ringkasan Statistik -->
-            <div class="bg-white rounded-2xl shadow-md p-8 mb-8">
-                <h4 class="text-xl font-bold text-gray-800 mb-4">Ringkasan Kehadiran</h4>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="summary-card">
-                        <div class="value status-hadir">{{ statistik.hadir }}</div>
-                        <div class="label">Hadir</div>
-                    </div>
-                    <div class="summary-card">
-                        <div class="value status-sakit">{{ statistik.sakit }}</div>
-                        <div class="label">Sakit</div>
-                    </div>
-                    <div class="summary-card">
-                        <div class="value status-izin">{{ statistik.izin }}</div>
-                        <div class="label">Izin</div>
-                    </div>
-                    <div class="summary-card">
-                        <div class="value status-alpa">{{ statistik.alpa }}</div>
-                        <div class="label">Alpa</div>
-                    </div>
+            <!-- Ringkasan Statistik (Grid Card Modern) -->
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-8 mb-8">
+              <h4 class="text-lg font-bold text-gray-800 mb-4 border-l-4 border-amber-500 pl-3">Ringkasan Kehadiran</h4>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-green-50 border border-green-200 rounded-xl p-4 text-center hover:shadow-md transition transform hover:-translate-y-1">
+                  <p class="text-3xl font-extrabold text-green-600 mb-1">{{ statistik.hadir }}</p>
+                  <p class="text-xs font-bold text-green-700 uppercase tracking-wider">Hadir</p>
                 </div>
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center hover:shadow-md transition transform hover:-translate-y-1">
+                  <p class="text-3xl font-extrabold text-amber-600 mb-1">{{ statistik.sakit }}</p>
+                  <p class="text-xs font-bold text-amber-700 uppercase tracking-wider">Sakit</p>
+                </div>
+                <div class="bg-cyan-50 border border-cyan-200 rounded-xl p-4 text-center hover:shadow-md transition transform hover:-translate-y-1">
+                  <p class="text-3xl font-extrabold text-cyan-600 mb-1">{{ statistik.izin }}</p>
+                  <p class="text-xs font-bold text-cyan-700 uppercase tracking-wider">Izin</p>
+                </div>
+                <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-center hover:shadow-md transition transform hover:-translate-y-1">
+                  <p class="text-3xl font-extrabold text-red-600 mb-1">{{ statistik.alpa }}</p>
+                  <p class="text-xs font-bold text-red-700 uppercase tracking-wider">Alpa</p>
+                </div>
+              </div>
             </div>
 
-            <!-- Detail Rekap -->
-            <div class="bg-white rounded-2xl shadow-md p-8">
-                <h4 class="text-xl font-bold text-gray-800 mb-4">Detail Pertemuan (Total: {{ statistik.total }} Pertemuan)</h4>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pertemuan Ke-</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Materi</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Absensi Dosen</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Kehadiran Anda</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            {% if rekap_absensi %}
-                                {% for rekap in rekap_absensi %}
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{{ rekap.pertemuan_ke }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ rekap.tanggal.strftime('%d %B %Y') if rekap.tanggal else '-' }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-700">{{ rekap.materi if rekap.materi else '-' }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                        {# Status absensi yang dibuka/ditutup dosen #}
-                                        {% if rekap.status_absensi == 'ditutup' %}
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Ditutup</span>
-                                        {% elif rekap.status_absensi == 'dibuka' %}
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800">Dibuka</span>
-                                        {% else %}
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-50 text-gray-500">Belum Dibuat</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                        {# Status kehadiran mahasiswa #}
-                                        {% if rekap.status_kehadiran_saya == 'hadir' %}
-                                            <span class="status-hadir">Hadir</span>
-                                        {% elif rekap.status_kehadiran_saya == 'izin' %}
-                                            <span class="status-izin">Izin</span>
-                                        {% elif rekap.status_kehadiran_saya == 'sakit' %}
-                                            <span class="status-sakit">Sakit</span>
-                                        {% elif rekap.status_kehadiran_saya == 'alpa' %}
-                                            <span class="status-alpa">Alpa</span>
-                                        {% else %}
-                                            <span>-</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            {% else %}
-                                <tr>
-                                    <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
-                                        Belum ada data pertemuan untuk mata kuliah ini.
-                                    </td>
-                                </tr>
-                            {% endif %}
-                        </tbody>
-                    </table>
-                </div>
+            <!-- Tabel Detail Pertemuan -->
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+              <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <h4 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                  <i class="fas fa-list-ul text-gray-400"></i>
+                  Detail Pertemuan
+                </h4>
+                <span class="bg-gray-200 text-gray-600 text-xs px-2 py-1 rounded font-bold">Total: {{ statistik.total }}</span>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-white">
+                    <tr>
+                      <th class="px-6 py-3 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Pertemuan Ke-</th>
+                      <th class="px-6 py-3 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Tanggal</th>
+                      <th class="px-6 py-3 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Materi</th>
+                      <th class="px-6 py-3 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Status Absensi Dosen</th>
+                      <th class="px-6 py-3 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Status Kehadiran Anda</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-100 bg-white">
+                    {% if rekap_absensi %} {% for rekap in rekap_absensi %}
+                    <tr class="hover:bg-amber-50/30 transition duration-150">
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-center border-r border-gray-100 w-10">{{ rekap.pertemuan_ke }}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">{{ rekap.tanggal.strftime('%d %B %Y') if rekap.tanggal else '-' }}</td>
+                      <td class="px-6 py-4 text-sm text-gray-600 italic">"{{ rekap.materi if rekap.materi else '-' }}"</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <!-- Status Absensi Dosen -->
+                        {% if rekap.status_absensi == 'ditutup' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200"> <i class="fas fa-lock mr-1 text-[10px]"></i> Ditutup </span>
+                        {% elif rekap.status_absensi == 'dibuka' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-cyan-100 text-cyan-700 border border-cyan-200 animate-pulse"> <i class="fas fa-lock-open mr-1 text-[10px]"></i> Dibuka </span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-50 text-gray-400 border border-gray-100">Belum Dibuat</span>
+                        {% endif %}
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <!-- Status Kehadiran Mahasiswa -->
+                        {% if rekap.status_kehadiran_saya == 'hadir' %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold bg-green-50 text-green-700 border border-green-200"> <i class="fas fa-check-circle mr-1.5"></i> Hadir </span>
+                        {% elif rekap.status_kehadiran_saya == 'izin' %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold bg-cyan-50 text-cyan-700 border border-cyan-200"> <i class="fas fa-info-circle mr-1.5"></i> Izin </span>
+                        {% elif rekap.status_kehadiran_saya == 'sakit' %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200"> <i class="fas fa-first-aid mr-1.5"></i> Sakit </span>
+                        {% elif rekap.status_kehadiran_saya == 'alpa' %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold bg-red-50 text-red-700 border border-red-200"> <i class="fas fa-times-circle mr-1.5"></i> Alpa </span>
+                        {% else %}
+                        <span class="text-gray-400 text-xs italic">-</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                    {% endfor %} {% else %}
+                    <tr>
+                      <td colspan="5" class="px-6 py-10 text-center text-gray-400 italic bg-gray-50">
+                        <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-200 mb-2">
+                          <i class="fas fa-calendar-times text-gray-400 text-xl"></i>
+                        </div>
+                        <p>Belum ada data pertemuan untuk mata kuliah ini.</p>
+                      </td>
+                    </tr>
+                    {% endif %}
+                  </tbody>
+                </table>
+              </div>
             </div>
+          </div>
         </main>
+      </div>
     </div>
-
-</body>
+  </body>
 </html>
