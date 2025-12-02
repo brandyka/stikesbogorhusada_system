@@ -34,7 +34,7 @@
       }
     </style>
   </head>
-  <body class="bg-gray-50">
+  <body class="bg-gray-50" data-cy="admin-layout">
     <div x-data="{ 
             sidebarOpen: window.innerWidth >= 1024,
             searchText: '',
@@ -87,7 +87,8 @@
             }
         }"
          @resize.window="sidebarOpen = window.innerWidth >= 1024"
-         class="relative flex min-h-screen">
+         class="relative flex min-h-screen"
+         data-cy="admin-mahasiswa-page">
       
       <!-- Overlay -->
       <div x-show="sidebarOpen && window.innerWidth < 1024" 
@@ -99,7 +100,8 @@
            x-transition:leave-start="opacity-100"
            x-transition:leave-end="opacity-0"
            class="fixed inset-0 z-30 bg-gray-900/40 lg:hidden" 
-           x-cloak>
+           x-cloak
+           data-cy="admin-overlay">
       </div>
 
       <!-- Sidebar -->
@@ -115,6 +117,7 @@
         class="fixed inset-y-0 left-0 z-40 w-64 p-4 flex flex-col overflow-y-auto shadow-xl
                lg:static lg:shadow-none sidebar-gradient"
         x-cloak
+        data-cy="admin-sidebar"
       >
         <div class="flex justify-between items-center mb-10 mt-2">
           <div class="flex items-center space-x-2">
@@ -124,20 +127,20 @@
               <p class="text-xs text-gray-500 mt-0.5">Sistem Akademik</p>
             </div>
           </div>
-          <button @click="sidebarOpen = false" class="lg:hidden text-gray-600 p-1 hover:text-amber-500 rounded-lg">
+          <button @click="sidebarOpen = false" class="lg:hidden text-gray-600 p-1 hover:text-amber-500 rounded-lg" data-cy="admin-sidebar-close">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
           </button>
         </div>
 
-        <nav class="flex-1 space-y-2">
-          <a href="{{ url_for('dashboard_admin') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+        <nav class="flex-1 space-y-2" data-cy="admin-sidebar-menu">
+          <a href="{{ url_for('dashboard_admin') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50" data-cy="admin-menu-dashboard">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
             </svg>
             <span>Utama</span>
           </a>
 
-          <a href="{{ url_for('admin_kelola_data') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500 text-white font-semibold shadow-lg shadow-amber-200/50 hover:bg-amber-600 transition duration-150">
+          <a href="{{ url_for('admin_kelola_data') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500 text-white font-semibold shadow-lg shadow-amber-200/50 hover:bg-amber-600 transition duration-150" data-cy="admin-menu-kelola-data">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
@@ -149,14 +152,14 @@
             <span>Kelola Data</span>
           </a>
 
-          <a href="{{ url_for('admin_kelola_jadwal') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+          <a href="{{ url_for('admin_kelola_jadwal') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50" data-cy="admin-menu-kelola-jadwal">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
             </svg>
             <span>Kelola Jadwal</span>
           </a>
 
-          <a href="{{ url_for('admin_kelola_akun') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+          <a href="{{ url_for('admin_kelola_akun') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50" data-cy="admin-menu-kelola-akun">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
@@ -169,7 +172,7 @@
             <span>Kelola Akun</span>
           </a>
 
-          <a href="{{ url_for('admin_kelola_bimbingan') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50">
+          <a href="{{ url_for('admin_kelola_bimbingan') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition duration-150 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50" data-cy="admin-menu-kelola-bimbingan">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
             </svg>
@@ -180,16 +183,17 @@
 
       <!-- Main Content -->
       <div class="flex-1 flex flex-col">
-        <header class="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 sm:px-8 py-4 flex justify-between items-center shadow-sm">
+        <header class="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 sm:px-8 py-4 flex justify-between items-center shadow-sm" data-cy="admin-header">
           <button @click.stop="sidebarOpen = !sidebarOpen" 
                   class="lg:hidden text-gray-600 p-2 hover:text-orange-500 rounded-lg transition"
-                  aria-label="Toggle menu">
+                  aria-label="Toggle menu"
+                  data-cy="admin-sidebar-toggle">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
               </svg>
           </button>
-          <h2 class="text-xl sm:text-2xl font-extrabold text-gray-800 hidden lg:block">Kelola Data Mahasiswa</h2>
-          <a href="{{ url_for('logout') }}" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold transition">
+          <h2 class="text-xl sm:text-2xl font-extrabold text-gray-800 hidden lg:block" data-cy="admin-mahasiswa-title">Kelola Data Mahasiswa</h2>
+          <a href="{{ url_for('logout') }}" class="flex items-center space-x-2 text-orange-500 hover:text-orange-600 font-semibold transition" data-cy="admin-logout">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
             </svg>
@@ -197,11 +201,11 @@
           </a>
         </header>
 
-        <main class="flex-1 p-4 sm:p-8 bg-gray-100">
+        <main class="flex-1 p-4 sm:p-8 bg-gray-100" data-cy="admin-mahasiswa-main">
           
           <div class="mb-8">
-            <h3 class="text-3xl font-extrabold text-gray-900 mb-1">Daftar Data Mahasiswa</h3>
-            <a href="{{ url_for('admin_kelola_data') }}" class="text-sm text-gray-500 hover:text-orange-500 hover:underline inline-flex items-center mt-1 transition">
+            <h3 class="text-3xl font-extrabold text-gray-900 mb-1" data-cy="admin-mahasiswa-heading">Daftar Data Mahasiswa</h3>
+            <a href="{{ url_for('admin_kelola_data') }}" class="text-sm text-gray-500 hover:text-orange-500 hover:underline inline-flex items-center mt-1 transition" data-cy="admin-mahasiswa-link-back">
               <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
               </svg>
@@ -210,7 +214,7 @@
           </div>
           
           <!-- Search and Filters -->
-          <div class="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0 gap-4">
+          <div class="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0 gap-4" data-cy="admin-mahasiswa-filters">
             
             <div class="flex flex-col sm:flex-row w-full md:w-auto space-y-3 sm:space-y-0 sm:space-x-3">
                 
@@ -220,6 +224,7 @@
                         x-model="searchText"
                         placeholder="Cari NIM atau Nama Mahasiswa..."
                         class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition duration-150"
+                        data-cy="admin-mahasiswa-filter-search"
                     />
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -228,20 +233,20 @@
                     </span>
                 </div>
                 
-                <select x-model="filterKelas" class="py-2 px-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition duration-150">
+                <select x-model="filterKelas" class="py-2 px-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition duration-150" data-cy="admin-mahasiswa-filter-kelas">
                     <template x-for="kelas in uniqueKelas" :key="kelas">
                         <option :value="kelas" x-text="'Kelas: ' + kelas"></option>
                     </template>
                 </select>
 
-                <select x-model="filterAngkatan" class="py-2 px-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition duration-150">
+                <select x-model="filterAngkatan" class="py-2 px-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition duration-150" data-cy="admin-mahasiswa-filter-angkatan">
                     <template x-for="angkatan in uniqueAngkatan" :key="angkatan">
                         <option :value="angkatan" x-text="'Angkatan: ' + angkatan"></option>
                     </template>
                 </select>
             </div>
             
-            <a href="{{ url_for('tambah_mahasiswa') }}" class="w-full md:w-auto bg-gradient-to-r from-orange-500 to-yellow-500 text-white font-semibold px-5 py-2.5 rounded-xl shadow-lg hover:shadow-xl transition duration-300 flex items-center justify-center space-x-2 transform hover:scale-[1.01]">
+            <a href="{{ url_for('tambah_mahasiswa') }}" class="w-full md:w-auto bg-gradient-to-r from-orange-500 to-yellow-500 text-white font-semibold px-5 py-2.5 rounded-xl shadow-lg hover:shadow-xl transition duration-300 flex items-center justify-center space-x-2 transform hover:scale-[1.01]" data-cy="admin-mahasiswa-button-add">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
               </svg>
@@ -250,38 +255,38 @@
           </div>
           
           <!-- Table -->
-          <div class="overflow-x-auto rounded-2xl shadow-xl border border-gray-100 bg-white">
-            <table class="min-w-full divide-y divide-gray-200">
+          <div class="overflow-x-auto rounded-2xl shadow-xl border border-gray-100 bg-white" data-cy="admin-mahasiswa-table-wrapper">
+            <table class="min-w-full divide-y divide-gray-200" data-cy="admin-mahasiswa-table">
               <thead class="bg-gray-50 border-b-2 border-gray-100">
                 <tr>
-                  <th scope="col" class="px-6 py-4 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">NIM</th>
-                  <th scope="col" class="px-6 py-4 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Nama Lengkap</th>
-                  <th scope="col" class="px-6 py-4 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Kelas</th>
-                  <th scope="col" class="px-6 py-4 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Angkatan</th>
-                  <th scope="col" class="px-6 py-4 text-center text-xs font-extrabold text-gray-600 uppercase tracking-wider actions-cell">Aksi</th>
+                  <th scope="col" class="px-6 py-4 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider" data-cy="admin-mahasiswa-table-header-nim">NIM</th>
+                  <th scope="col" class="px-6 py-4 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider" data-cy="admin-mahasiswa-table-header-nama">Nama Lengkap</th>
+                  <th scope="col" class="px-6 py-4 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider" data-cy="admin-mahasiswa-table-header-kelas">Kelas</th>
+                  <th scope="col" class="px-6 py-4 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider" data-cy="admin-mahasiswa-table-header-angkatan">Angkatan</th>
+                  <th scope="col" class="px-6 py-4 text-center text-xs font-extrabold text-gray-600 uppercase tracking-wider actions-cell" data-cy="admin-mahasiswa-table-header-aksi">Aksi</th>
                 </tr>
               </thead>
 
               <tbody class="bg-white divide-y divide-gray-100">
                 <template x-for="mhs in filteredMahasiswa" :key="mhs.nim">
-                    <tr class="hover:bg-blue-50 transition ease-in-out duration-150">
-                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" x-text="mhs.nim"></td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800" x-text="mhs.nama"></td>
+                    <tr class="hover:bg-blue-50 transition ease-in-out duration-150" data-cy="admin-mahasiswa-row">
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" x-text="mhs.nim" data-cy="admin-mahasiswa-cell-nim"></td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800" x-text="mhs.nama" data-cy="admin-mahasiswa-cell-nama"></td>
                       
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600" data-cy="admin-mahasiswa-cell-kelas">
                         <span class="bg-gray-100 text-gray-700 py-1 px-3 rounded-full text-xs font-bold border border-gray-200"
                             x-text="mhs.nama_kelas"
                         ></span>
                       </td>
 
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600" data-cy="admin-mahasiswa-cell-angkatan">
                          <span class="bg-gray-100 text-gray-700 py-1 px-3 rounded-full text-xs font-bold border border-gray-200"
                             x-text="mhs.tahun"
                         ></span>
                       </td>
 
-                      <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2 actions-cell">
-                        <a :href="mhs.editUrl" class="inline-flex text-blue-500 hover:text-blue-700 p-1.5 rounded-full hover:bg-blue-100 transition" title="Edit">
+                      <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2 actions-cell" data-cy="admin-mahasiswa-cell-aksi">
+                        <a :href="mhs.editUrl" class="inline-flex text-blue-500 hover:text-blue-700 p-1.5 rounded-full hover:bg-blue-100 transition" title="Edit" data-cy="admin-mahasiswa-button-edit">
                           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.536L16.732 3.732z"></path>
                           </svg>
@@ -289,7 +294,8 @@
                         <button @click="confirmDelete(mhs.nama, mhs.deleteUrl)" 
                                 type="button"
                                 class="inline-flex text-red-500 hover:text-red-700 p-1.5 rounded-full hover:bg-red-100 transition" 
-                                title="Hapus">
+                                title="Hapus"
+                                data-cy="admin-mahasiswa-button-delete">
                           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                           </svg>
@@ -297,7 +303,7 @@
                       </td>
                     </tr>
                 </template>
-                <tr x-show="filteredMahasiswa.length === 0" x-cloak>
+                <tr x-show="filteredMahasiswa.length === 0" x-cloak data-cy="admin-mahasiswa-empty-state">
                     <td colspan="5" class="px-6 py-10 text-center text-gray-500 font-medium">
                         <svg class="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
