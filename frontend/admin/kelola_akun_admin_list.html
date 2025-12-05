@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kelola Akun Admin | SBH Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Style tambahan Anda */
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <div class="flex-1 flex flex-col">
+      <header class="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 sm:px-8 py-4 flex justify-between items-center shadow-sm">
+        <h2 class="text-xl sm:text-2xl font-extrabold text-gray-800">Kelola Akun Admin</h2>
+        </header>
+
+      <main class="flex-1 p-4 sm:p-8 bg-gray-100">
+        <div class="mb-6 flex justify-between items-center">
+          <h3 class="text-2xl font-bold text-gray-900">Daftar Akun Admin Sistem</h3>
+          <a href="{{ url_for('tambah_akun_admin') }}" class="flex items-center space-x-2 bg-red-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-red-700 transition duration-200 shadow-md shadow-red-300/50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            <span>Tambah Akun Admin</span>
+          </a>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  ID Admin
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Nama Admin
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Username
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Password
+                </th>
+                <th scope="col" class="relative px-6 py-3">
+                  <span class="sr-only">Aksi</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              {% if daftar_akun %}
+              {% for akun in daftar_akun %}
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {{ akun.ID_Admin }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ akun.Nama }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ akun.Username }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  ********* </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                  <a href="{{ url_for('edit_akun_admin', username=akun.Username) }}" class="text-indigo-600 hover:text-indigo-900">Edit</a>
+                  <a 
+                    href="{{ url_for('hapus_akun_admin', username=akun.Username) }}" 
+                    onclick="return confirm('Apakah Anda yakin ingin menghapus akun {{ akun.Username }}? Tindakan ini tidak dapat dibatalkan.');"
+                    class="text-red-600 hover:text-red-900"
+                  >
+                    Hapus
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+              {% else %}
+              <tr>
+                <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                  Belum ada akun admin yang terdaftar.
+                </td>
+              </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

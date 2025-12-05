@@ -2414,7 +2414,7 @@ def dashboard_admin():
         
        
         try:
-            cursor.execute("SELECT COUNT(*) AS total FROM permintaan_jadwal WHERE status = 'Pending'")
+            cursor.execute("SELECT COUNT(*) AS total FROM pertemuan WHERE status_pertemuan = 'Diajukan'")
             count_permintaan = cursor.fetchone()
             if count_permintaan:
                 counts['permintaan'] = count_permintaan['total']
@@ -2432,6 +2432,175 @@ def dashboard_admin():
     return render_template('admin/dashboard_admin.html', 
                            user=session['username'], 
                            counts=counts)
+
+@app.route('/dashboard/admin/requests')
+def request_admin():
+    """
+    Halaman untuk Admin melihat dan mengelola
+    permintaan perubahan jadwal (dari tabel 'pertemuan').
+    """
+    # ⚠️ Pengecekan role harus 'admin'
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+
+    conn = None
+    cursor = None
+    try:
+        conn = create_connection()
+        if not conn:
+            flash("Koneksi ke database gagal.", "error")
+            return redirect(url_for('dashboard_admin')) # Sesuaikan dengan URL dashboard admin Anda
+        cursor = conn.cursor(dictionary=True)
+
+        base_sql = """
+            SELECT 
+                p.id_pertemuan AS id_perubahan,
+                p.tanggal_asli,
+                p.alasan_perubahan,
+                p.tanggal AS tanggal_pengganti,
+                TIME_FORMAT(p.jam_mulai, '%H:%i') AS jam_mulai_pengganti_f,
+                TIME_FORMAT(p.jam_selesai, '%H:%i') AS jam_selesai_pengganti_f,
+                p.ruangan AS ruangan_pengganti,
+                p.status_pertemuan,
+                p.catatan_kaprodi,
+                p.created_at,
+                d.Nama AS nama_dosen,
+                mk.nama_matkul,
+                k.nama_kelas,
+                a.tahun AS angkatan_tahun,
+                j.hari AS hari_asli,
+                TIME_FORMAT(j.jam_mulai, '%H:%i') AS jam_mulai_asli_f,
+                TIME_FORMAT(j.jam_selesai, '%H:%i') AS jam_selai_asli_f,
+                j.ruangan AS ruangan_asli
+            FROM pertemuan p
+            JOIN jadwal j ON p.id_jadwal = j.id_jadwal
+            JOIN dosen d ON j.nip_dosen = d.NIP
+            JOIN matkul mk ON j.kd_mk = mk.kd_mk
+            JOIN kelas k ON j.id_kelas = k.id_kelas
+            JOIN angkatan a ON j.id_angkatan = a.id_angkatan
+        """
+
+        # Ambil daftar Diajukan
+        cursor.execute(f"{base_sql} WHERE p.status_pertemuan = 'Diajukan' ORDER BY p.created_at DESC")
+        pending_list = cursor.fetchall()
+        
+        # Ambil daftar Disetujui
+        cursor.execute(f"{base_sql} WHERE p.status_pertemuan = 'Disetujui' ORDER BY p.created_at DESC")
+        approved_list = cursor.fetchall()
+        
+        # Ambil daftar Ditolak
+        cursor.execute(f"{base_sql} WHERE p.status_pertemuan = 'Ditolak' ORDER BY p.created_at DESC")
+        rejected_list = cursor.fetchall()
+
+        # ⚠️ Render ke template yang sama atau sesuaikan jika ada template khusus admin
+        return render_template('admin/requests_admin.html', 
+                               pending_list=pending_list,
+                               approved_list=approved_list,
+                               rejected_list=rejected_list)
+
+    except Exception as e:
+        print(f"Error fetching admin requests: {e}")
+        flash(f"Terjadi error saat mengambil data permintaan: {e}", 'error')
+        return redirect(url_for('dashboard_admin')) # Sesuaikan dengan URL dashboard admin Anda
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+@app.route('/dashboard/admin/requests/approve/<int:id_perubahan>', methods=['POST'])
+def approve_request_admin(id_perubahan):
+    """
+    Endpoint untuk MENYETUJUI permintaan oleh Admin.
+    """
+    # ⚠️ Pengecekan role harus 'admin'
+    if session.get('role') != 'admin':
+        flash("Akses ditolak.", 'error')
+        return redirect(url_for('login'))
+
+    conn = None
+    cursor = None
+    try:
+        conn = create_connection()
+        if not conn:
+            flash("Koneksi ke database gagal.", "error")
+            return redirect(url_for('request_admin')) # Redirect ke halaman Admin
+        cursor = conn.cursor()
+        
+        # Query untuk update status dan status_absensi sama persis
+        cursor.execute("UPDATE pertemuan SET status_pertemuan = 'Disetujui', status_absensi = 'ditutup' WHERE id_pertemuan = %s", (id_perubahan,))
+        conn.commit()
+        
+        flash("Permintaan perubahan jadwal telah disetujui.", 'success')
+        
+        # TODO: Kirim notifikasi ke Dosen dan Mahasiswa di sini
+        
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        print(f"Error approving request by admin: {e}")
+        flash("Terjadi error saat menyetujui permintaan.", 'error')
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+            
+    return redirect(url_for('request_admin')) # Redirect ke halaman Admin
+
+@app.route('/dashboard/admin/requests/reject/<int:id_perubahan>', methods=['POST'])
+def reject_request_admin(id_perubahan):
+    """
+    Endpoint untuk MENOLAK permintaan oleh Admin.
+    """
+    # ⚠️ Pengecekan role harus 'admin'
+    if session.get('role') != 'admin':
+        flash("Akses ditolak.", 'error')
+        return redirect(url_for('login'))
+
+    conn = None
+    cursor = None
+    try:
+        # Mengambil catatan dari form POST
+        catatan = request.form.get('catatan_kaprodi') 
+        if not catatan:
+            flash("Alasan penolakan wajib diisi.", 'error')
+            return redirect(url_for('request_admin')) # Redirect ke halaman Admin
+
+        conn = create_connection()
+        if not conn:
+            flash("Koneksi ke database gagal.", "error")
+            return redirect(url_for('request_admin')) # Redirect ke halaman Admin
+        cursor = conn.cursor()
+        
+        # Query untuk update status dan catatan sama persis
+        cursor.execute(
+            "UPDATE pertemuan SET status_pertemuan = 'Ditolak', catatan_kaprodi = %s WHERE id_pertemuan = %s", 
+            (catatan, id_perubahan)
+        )
+        conn.commit()
+        
+        flash("Permintaan perubahan jadwal telah ditolak.", 'success')
+        
+        # TODO: Kirim notifikasi ke Dosen
+        
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        print(f"Error rejecting request by admin: {e}")
+        flash("Terjadi error saat menolak permintaan.", 'error')
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+            
+    return redirect(url_for('request_admin')) # Redirect ke halaman Admin
+
+
 #================================= PAGE KELOLA DATA =================================
 @app.route('/dashboard/admin/kelola-data')
 def admin_kelola_data():
@@ -2901,18 +3070,23 @@ def edit_kelas(id_kelas):
             conn = create_connection()
             cursor = conn.cursor()
 
-            cursor.execute("UPDATE kelas SET nama_kelas = %s,  WHERE id_kelas = %s",
-                           (nama_kelas_baru))
+            # --- CORRECTED LINE BELOW ---
+            # 1. Removed the extra comma after the first %s
+            # 2. Included both nama_kelas_baru and id_kelas in the tuple
+            cursor.execute("UPDATE kelas SET nama_kelas = %s WHERE id_kelas = %s",
+                           (nama_kelas_baru, id_kelas))
             
             conn.commit()
             
         except Exception as e:
             print(f"Error updating data: {e}")
+            # Consider adding a flash message here for the user
         finally:
             cursor.close()
             conn.close()
             
             return redirect(url_for('admin_kelola_kelas'))
+# ... rest of the function (GET method) is fine
 
 
     try:
@@ -3465,6 +3639,199 @@ def edit_akun_kaprodi(username):
                            akun=akun_data,
                            daftar_kaprodi=daftar_kaprodi)
 
+# ======================================================
+# ---- ROUTE: Tambah Akun Admin
+# ======================================================
+@app.route('/dashboard/admin/kelola-akun/admin/tambah', methods=['GET', 'POST'])
+def tambah_akun_admin():
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+        
+    conn = create_connection()
+    cursor = conn.cursor() # Gunakan cursor standar untuk operasi INSERT/GET ID
+
+    if request.method == 'POST':
+        nama_admin = request.form['nama_admin'] # Nama dari tabel admin
+        username = request.form['username']
+        password = request.form['password']
+        
+        try:
+            # 1. Masukkan data ke tabel 'admin' untuk mendapatkan ID_Admin baru
+            # Asumsi: kolom Nama di tabel admin adalah nama lengkap admin
+            cursor.execute("INSERT INTO admin (Nama) VALUES (%s)", (nama_admin,))
+            
+            # Ambil ID_Admin yang baru saja dibuat (AI: Auto Increment)
+            # Metode ini tergantung pada driver database (misal, MySQL: LAST_INSERT_ID())
+            id_admin_baru = cursor.lastrowid 
+
+            # Jika berhasil mendapatkan ID_Admin
+            if id_admin_baru:
+                # 2. Masukkan data ke tabel 'akun' dengan id_admin yang terkait
+                # Pastikan nim_mahasiswa, nip_dosen, nip_kaprodi diset NULL/kosong
+                # Atau, hanya isi kolom yang relevan: Username, Password, id_admin
+                cursor.execute("""
+                    INSERT INTO akun (Username, Password, id_admin) 
+                    VALUES (%s, %s, %s)
+                """, (username, password, id_admin_baru))
+                
+                conn.commit()
+                # Redirect ke daftar akun admin setelah berhasil
+                return redirect(url_for('admin_akun_admin_list')) 
+            
+        except Exception as e:
+            print(f"Error inserting Admin account: {e}")
+            conn.rollback()
+            # Anda mungkin ingin menambahkan pesan error flash di sini
+            
+        finally:
+            cursor.close()
+            conn.close()
+            
+        return redirect(url_for('admin_akun_admin_list')) # Redirect ke halaman list dengan error/sukses
+    
+    # Bagian GET request: Tampilkan form tambah
+    try:
+        # Tidak ada data tambahan yang perlu diambil, hanya tampilkan form
+        return render_template('admin/tambah_akun_admin_form.html', 
+                                user=session['username'])
+    except Exception as e:
+        print(f"Error rendering form: {e}")
+        return "Terjadi error saat menampilkan form."
+    
+
+# ======================================================
+# ---- ROUTE 3: Daftar Akun Admin (READ)
+# ======================================================
+@app.route('/dashboard/admin/kelola-akun/admin')
+def admin_akun_admin_list():
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+    
+    try:
+        conn = create_connection()
+        cursor = conn.cursor(dictionary=True)
+        # JOIN antara tabel akun dan admin untuk menampilkan Nama lengkap
+        cursor.execute("""
+            SELECT 
+                a.Username, 
+                a.Password, -- *Sebaiknya jangan tampilkan password asli di sistem real*
+                d.Nama, 
+                d.ID_Admin
+            FROM akun a
+            INNER JOIN admin d ON a.id_admin = d.ID_Admin
+            WHERE a.id_admin IS NOT NULL
+            ORDER BY d.Nama ASC
+        """)
+        daftar_akun = cursor.fetchall()
+        
+        return render_template(
+            'admin/kelola_akun_admin_list.html', 
+            user=session['username'], 
+            daftar_akun=daftar_akun
+        )
+    except Exception as e:
+        print(f"Error reading admin account data: {e}")
+        return "Terjadi error saat mengambil data."
+    finally:
+        cursor.close()
+        conn.close()
+
+# ======================================================
+# ---- ROUTE 4: Edit Akun Admin (UPDATE)
+# ======================================================
+@app.route('/dashboard/admin/kelola-akun/admin/edit/<string:username>', methods=['GET', 'POST'])
+def edit_akun_admin(username):
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+        
+    conn = create_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    if request.method == 'POST':
+        # Ambil data dari form POST
+        new_password = request.form['password'] 
+        new_nama = request.form['nama_admin']
+        id_admin = request.form['id_admin'] # Hidden input field dari form
+        
+        try:
+            # 1. Update tabel akun (Password)
+            cursor.execute("UPDATE akun SET Password = %s WHERE Username = %s",
+                           (new_password, username))
+            
+            # 2. Update tabel admin (Nama)
+            cursor.execute("UPDATE admin SET Nama = %s WHERE ID_Admin = %s",
+                           (new_nama, id_admin))
+            
+            conn.commit()
+        except Exception as e:
+            print(f"Error updating Admin account: {e}")
+            conn.rollback()
+        finally:
+            cursor.close()
+            conn.close()
+            
+        return redirect(url_for('admin_akun_admin_list'))
+    
+    # GET request: Tampilkan form edit
+    try:
+        # Ambil data akun dan detail admin berdasarkan Username
+        cursor.execute("""
+            SELECT 
+                a.Username, a.Password, d.Nama, d.ID_Admin
+            FROM akun a
+            INNER JOIN admin d ON a.id_admin = d.ID_Admin
+            WHERE a.Username = %s
+        """, (username,))
+        akun_data = cursor.fetchone()
+        
+    except Exception as e:
+        print(f"Error fetching data for edit: {e}")
+        return "Error mengambil data."
+    finally:
+        cursor.close()
+        conn.close()
+        
+    if not akun_data:
+        return "Akun Admin tidak ditemukan.", 404
+        
+    return render_template('admin/edit_akun_admin_form.html', 
+                           user=session['username'], 
+                           akun=akun_data)
+
+# ======================================================
+# ---- ROUTE 5: Hapus Akun Admin (DELETE)
+# ======================================================
+@app.route('/dashboard/admin/kelola-akun/admin/hapus/<string:username>')
+def hapus_akun_admin(username):
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+    
+    conn = create_connection()
+    cursor = conn.cursor()
+    
+    try:
+        # 1. Ambil ID_Admin terkait sebelum dihapus
+        cursor.execute("SELECT id_admin FROM akun WHERE Username = %s", (username,))
+        result = cursor.fetchone()
+        if not result:
+             return "Akun tidak ditemukan.", 404
+        id_admin_to_delete = result[0]
+        
+        # 2. Hapus dari tabel akun (karena akun memiliki FK ke admin)
+        cursor.execute("DELETE FROM akun WHERE Username = %s", (username,))
+        
+        # 3. Hapus dari tabel admin
+        cursor.execute("DELETE FROM admin WHERE ID_Admin = %s", (id_admin_to_delete,))
+        
+        conn.commit()
+    except Exception as e:
+        print(f"Error deleting Admin account: {e}")
+        conn.rollback()
+    finally:
+        cursor.close()
+        conn.close()
+        
+    return redirect(url_for('admin_akun_admin_list'))
 #============================ PAGE BIMBINGAN ==================================
 
 @app.route('/dashboard/admin/kelola-bimbingan')
@@ -3505,7 +3872,7 @@ def admin_kelola_bimbingan():
     )
 
 # ======================================================
-# ---- ROUTE 2: Detail mahasiswa bimbingan per dosen
+# ---- ROUTE 2: Detail mahasiswa bimbingan per dosen (SUDAH DIPERBAIKI)
 # ======================================================
 @app.route('/dashboard/admin/kelola-bimbingan/<nip>')
 def admin_kelola_mahasiswa_bimbingan(nip):
@@ -3524,7 +3891,7 @@ def admin_kelola_mahasiswa_bimbingan(nip):
 
         # Mahasiswa yang dibimbing dosen ini
         cursor.execute("""
-            SELECT 
+            SELECT
                 b.id_bimbingan,
                 m.NIM,
                 m.Nama,
@@ -3537,18 +3904,20 @@ def admin_kelola_mahasiswa_bimbingan(nip):
         """, (nip,))
         mhs_bimbingan = cursor.fetchall()
 
-        # Mahasiswa yang BELUM dibimbing dosen ini
+        # Mahasiswa yang BELUM dibimbing oleh DOSEN MANAPUN (PERBAIKAN ADA DI SINI)
+        # Mahasiswa yang NIM-nya sudah ada di tabel bimbingan tidak akan dimasukkan ke daftar ini.
         cursor.execute("""
-            SELECT 
-                NIM, 
-                Nama, 
+            SELECT
+                NIM,
+                Nama,
                 id_angkatan
             FROM mahasiswa
             WHERE NIM NOT IN (
-                SELECT NIM FROM bimbingan WHERE NIP = %s
+                SELECT NIM FROM bimbingan -- **INI YANG DIPERBAIKI**
             )
             ORDER BY Nama;
-        """, (nip,))
+        """)
+        # Karena query sudah tidak menggunakan %s, tuple (nip,) dihilangkan.
         mahasiswa_tersedia = cursor.fetchall()
 
     except Exception as e:
@@ -3564,8 +3933,6 @@ def admin_kelola_mahasiswa_bimbingan(nip):
         mhs_bimbingan=mhs_bimbingan,
         mahasiswa_tersedia=mahasiswa_tersedia
     )
-
-
 # ======================================================
 # ---- API CREATE BIMBINGAN
 # ======================================================
@@ -3627,22 +3994,35 @@ def delete_bimbingan(id_bimbingan):
     cursor = db.cursor()
 
     try:
+        # --- LANGKAH PENTING: Hapus semua data anak (child) terlebih dahulu ---
+        # Data permintaan_bimbingan memiliki FOREIGN KEY ke bimbingan.
+        # Jika data anak tidak dihapus, data induk tidak bisa dihapus.
+        print(f"Menghapus permintaan bimbingan untuk id_bimbingan: {id_bimbingan}")
+        cursor.execute("DELETE FROM permintaan_bimbingan WHERE id_bimbingan = %s", (id_bimbingan,))
+        
+        # --- LANGKAH 2: Hapus data induk (parent) ---
+        # Setelah semua referensi di tabel anak dihapus, operasi ini akan berhasil.
+        print(f"Menghapus data bimbingan untuk id_bimbingan: {id_bimbingan}")
         cursor.execute("DELETE FROM bimbingan WHERE id_bimbingan = %s", (id_bimbingan,))
+        
+        # Commit transaksi
         db.commit()
 
         if cursor.rowcount > 0:
             return jsonify({'success': True, 'message': 'Berhasil dihapus'}), 200
         else:
+            # Mengembalikan status 404 jika ID bimbingan tidak ditemukan
             return jsonify({'success': False, 'message': 'ID tidak ditemukan'}), 404
 
     except Exception as e:
-        print("Delete Error:", e)
+        # Cetak error yang lebih informatif ke console server
+        print(f"Delete Error (id={id_bimbingan}): {e}")
         db.rollback()
+        # Mengembalikan status 500 jika terjadi kesalahan database lainnya
         return jsonify({'success': False, 'message': 'Database error'}), 500
     finally:
         cursor.close()
         db.close()
-
 
 #========================== PAGE KELOLA JADWAL ==========================================
 @app.route('/dashboard/admin/kelola-jadwal')

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit Akun Admin | SBH Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Style tambahan Anda */
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <div class="flex-1 flex flex-col">
+      <header class="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 sm:px-8 py-4 flex justify-between items-center shadow-sm">
+        <h2 class="text-xl sm:text-2xl font-extrabold text-gray-800">Edit Akun Admin</h2>
+        </header>
+
+      <main class="flex-1 p-4 sm:p-8 bg-gray-100">
+        <div class="mb-6 flex justify-between items-center">
+          <h3 class="text-2xl font-bold text-gray-900">Edit Kredensial Admin: {{ akun.Nama }}</h3>
+          <a href="{{ url_for('admin_akun_admin_list') }}" class="flex items-center text-sm font-medium text-gray-600 hover:text-red-600 transition">
+            &larr; Kembali ke Daftar Admin
+          </a>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-lg max-w-lg mx-auto">
+          <form method="POST" action="{{ url_for('edit_akun_admin', username=akun.Username) }}">
+            
+            <input type="hidden" name="id_admin" value="{{ akun.ID_Admin }}" required>
+            
+            <div class="mb-4">
+              <label for="nama_admin" class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap Admin</label>
+              <input 
+                type="text" 
+                id="nama_admin" 
+                name="nama_admin" 
+                value="{{ akun.Nama }}"
+                required 
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
+              />
+              <p class="text-xs text-gray-500 mt-1">Mengubah nama di tabel `admin`.</p>
+            </div>
+            
+            <div class="mb-4">
+              <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username (Primary Key)</label>
+              <input 
+                type="text" 
+                id="username" 
+                name="username_readonly" 
+                value="{{ akun.Username }}"
+                readonly
+                class="w-full px-4 py-2 border border-gray-200 bg-gray-50 rounded-lg cursor-not-allowed"
+              />
+              <p class="text-xs text-gray-500 mt-1">Username tidak dapat diubah setelah dibuat.</p>
+            </div>
+
+            <div class="mb-6">
+              <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password Baru (Kosongkan jika tidak ingin diubah)</label>
+              <input 
+                type="password" 
+                id="password" 
+                name="password" 
+                placeholder="Masukkan password baru"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
+              />
+               <p class="text-xs text-gray-500 mt-1 text-red-500">Pastikan Anda memasukkan password baru atau mengulang password lama.</p>
+            </div>
+
+            <button 
+              type="submit" 
+              class="w-full bg-red-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-red-700 transition duration-200 shadow-md shadow-red-300/50"
+            >
+              Simpan Perubahan Akun
+            </button>
+          </form>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
