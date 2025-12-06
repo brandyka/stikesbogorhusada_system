@@ -118,10 +118,10 @@
           </a>
         </header>
 
-        <main class="flex-1 p-4 sm:p-8 bg-gray-100">
+        <main class="flex-1 p-4 sm:p-8 bg-gray-100 space-y-6">
           <!-- Flash Messages (Logika Asli, Styling Baru) -->
           {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %}
-          <div class="mb-6 space-y-2">
+          <div class="mb-2 space-y-2">
             {% for category, message in messages %} {% if category == 'success' %}
             <div class="rounded-xl bg-green-50 p-4 border border-green-200 flex items-center">
               <i class="fas fa-check-circle text-green-500 mr-2"></i>
@@ -256,6 +256,48 @@
                   {% endif %}
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-8">
+            <h3 class="text-lg sm:text-xl font-extrabold text-gray-900 mb-4 flex items-center">
+              <i class="far fa-clock text-amber-500 mr-2"></i>
+              Perubahan &amp; Pertemuan Pengganti Mendatang
+            </h3>
+
+            <div class="overflow-x-auto">
+              {% if perubahan_list %}
+              <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Mata Kuliah</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Jadwal Asli</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Jadwal Pengganti</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-extrabold text-gray-600 uppercase tracking-wider">Dosen</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100">
+                  {% for p in perubahan_list %}
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{{ p.nama_matkul }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                      <p class="font-medium">{{ p.hari_asli }}</p>
+                      <p class="text-xs text-gray-600">{{ p.jam_mulai_asli_f }} - {{ p.jam_selesai_asli_f }}</p>
+                      <p class="text-xs text-gray-500 mt-1">Ruang: {{ p.ruangan_asli }}</p>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-700 font-semibold">
+                      <p class="text-xs sm:text-sm">➜ {{ p.tanggal_pengganti.strftime('%d %b %Y') }}</p>
+                      <p class="text-xs">{{ p.jam_mulai_pengganti_f }} - {{ p.jam_selesai_pengganti_f }}</p>
+                      <p class="text-xs mt-1">Ruang: {{ p.ruangan_pengganti }}</p>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ p.nama_dosen }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              {% else %}
+              <p class="text-sm text-gray-500 text-center py-4">Tidak ada perubahan jadwal yang disetujui untuk saat ini.</p>
+              {% endif %}
             </div>
           </div>
         </main>
