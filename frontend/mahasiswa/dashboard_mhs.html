@@ -51,7 +51,7 @@
         </div>
 
         <nav class="flex-1 space-y-2">
-            {% set page = active_page | default('beranda') %}
+          	{% set page = active_page | default('beranda') %}
             
           <a href="{{ url_for('dashboard_mahasiswa') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl {% if page == 'beranda' %}bg-amber-500 text-white font-semibold shadow-lg shadow-amber-200/50 hover:bg-amber-600{% else %}text-gray-700 hover:bg-amber-500 hover:text-white hover:shadow-lg hover:shadow-amber-200/50{% endif %} transition duration-150">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,7 +82,17 @@
 
         <div class="mt-8 border-t pt-4 border-gray-200">
           <div class="flex items-center space-x-3 mb-4 px-2">
-            <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 font-bold border border-amber-200">{{ data.Nama[0] | default('M') }}</div>
+            <div class="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-amber-100 border border-amber-200">
+                {% if data.foto %}
+                    <img 
+                        src="{{ url_for('static', filename='uploads/foto/' + data.foto) }}" 
+                        alt="Foto Profil" 
+                        class="w-full h-full object-cover"
+                    />
+                {% else %}
+                    <span class="text-amber-600 font-bold">{{ data.Nama[0] | default('M') }}</span>
+                {% endif %}
+            </div>
             <div class="overflow-hidden">
               <p class="font-semibold text-gray-800 text-sm truncate">{{ data.Nama | default('Mahasiswa') }}</p>
               <p class="text-xs text-gray-500 truncate">{{ data.NIM | default('-') }}</p>
@@ -134,13 +144,22 @@
 
             <div class="flex flex-col md:flex-row items-start md:space-x-8">
               <div class="flex-shrink-0 mb-6 md:mb-0">
-                <img
-                  src="https://preview.redd.it/joko-widodo-is-my-spirit-v0-9x89ydyu34gf1.jpeg?width=1080&auto=webp&s=3d3af72907af2bd9a1682748ec24a5ec8286d684"
-                  alt="Foto Profil Mahasiswa"
-                  class="w-32 h-32 rounded-full object-cover border-4 border-blue-300 shadow-md"
-                />
+                <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-300 shadow-md">
+                    {% if data.foto %}
+                        <img
+                            src="{{ url_for('static', filename='uploads/foto/' + data.foto) }}"
+                            alt="Foto Profil Mahasiswa"
+                            class="w-full h-full object-cover"
+                        />
+                    {% else %}
+                        <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                            <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                        </div>
+                    {% endif %}
+                </div>
               </div>
-
               <div class="flex-1">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-6">
                   <div>

@@ -146,11 +146,11 @@
               </div>
             </div>
 
-            <form method="POST" action="{{ url_for('tambah_mahasiswa') }}" class="bg-white rounded-2xl shadow-xl p-6 sm:p-8" data-cy="admin-mahasiswa-form-add">
+            <form method="POST" action="{{ url_for('tambah_mahasiswa') }}" class="bg-white rounded-2xl shadow-xl p-6 sm:p-8" data-cy="admin-mahasiswa-form-add" enctype="multipart/form-data">
               {% if messages %}
               <div
                 class="mb-6 p-4 rounded-xl border border-{{ messages.type }}-200
-                                     bg-{{ messages.type }}-50 text-{{ messages.type }}-800"
+                                       bg-{{ messages.type }}-50 text-{{ messages.type }}-800"
                 data-cy="admin-mahasiswa-add-alert"
               >
                 {{ messages.content }}
@@ -158,6 +158,7 @@
               {% endif %}
 
               <div class="space-y-6">
+                
                 <div>
                   <label for="nim" class="block text-sm font-bold text-gray-700 mb-2"> NIM <span class="text-red-500">*</span> </label>
                   <input
@@ -217,7 +218,19 @@
                   </select>
                   <p class="text-xs text-gray-500 mt-2">Pilih tahun masuk mahasiswa.</p>
                 </div>
-
+                
+                <div>
+                    <label for="foto" class="block text-sm font-bold text-gray-700 mb-2"> Foto Profil Mahasiswa </label>
+                    <input
+                        type="file"
+                        name="foto"
+                        id="foto"
+                        accept="image/jpeg,image/png,image/gif"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white appearance-none transition focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500"
+                        data-cy="admin-mahasiswa-input-foto"
+                    />
+                    <p class="text-xs text-gray-500 mt-2">Upload foto profil (JPG, PNG, atau GIF).</p>
+                </div>
                 <div class="pt-4">
                   <button
                     type="submit"

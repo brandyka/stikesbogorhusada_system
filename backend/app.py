@@ -10,6 +10,19 @@ frontend_path = os.path.join(os.path.dirname(__file__), '../frontend')
 app = Flask(__name__, template_folder=frontend_path)
 app.secret_key = "secret123"
 
+#FOTO MAHASISWA
+UPLOAD_FOLDER = 'static/uploads/foto' 
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+# Pastikan folder ada
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+# Fungsi bantuan untuk mengecek ekstensi file
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+#DOKUMEN PENELITIAN
 # Gunakan path yang sudah Anda definisikan:
 UPLOAD_FOLDER_PATH = 'static/dokumen_penelitian' 
 
@@ -76,16 +89,19 @@ def dashboard_mahasiswa():
         conn = create_connection()
         cursor = conn.cursor(dictionary=True)
         sql_query = """
-            SELECT 
-                m.NIM, m.Nama, 
-                m.id_kelas, m.id_angkatan,  -- Ambil ID untuk session
-                k.nama_kelas, 
-                a.tahun AS angkatan_tahun
-            FROM akun act
-            JOIN mahasiswa m ON act.nim_mahasiswa = m.NIM
-            LEFT JOIN kelas k ON m.id_kelas = k.id_kelas
-            LEFT JOIN angkatan a ON m.id_angkatan = a.id_angkatan
-            WHERE act.Username = %s
+             SELECT 
+                 m.NIM, 
+                 m.Nama, 
+                 m.foto,              -- TAMBAHKAN KOLOM FOTO DI SINI
+                 m.id_kelas, 
+                 m.id_angkatan, 
+                 k.nama_kelas, 
+                 a.tahun AS angkatan_tahun
+             FROM akun act
+             JOIN mahasiswa m ON act.nim_mahasiswa = m.NIM
+             LEFT JOIN kelas k ON m.id_kelas = k.id_kelas
+             LEFT JOIN angkatan a ON m.id_angkatan = a.id_angkatan
+             WHERE act.Username = %s
         """
         cursor.execute(sql_query, (username,))
         mahasiswa_data = cursor.fetchone()
@@ -112,7 +128,6 @@ def dashboard_mahasiswa():
             cursor.close()
         if conn:
             conn.close()
-
 #================================= PAGE JADWAL ==========================================
 from datetime import date, datetime
 # Asumsi create_connection, url_for, flash, render_template, dan session/request sudah diimport
@@ -2376,6 +2391,66 @@ def detail_monitoring_penelitian_kaprodi(id_penelitian):
             cursor.close()
         if conn:
             conn.close()
+
+# ======================== MONITORING JADWAL KAPRODI ========================
+
+@app.route('/dashboard/kaprodi/jadwal')
+def jadwal_kaprodi():
+    """
+    Halaman untuk Kaprodi melihat daftar seluruh jadwal perkuliahan 
+    (mengambil data dari tabel 'jadwal').
+    """
+    if session.get('role') != 'kaprodi':
+        return redirect(url_for('login'))
+
+    conn = None
+    cursor = None
+    try:
+        conn = create_connection()
+        if not conn:
+            flash("Koneksi ke database gagal.", "error")
+            return redirect(url_for('dashboard_kaprodi'))
+        cursor = conn.cursor(dictionary=True)
+
+        # Query SQL yang diperbarui: 
+        # 1. Menambahkan TIME_FORMAT() untuk jam.
+        # 2. Menambahkan ORDER BY FIELD() untuk pengurutan hari yang logis.
+        sql_query = """
+            SELECT 
+                j.id_jadwal, 
+                m.nama_matkul, 
+                d.Nama AS nama_dosen, 
+                k.nama_kelas, 
+                a.tahun AS angkatan_tahun, -- Diubah dari tahun_angkatan agar sesuai HTML
+                j.hari, 
+                TIME_FORMAT(j.jam_mulai, '%H:%i') AS jam_mulai_f,  -- Tambahan alias f
+                TIME_FORMAT(j.jam_selesai, '%H:%i') AS jam_selesai_f, -- Tambahan alias f
+                j.ruangan
+            FROM jadwal j
+            LEFT JOIN matkul m ON j.kd_mk = m.kd_mk
+            LEFT JOIN dosen d ON j.nip_dosen = d.NIP
+            LEFT JOIN kelas k ON j.id_kelas = k.id_kelas
+            LEFT JOIN angkatan a ON j.id_angkatan = a.id_angkatan
+            ORDER BY FIELD(j.hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'), j.jam_mulai
+        """
+        
+        cursor.execute(sql_query)
+        jadwal_list = cursor.fetchall()
+
+        return render_template('kaprodi/jadwal_kaprodi.html', 
+                               jadwal_list=jadwal_list)
+
+    except Exception as e:
+        print(f"Error fetching schedule data for Kaprodi: {e}")
+        flash(f"Terjadi error saat mengambil data jadwal: {e}", 'error')
+        return redirect(url_for('dashboard_kaprodi'))
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+# ===========================================================================
 #================================== ADMIN SECTION ==================================
 #===================================================================================
 @app.route('/dashboard/admin')
@@ -2705,7 +2780,7 @@ def edit_dosen(nip):
         cursor.close()
         conn.close()
 
-# KELOLA DATA MAHASISWA
+#Kelola Mahasiswa
 @app.route('/dashboard/admin/kelola-data/mahasiswa')
 def admin_kelola_mahasiswa():
     if session.get('role') == 'admin':
@@ -2719,8 +2794,9 @@ def admin_kelola_mahasiswa():
                 m.Nama, 
                 m.id_kelas, 
                 m.id_angkatan,
-                k.nama_kelas,   -- Data yang diperlukan
-                a.tahun         -- Data yang diperlukan
+                m.foto,              -- DATA FOTO BARU
+                k.nama_kelas, 
+                a.tahun 
             FROM mahasiswa m
             LEFT JOIN kelas k ON m.id_kelas = k.id_kelas
             LEFT JOIN angkatan a ON m.id_angkatan = a.id_angkatan;
@@ -2732,24 +2808,42 @@ def admin_kelola_mahasiswa():
             cursor.close()
             conn.close()
             return render_template('admin/kelola_mahasiswa_list.html', 
-                                     user=session['username'], 
-                                     daftar_mahasiswa=daftar_mahasiswa) 
+                                   user=session['username'], 
+                                   daftar_mahasiswa=daftar_mahasiswa) 
         
         except Exception as e:
             print(f"Error reading mahasiswa database: {e}")
             return "Terjadi error saat mengambil data."
     return redirect(url_for('login'))
 
+
+# ----------------------------------------------------------------------
+# # KELOLA DATA MAHASISWA (HAPUS)
+# ----------------------------------------------------------------------
 @app.route('/dashboard/admin/kelola-data/mahasiswa/hapus/<string:nim>')
 def hapus_mahasiswa(nim):
     if session.get('role') != 'admin':
         return redirect(url_for('login'))
     
+    conn = create_connection()
+    cursor = conn.cursor()
+    
     try:
-        conn = create_connection()
-        cursor = conn.cursor()
+        # 1. Ambil nama file foto yang terkait
+        cursor.execute("SELECT foto FROM mahasiswa WHERE NIM = %s", (nim,))
+        result = cursor.fetchone()
+        foto_to_delete = result[0] if result and result[0] else None 
+        
+        # 2. Hapus file foto dari server (jika ada)
+        if foto_to_delete:
+            filepath = os.path.join(UPLOAD_FOLDER, foto_to_delete)
+            if os.path.exists(filepath):
+                os.remove(filepath)
+                
+        # 3. Hapus data dari database
         cursor.execute("DELETE FROM mahasiswa WHERE NIM = %s", (nim,)) 
         conn.commit()
+        
     except Exception as e:
         print(f"Error deleting data: {e}")
     finally:
@@ -2758,9 +2852,9 @@ def hapus_mahasiswa(nim):
     return redirect(url_for('admin_kelola_mahasiswa')) 
 
 
-
-# KELOLA DATA MAHASISWA
-
+# ----------------------------------------------------------------------
+# # KELOLA DATA MAHASISWA (TAMBAH)
+# ----------------------------------------------------------------------
 @app.route('/dashboard/admin/kelola-data/mahasiswa/tambah', methods=['GET', 'POST'])
 def tambah_mahasiswa():
     if session.get('role') != 'admin':
@@ -2769,67 +2863,118 @@ def tambah_mahasiswa():
     conn = create_connection()
     cursor = conn.cursor(dictionary=True)
 
-
     try:
         cursor.execute("SELECT id_kelas, nama_kelas FROM kelas")
         kelas_list = cursor.fetchall()
-
         cursor.execute("SELECT id_angkatan, tahun FROM angkatan")
         angkatan_list = cursor.fetchall()
     except Exception as e:
         print(f"Error fetching dropdown data: {e}")
         kelas_list = []
         angkatan_list = []
-    
- 
+
     if request.method == 'POST':
         nim_baru = request.form['nim']
         nama_baru = request.form['nama']
-  
         id_kelas_baru = request.form['id_kelas']
         id_angkatan_baru = request.form['id_angkatan']
         
+        foto_filename = None
+        
+        # 1. Menangani File Upload
+        if 'foto' in request.files:
+            file = request.files['foto']
+            if file.filename != '' and allowed_file(file.filename):
+                ext = file.filename.rsplit('.', 1)[1].lower()
+                foto_filename = f"{nim_baru}.{ext}" # Penamaan file menggunakan NIM
+                filepath = os.path.join(UPLOAD_FOLDER, foto_filename)
+                
+                file.save(filepath)
+            
         try:
-
-            cursor.execute("INSERT INTO mahasiswa (NIM, Nama, id_kelas, id_angkatan) VALUES (%s, %s, %s, %s)", 
-                           (nim_baru, nama_baru, id_kelas_baru, id_angkatan_baru))
+            # 2. Modifikasi Query INSERT untuk menyertakan kolom foto
+            sql_insert = "INSERT INTO mahasiswa (NIM, Nama, id_kelas, id_angkatan, foto) VALUES (%s, %s, %s, %s, %s)"
+            cursor.execute(sql_insert, 
+                           (nim_baru, nama_baru, id_kelas_baru, id_angkatan_baru, foto_filename))
             
             conn.commit()
             
         except Exception as e:
             print(f"Error inserting data: {e}")
-
-            
+            # Rollback foto jika insert gagal
+            if foto_filename and os.path.exists(os.path.join(UPLOAD_FOLDER, foto_filename)):
+                os.remove(os.path.join(UPLOAD_FOLDER, foto_filename))
         finally:
             cursor.close()
             conn.close()
-
             return redirect(url_for('admin_kelola_mahasiswa')) 
             
-
     cursor.close()
     conn.close()
     return render_template('admin/tambah_mahasiswa_form.html', 
                            user=session['username'],
-                           kelas_list=kelas_list,      
+                           kelas_list=kelas_list, 
                            angkatan_list=angkatan_list 
-                          )
+                         )
 
+
+# ----------------------------------------------------------------------
+# # KELOLA DATA MAHASISWA (EDIT)
+# ----------------------------------------------------------------------
 @app.route('/dashboard/admin/kelola-data/mahasiswa/edit/<string:nim>', methods=['GET', 'POST'])
 def edit_mahasiswa(nim):
     if session.get('role') != 'admin':
         return redirect(url_for('login'))
+
+    conn = create_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Ambil daftar kelas dan angkatan untuk dropdown
+    try:
+        cursor.execute("SELECT id_kelas, nama_kelas FROM kelas")
+        kelas_list = cursor.fetchall()
+        cursor.execute("SELECT id_angkatan, tahun FROM angkatan")
+        angkatan_list = cursor.fetchall()
+    except Exception as e:
+        print(f"Error fetching dropdown data for edit: {e}")
+        kelas_list = []
+        angkatan_list = []
+
 
     if request.method == 'POST':
         nama_baru = request.form['nama']
         id_kelas_baru = request.form['id_kelas']
         id_angkatan_baru = request.form['id_angkatan']
         
+        # 1. Ambil data foto lama
+        cursor.execute("SELECT foto FROM mahasiswa WHERE NIM = %s", (nim,))
+        mahasiswa_lama = cursor.fetchone()
+        foto_lama = mahasiswa_lama['foto'] if mahasiswa_lama else None
+        foto_filename = foto_lama # Default: pertahankan foto lama
+
+        # 2. Menangani File Upload Baru
+        if 'foto' in request.files:
+            file = request.files['foto']
+            if file.filename != '' and allowed_file(file.filename):
+                
+                # Hapus foto lama di server jika ada foto baru diupload
+                if foto_lama and os.path.exists(os.path.join(UPLOAD_FOLDER, foto_lama)):
+                    try:
+                        os.remove(os.path.join(UPLOAD_FOLDER, foto_lama))
+                    except Exception as e:
+                        print(f"Error deleting old photo: {e}")
+
+                # Simpan foto baru
+                ext = file.filename.rsplit('.', 1)[1].lower()
+                foto_filename = f"{nim}.{ext}"
+                filepath = os.path.join(UPLOAD_FOLDER, foto_filename)
+                file.save(filepath)
+                
         try:
-            conn = create_connection()
-            cursor = conn.cursor()
-            cursor.execute("UPDATE mahasiswa SET Nama = %s, id_kelas = %s, id_angkatan = %s WHERE NIM = %s",
-                           (nama_baru, id_kelas_baru, id_angkatan_baru, nim))
+            # 3. Modifikasi Query UPDATE untuk menyertakan kolom foto
+            sql_update = "UPDATE mahasiswa SET Nama = %s, id_kelas = %s, id_angkatan = %s, foto = %s WHERE NIM = %s"
+            cursor.execute(sql_update,
+                           (nama_baru, id_kelas_baru, id_angkatan_baru, foto_filename, nim))
             conn.commit()
             
         except Exception as e:
@@ -2839,26 +2984,31 @@ def edit_mahasiswa(nim):
             conn.close()
             
         return redirect(url_for('admin_kelola_mahasiswa'))
-    try:
-        conn = create_connection()
-        cursor = conn.cursor(dictionary=True) 
         
+    # BAGIAN GET (Menampilkan Form Edit)
+    try:
         cursor.execute("SELECT * FROM mahasiswa WHERE NIM = %s", (nim,))
         mahasiswa_data = cursor.fetchone() 
         
         if not mahasiswa_data:
+            cursor.close()
+            conn.close()
             return "Data Mahasiswa tidak ditemukan.", 404
             
         return render_template('admin/edit_mahasiswa_form.html', 
                                user=session['username'], 
-                               mahasiswa=mahasiswa_data) 
+                               mahasiswa=mahasiswa_data,
+                               kelas_list=kelas_list,
+                               angkatan_list=angkatan_list) 
         
     except Exception as e:
         print(f"Error fetching data for edit: {e}")
         return "Terjadi error saat mengambil data."
     finally:
-        cursor.close()
-        conn.close()
+        # Pastikan koneksi ditutup jika bukan request POST
+        if not conn.close:
+            cursor.close()
+            conn.close()
 
 # KELOLA MATAKULIAH
 @app.route('/dashboard/admin/kelola-data/matakuliah')

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring Jadwal Perkuliahan - Kaprodi</title>
+    
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/dataTables.bootstrap4.min.css">
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container-fluid {
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">🗓️ Monitoring Jadwal Perkuliahan</h1>
+        <a href="{{ url_for('dashboard_kaprodi') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kembali ke Dashboard
+        </a>
+    </div>
+
+    {# --- FLASH MESSAGES (Pesan dari backend) --- #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    {# ------------------------------------------- #}
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Daftar Seluruh Jadwal Aktif</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Hari</th>
+                            <th>Jam</th>
+                            <th>Mata Kuliah</th>
+                            <th>Dosen Pengampu</th>
+                            <th>Kelas</th>
+                            <th>Angkatan</th>
+                            <th>Ruangan</th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                            <th>No.</th>
+                            <th>Hari</th>
+                            <th>Jam</th>
+                            <th>Mata Kuliah</th>
+                            <th>Dosen Pengampu</th>
+                            <th>Kelas</th>
+                            <th>Angkatan</th>
+                            <th>Ruangan</th>
+                        </tr>
+                    </tfoot>
+                    <tbody>
+                        {# Lakukan perulangan (loop) pada list jadwal yang dikirim dari backend #}
+                        {% for jadwal in jadwal_list %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>**{{ jadwal.hari }}**</td>
+                            <td>**{{ jadwal.jam_mulai_f }} - {{ jadwal.jam_selesai_f }}**</td>
+                            <td>{{ jadwal.nama_matkul }}</td>
+                            <td>{{ jadwal.nama_dosen }}</td>
+                            <td>{{ jadwal.nama_kelas }}</td>
+                            <td>{{ jadwal.angkatan_tahun }}</td>
+                            <td>**{{ jadwal.ruangan }}**</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center">Tidak ada data jadwal yang ditemukan.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.21/js/dataTables.bootstrap4.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        $('#dataTable').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.21/i18n/Indonesian.json" // Menggunakan bahasa Indonesia
+            },
+            "order": [[1, "asc"]] // Urutkan default berdasarkan kolom Hari (index 1)
+        });
+    });
+</script>
+
+</body>
+</html>

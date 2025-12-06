@@ -143,7 +143,13 @@
               </div>
             </div>
 
-            <form method="POST" action="{{ url_for('edit_mahasiswa', nim=mahasiswa.NIM) }}" class="bg-white rounded-2xl shadow-xl p-6 sm:p-8" data-cy="admin-mahasiswa-form-edit">
+            <form 
+                method="POST" 
+                action="{{ url_for('edit_mahasiswa', nim=mahasiswa.NIM) }}" 
+                class="bg-white rounded-2xl shadow-xl p-6 sm:p-8" 
+                data-cy="admin-mahasiswa-form-edit"
+                enctype="multipart/form-data" 
+            >
               {% if messages %}
               <div class="mb-6 p-4 rounded-xl border border-{{ messages.type }}-200 bg-{{ messages.type }}-50 text-{{ messages.type }}-800" data-cy="admin-mahasiswa-edit-alert">{{ messages.content }}</div>
               {% endif %}
@@ -171,36 +177,67 @@
 
                 <div>
                   <label for="id_kelas" class="block text-sm font-bold text-gray-700 mb-2">ID Kelas <span class="text-red-500">*</span></label>
-                  <input
-                    type="text"
-                    name="id_kelas"
-                    id="id_kelas"
-                    value="{{ mahasiswa.id_kelas if mahasiswa.id_kelas is not none else '' }}"
-                    required
-                    placeholder="Contoh: A-2B atau 2024/Gizi/A"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-xl transition duration-150 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500"
-                    data-cy="admin-mahasiswa-input-kelas"
-                  />
+                  <select 
+                      name="id_kelas" 
+                      id="id_kelas" 
+                      required 
+                      class="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white appearance-none transition focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500"
+                      data-cy="admin-mahasiswa-select-kelas"
+                  >
+                      <option value="">Pilih Kelas</option>
+                      {% for k in kelas_list %}
+                          <option value="{{ k.id_kelas }}" {% if k.id_kelas|string == mahasiswa.id_kelas|string %}selected{% endif %}>
+                              {{ k.nama_kelas }}
+                          </option>
+                      {% endfor %}
+                  </select>
                   <p class="text-xs text-gray-500 mt-2">Pastikan ID Kelas sesuai dengan data terbaru.</p>
                 </div>
 
                 <div>
                   <label for="id_angkatan" class="block text-sm font-bold text-gray-700 mb-2">ID Angkatan (Tahun Masuk) <span class="text-red-500">*</span></label>
-                  <input
-                    type="number"
-                    name="id_angkatan"
-                    id="id_angkatan"
-                    value="{{ mahasiswa.id_angkatan if mahasiswa.id_angkatan is not none else '' }}"
-                    required
-                    placeholder="Contoh: 2024"
-                    min="2000"
-                    max="2100"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-xl transition duration-150 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500"
-                    data-cy="admin-mahasiswa-input-angkatan"
-                  />
+                   <select 
+                      name="id_angkatan" 
+                      id="id_angkatan" 
+                      required 
+                      class="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white appearance-none transition focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500"
+                      data-cy="admin-mahasiswa-select-angkatan"
+                  >
+                      <option value="">Pilih Tahun Angkatan</option>
+                      {% for a in angkatan_list %}
+                          <option value="{{ a.id_angkatan }}" {% if a.id_angkatan|string == mahasiswa.id_angkatan|string %}selected{% endif %}>
+                              {{ a.tahun }}
+                          </option>
+                      {% endfor %}
+                  </select>
                   <p class="text-xs text-gray-500 mt-2">Masukkan tahun masuk mahasiswa (mis. 2023).</p>
                 </div>
+                
+                <div>
+                    <label for="foto" class="block text-sm font-bold text-gray-700 mb-2"> Foto Profil Mahasiswa </label>
+                    <input
+                        type="file"
+                        name="foto"
+                        id="foto"
+                        accept="image/jpeg,image/png,image/gif"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white appearance-none transition focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500"
+                        data-cy="admin-mahasiswa-input-foto"
+                    />
+                    <p class="text-xs text-gray-500 mt-2 mb-3">Pilih file baru untuk mengubah foto. Biarkan kosong jika tidak ingin mengubah.</p>
 
+                    {% if mahasiswa.foto %}
+                        <div class="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50 flex items-center space-x-4">
+                            <span class="text-sm font-medium text-gray-700">Foto Saat Ini:</span>
+                            <img 
+                                src="{{ url_for('static', filename='uploads/foto/' + mahasiswa.foto) }}" 
+                                alt="Foto Mahasiswa" 
+                                class="w-20 h-20 object-cover rounded-full shadow-md"
+                            />
+                        </div>
+                    {% else %}
+                        <p class="text-sm text-gray-500 mt-4">Belum ada foto profil yang diunggah.</p>
+                    {% endif %}
+                </div>
                 <div class="pt-4">
                   <button
                     type="submit"
